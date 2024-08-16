@@ -79,4 +79,25 @@ it('can retrieve data for editing the Service', function () {
         ]);
 });
 
+it('can save edited Service', function () {
+    $service = Service::factory()->create();
+    $newData = Service::factory()->make();
+
+    livewire(ServiceResource\Pages\EditService::class, [
+        'record' => $service->getRouteKey(),
+    ])
+        ->fillForm([
+            'name' => $newData->name,
+            'description' => $newData->description,
+            'price' => $newData->price,
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($service->refresh())
+        ->name->toBe($newData->name)
+        ->description->toBe($newData->description)
+        ->price->toBe($newData->price);
+});
+
 
