@@ -14,9 +14,11 @@ beforeEach(function () {
     );
 });
 
+
 it('can render page', function () {
     $this->get(ServiceResource::getUrl('index'))->assertSuccessful();
 });
+
 
 it('can list services', function () {
     $services = Service::factory()->count(10)->create();
@@ -25,9 +27,11 @@ it('can list services', function () {
         ->assertCanSeeTableRecords($services);
 });
 
+
 it('can render page for creating the Service', function () {
     $this->get(ServiceResource::getUrl('create'))->assertSuccessful();
 });
+
 
 it('can create a Service', function () {
     $newData = Service::factory()->make();
@@ -50,7 +54,8 @@ it('can create a Service', function () {
     ]);
 });
 
-it('can validate input', function () {
+
+it('can validate input to create the Service', function () {
     livewire(ServiceResource\Pages\CreateService::class)
         ->fillForm([
             'name' => null,
@@ -98,6 +103,24 @@ it('can save edited Service', function () {
         ->name->toBe($newData->name)
         ->description->toBe($newData->description)
         ->price->toBe($newData->price);
+});
+
+
+it('can validate input to edit the Service', function () {
+    $service = Service::factory()->create();
+
+    livewire(ServiceResource\Pages\EditService::class, [
+        'record' => $service->getRouteKey(),
+    ])
+        ->fillForm([
+            'name' => null,
+            'price' => null,
+        ])
+        ->call('save')
+        ->assertHasFormErrors([
+            'name' => 'required',
+            'price' => 'required',
+        ]);
 });
 
 
