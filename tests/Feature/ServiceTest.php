@@ -26,4 +26,29 @@ it('can list services', function () {
         ->assertCanSeeTableRecords($services);
 });
 
+it('can render page for creating a Service', function () {
+    $this->get(ServiceResource::getUrl('create'))->assertSuccessful();
+});
+
+it('can create a Service', function () {
+    $newData = Service::factory()->make();
+
+    livewire(ServiceResource\Pages\CreateService::class)
+        ->fillForm([
+            'name' => $newData->name,
+            'description' => $newData->description,
+            'start_date' => $newData->start_date,
+            'end_date' => $newData->end_date,
+            'price' => $newData->price,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $this->assertDatabaseHas(Service::class, [
+        'name' => $newData->name,
+        'description' => $newData->description,
+        'price' => $newData->price,
+    ]);
+});
+
 
