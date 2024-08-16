@@ -23,7 +23,18 @@ class ServiceResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\TextInput::make('name')
+                    ->label('Название услуги')
+                    ->maxLength(255)
+                    ->required(),
+                Forms\Components\TextInput::make('description')
+                    ->label('Description')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('price')
+                    //->formatStateUsing(fn (BrickMoney $state): string => $state->getMinorAmount()->toInt()/100) // BrickMoney::of($state, 'KZT')->formatTo(app()->getLocale()))
+                    ->label('Цена на одного человека')
+                    ->maxLength(18)
+                    ->required(),
             ]);
     }
 
