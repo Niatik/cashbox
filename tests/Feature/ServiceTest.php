@@ -1,9 +1,11 @@
 <?php
 
+
 use App\Filament\Resources\ServiceResource;
 use App\Models\Service;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Actions\DeleteAction;
 
 use function Pest\Livewire\livewire;
 
@@ -124,3 +126,13 @@ it('can validate input to edit the Service', function () {
 });
 
 
+it('can delete the Service', function () {
+    $service = Service::factory()->create();
+
+    livewire(ServiceResource\Pages\EditService::class, [
+        'record' => $service->getRouteKey(),
+    ])
+        ->callAction(DeleteAction::class);
+
+    $this->assertModelMissing($service);
+});
