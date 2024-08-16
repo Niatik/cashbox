@@ -5,7 +5,6 @@ use App\Models\Service;
 use App\Models\User;
 use Filament\Facades\Filament;
 
-use Livewire\Livewire;
 use function Pest\Livewire\livewire;
 
 
@@ -49,6 +48,16 @@ it('can create a Service', function () {
         'description' => $newData->description,
         'price' => $newData->price,
     ]);
+});
+
+it('can validate input', function () {
+    livewire(ServiceResource\Pages\CreateService::class)
+        ->fillForm([
+            'name' => null,
+            'price' => null,
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['name' => 'required', 'price' => 'required']);
 });
 
 
