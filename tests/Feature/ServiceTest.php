@@ -25,7 +25,7 @@ it('can list services', function () {
         ->assertCanSeeTableRecords($services);
 });
 
-it('can render page for creating a Service', function () {
+it('can render page for creating the Service', function () {
     $this->get(ServiceResource::getUrl('create'))->assertSuccessful();
 });
 
@@ -58,6 +58,25 @@ it('can validate input', function () {
         ])
         ->call('create')
         ->assertHasFormErrors(['name' => 'required', 'price' => 'required']);
+});
+
+it('can render page for editing the Service ', function () {
+    $this->get(ServiceResource::getUrl('edit', [
+        'record' => Service::factory()->create(),
+    ]))->assertSuccessful();
+});
+
+it('can retrieve data for editing the Service', function () {
+    $service = Service::factory()->create();
+
+    livewire(ServiceResource\Pages\EditService::class, [
+        'record' => $service->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'name' => $service->name,
+            'description' => $service->description,
+            'price' => $service->price,
+        ]);
 });
 
 
