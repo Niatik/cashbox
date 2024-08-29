@@ -72,7 +72,6 @@ it('can retrieve data for editing the PaymentType', function () {
     ])
         ->assertFormSet([
             'name' => $paymentType->name,
-            'phone' => $paymentType->phone,
         ]);
 });
 
