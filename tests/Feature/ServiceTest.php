@@ -4,8 +4,10 @@
 use App\Filament\Resources\ServiceResource;
 use App\Models\Service;
 use App\Models\User;
-use Filament\Facades\Filament;
 use Filament\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 
 use function Pest\Livewire\livewire;
 
@@ -27,6 +29,81 @@ it('can list services', function () {
 
     livewire(ServiceResource\Pages\ListServices::class)
         ->assertCanSeeTableRecords($services);
+});
+
+
+it('can render service columns', function () {
+    Service::factory()->count(10)->create();
+
+    livewire(ServiceResource\Pages\ListServices::class)
+        ->assertCanRenderTableColumn('name')
+        ->assertCanRenderTableColumn('description')
+        ->assertCanRenderTableColumn('price');
+});
+
+
+it('can search services by name', function () {
+    $services = Service::factory()->count(10)->create();
+
+    $name = $services->first()->name;
+
+    livewire(ServiceResource\Pages\ListServices::class)
+        ->searchTable($name)
+        ->assertCanSeeTableRecords($services->where('name', $name))
+        ->assertCanNotSeeTableRecords($services->where('name', '!=', $name));
+});
+
+
+it('can search services by description', function () {
+    $services = Service::factory()->count(10)->create();
+
+    $description = $services->first()->description;
+
+    livewire(ServiceResource\Pages\ListServices::class)
+        ->searchTable($description)
+        ->assertCanSeeTableRecords($services->where('description', $description))
+        ->assertCanNotSeeTableRecords($services->where('description', '!=', $description));
+});
+
+
+it('can bulk delete services from table', function () {
+    $services = Service::factory()->count(10)->create();
+
+    livewire(ServiceResource\Pages\ListServices::class)
+        ->callTableBulkAction(DeleteBulkAction::class, $services);
+
+    foreach ($services as $service) {
+        $this->assertModelMissing($service);
+    }
+});
+
+
+it('can delete services from table', function () {
+    $service = Service::factory()->create();
+
+    livewire(ServiceResource\Pages\ListServices::class)
+        ->callTableAction(TableDeleteAction::class, $service);
+
+    $this->assertModelMissing($service);
+});
+
+
+it('can edit services from table', function () {
+    $service = Service::factory()->create();
+    $newData = Service::factory()->make();
+
+    livewire(ServiceResource\Pages\ListServices::class)
+        ->callTableAction(EditAction::class, $service, data: [
+            'name' => $newData->name,
+            'description' => $newData->description,
+            'price' => $newData->price,
+        ])
+        ->assertHasNoTableActionErrors();
+
+    expect($service->refresh())
+        ->name->toBe($newData->name)
+        ->description->toBe($newData->description)
+        ->price->toBe($newData->price);
 });
 
 
