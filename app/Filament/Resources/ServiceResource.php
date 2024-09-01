@@ -19,6 +19,12 @@ class ServiceResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+
+    protected static ?string $label = '';
+    protected static ?string $pluralLabel = 'Услуги';
+    protected static ?string $navigationGroup = 'Справочники';
+
+
     public static function form(Form $form): Form
     {
         return $form
@@ -28,10 +34,9 @@ class ServiceResource extends Resource
                     ->maxLength(255)
                     ->required(),
                 Forms\Components\TextInput::make('description')
-                    ->label('Description')
+                    ->label('Описание')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('price')
-                    //->formatStateUsing(fn (BrickMoney $state): string => $state->getMinorAmount()->toInt()/100) // BrickMoney::of($state, 'KZT')->formatTo(app()->getLocale()))
                     ->label('Цена на одного человека')
                     ->maxLength(18)
                     ->required(),
@@ -42,17 +47,20 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('name')->label('Услуга')->searchable(),
+                Tables\Columns\TextColumn::make('description')->label('Описание')->searchable(),
+                Tables\Columns\TextColumn::make('price')->label('Цена'),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label('Удалить'),
                 ]),
             ]);
     }
