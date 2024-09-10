@@ -129,7 +129,7 @@ it('can create a Service', function () {
     $this->assertDatabaseHas(Service::class, [
         'name' => $newData->name,
         'description' => $newData->description,
-        'price' => $newData->price,
+        'price' => $newData->price * 100,
     ]);
 });
 

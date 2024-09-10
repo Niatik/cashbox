@@ -62,7 +62,7 @@ it('can create the Order', function () {
         'time_order' => $newData->time_order,
         'people_number' => $newData->people_number,
         'status' => $newData->status,
-        'sum' => $sum,
+        'sum' => $sum * 100,
     ]);
 });
 

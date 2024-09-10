@@ -50,7 +50,7 @@ it('can create the Payment', function () {
         'order_id' => $newData->order_id,
         'payment_type_id' => $newData->payment_type_id,
         'payment_date' => $newData->payment_date,
-        'payment_amount' => $newData->payment_amount,
+        'payment_amount' => $newData->payment_amount * 100,
     ]);
 });
 

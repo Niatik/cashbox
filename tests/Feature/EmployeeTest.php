@@ -52,7 +52,7 @@ it('can create a Employee', function () {
     $this->assertDatabaseHas(Employee::class, [
         'name' => $newData->name,
         'phone' => $newData->phone,
-        'salary' => $newData->salary,
+        'salary' => $newData->salary * 100,
         'employment_date' => $newData->employment_date,
     ]);
 });
