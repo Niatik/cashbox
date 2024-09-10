@@ -19,6 +19,12 @@ class PaymentTypeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+
+    protected static ?string $label = '';
+    protected static ?string $pluralLabel = 'Виды оплаты';
+    protected static ?string $navigationGroup = 'Справочники';
+
+
     public static function form(Form $form): Form
     {
         return $form
