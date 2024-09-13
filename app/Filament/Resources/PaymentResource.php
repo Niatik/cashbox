@@ -27,7 +27,7 @@ class PaymentResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('order_id')
-                    ->relationship('order', 'sum')
+                    ->relationship('order', 'id')
                     ->preload()
                     ->createOptionForm([
                         Forms\Components\DatePicker::make('date_order')
