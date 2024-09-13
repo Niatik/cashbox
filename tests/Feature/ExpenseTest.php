@@ -160,7 +160,7 @@ it('can render the expense columns', function () {
 });
 
 
-it('can search types of expenses by date', function () {
+it('can search expenses by date', function () {
     $expenses = Expense::factory()->count(10)->create();
 
     $date = $expenses->first()->expense_date;
@@ -172,7 +172,7 @@ it('can search types of expenses by date', function () {
 });
 
 
-it('can search types of expenses by type', function () {
+it('can search expenses by type', function () {
     $expenses = Expense::factory()->count(10)->create();
 
     $type = $expenses->first()->expense_type->name;

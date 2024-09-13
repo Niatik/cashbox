@@ -35,7 +35,7 @@ class ExpenseResource extends Resource
                     ])
                     ->required(),
                 Forms\Components\DatePicker::make('expense_date')
-                    ->label('Дата рахода')
+                    ->label('Дата раcхода')
                     ->default(now())
                     ->required()
                     ->maxDate(now()),
@@ -51,7 +51,7 @@ class ExpenseResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('expense_date')
-                    ->label('Дата рахода')
+                    ->label('Дата раcхода')
                     ->date('d.m.Y')
                     ->sortable()
                     ->searchable(),
