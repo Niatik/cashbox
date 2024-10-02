@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
-use App\Filament\Resources\PaymentResource\RelationManagers;
 use App\Models\Payment;
 use App\Models\Service;
 use Filament\Forms;
@@ -13,8 +12,6 @@ use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PaymentResource extends Resource
 {
@@ -51,7 +48,7 @@ class PaymentResource extends Resource
                                     ->maxLength(18)
                                     ->required(),
                             ])
-                            ->afterStateUpdated(function(?int $state, Get $get, Set $set) {
+                            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                                 $price = 0;
                                 if ($state) {
                                     $service = Service::find($state);
@@ -72,7 +69,7 @@ class PaymentResource extends Resource
                             ->step(15)
                             ->maxValue(1440)
                             ->required()
-                            ->afterStateUpdated(function(?int $state, Get $get, Set $set) {
+                            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                                 if ($state && $get('people_number') && $get('service_price')) {
                                     $set('sum', $get('service_price') * $get('people_number') * $state);
                                 }
@@ -81,7 +78,7 @@ class PaymentResource extends Resource
                             ->numeric()
                             ->maxValue(100)
                             ->required()
-                            ->afterStateUpdated(function(?int $state, Get $get, Set $set) {
+                            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                                 if ($state && $get('time_order') && $get('service_price')) {
                                     $set('sum', $get('service_price') * $get('time_order') * $state);
                                 }
