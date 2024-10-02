@@ -16,11 +16,11 @@ class DatabaseSeeder extends Seeder
     {
         Service::factory(10)->create();
         Payment::factory(25)->create();
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            UserSeeder::class,
+        ]);
 
-        User::factory([
-            'name' => 'Nikita',
-            'email' => 'nikita.dragunov@gmail.com',
-            'password' => '$2y$12$YmvdDfOvnYf9MSfC./DTkeeVLtNCgV0tWQx5cF.OQab1Wjwi4bIjO',
-        ])->create();
     }
 }
