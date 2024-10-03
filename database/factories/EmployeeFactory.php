@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,6 +22,7 @@ class EmployeeFactory extends Factory
             'phone' => fake()->phoneNumber(),
             'salary' => fake()->numberBetween(10000, 100000),
             'employment_date' => fake()->date(),
+            'user_id' => User::factory()->create(),
         ];
     }
 }

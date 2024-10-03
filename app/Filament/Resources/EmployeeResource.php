@@ -35,6 +35,25 @@ class EmployeeResource extends Resource
                     ->numeric(),
                 Forms\Components\DatePicker::make('employment_date')
                     ->label('Дата приема на работу'),
+                Forms\Components\Select::make('user_id')
+                    ->label('Пользователь')
+                    ->relationship('user', 'name')
+                    ->preload()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Имя пользователя')
+                            ->maxLength(255)
+                            ->required(),
+                        Forms\Components\TextInput::make('email')
+                            ->label('Email')
+                            ->email()
+                            ->required(),
+                        Forms\Components\TextInput::make('password')
+                            ->label('Пароль')
+                            ->password()
+                            ->required(),
+                    ])
+                    ->required(),
             ]);
     }
 
@@ -42,10 +61,19 @@ class EmployeeResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Ф.И.О.')->searchable(),
-                Tables\Columns\TextColumn::make('phone')->label('Телефон')->searchable(),
-                Tables\Columns\TextColumn::make('salary')->label('Оклад')->money('KZT'),
-                Tables\Columns\TextColumn::make('employment_date')->label('Дата приема'),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Ф.И.О.')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Пользователь')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('Телефон')->searchable(),
+                Tables\Columns\TextColumn::make('salary')
+                    ->label('Оклад')
+                    ->money('KZT'),
+                Tables\Columns\TextColumn::make('employment_date')
+                    ->label('Дата приема'),
             ])
             ->filters([
                 //
