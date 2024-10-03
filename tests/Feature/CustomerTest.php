@@ -3,22 +3,30 @@
 use App\Filament\Resources\CustomerResource;
 use App\Models\Customer;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
 
-
 beforeEach(function () {
+    $this->seed([
+        PermissionSeeder::class,
+        RoleSeeder::class,
+    ]);
+
     $this->actingAs(
         User::factory()->create()
+            ->assignRole('super-admin')
     );
 });
-
 
 it('can render page', function () {
     $this->get(CustomerResource::getUrl('index'))->assertSuccessful();
 });
-
 
 it('can list customers', function () {
     $customers = Customer::factory()->count(10)->create();
@@ -27,11 +35,9 @@ it('can list customers', function () {
         ->assertCanSeeTableRecords($customers);
 });
 
-
 it('can render page for creating the Customer', function () {
     $this->get(CustomerResource::getUrl('create'))->assertSuccessful();
 });
-
 
 it('can create the Customer', function () {
     $newData = Customer::factory()->make();
@@ -49,7 +55,6 @@ it('can create the Customer', function () {
         'phone' => $newData->phone,
     ]);
 });
-
 
 it('can validate input to create the Customer', function () {
     livewire(CustomerResource\Pages\CreateCustomer::class)
@@ -98,7 +103,6 @@ it('can save edited Customer', function () {
         ->phone->toBe($newData->phone);
 });
 
-
 it('can validate input to edit the Customer', function () {
     $customer = Customer::factory()->create();
 
@@ -116,7 +120,6 @@ it('can validate input to edit the Customer', function () {
         ]);
 });
 
-
 it('can delete the Customer', function () {
     $customer = Customer::factory()->create();
 
@@ -126,4 +129,90 @@ it('can delete the Customer', function () {
         ->callAction(DeleteAction::class);
 
     $this->assertModelMissing($customer);
+});
+
+it('can render the customer columns', function () {
+    Customer::factory()->count(10)->create();
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->assertCanRenderTableColumn('name')
+        ->assertCanRenderTableColumn('phone');
+});
+
+it('can search customers by name', function () {
+    $customers = Customer::factory()->count(10)->create();
+
+    $name = $customers->first()->name;
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->searchTable($name)
+        ->assertCanSeeTableRecords($customers->where('name', $name))
+        ->assertCanNotSeeTableRecords($customers->where('name', '!=', $name));
+});
+
+it('can search customers by phone', function () {
+    $customers = Customer::factory()->count(10)->create();
+
+    $phone = $customers->first()->phone;
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->searchTable($phone)
+        ->assertCanSeeTableRecords($customers->where('phone', $phone))
+        ->assertCanNotSeeTableRecords($customers->where('phone', '!=', $phone));
+});
+
+it('can sort customers by name', function () {
+    $customers = Customer::factory()->count(10)->create();
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->sortTable('name')
+        ->assertCanSeeTableRecords($customers->sortBy('name'), inOrder: true)
+        ->sortTable('name', 'desc')
+        ->assertCanSeeTableRecords($customers->sortByDesc('name'), inOrder: true);
+});
+
+it('can sort customers by phone', function () {
+    $customers = Customer::factory()->count(10)->create();
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->sortTable('phone')
+        ->assertCanSeeTableRecords($customers->sortBy('phone'), inOrder: true)
+        ->sortTable('phone', 'desc')
+        ->assertCanSeeTableRecords($customers->sortByDesc('phone'), inOrder: true);
+});
+
+it('can bulk delete the customers from table', function () {
+    $customers = Customer::factory()->count(10)->create();
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->callTableBulkAction(DeleteBulkAction::class, $customers);
+
+    foreach ($customers as $customer) {
+        $this->assertModelMissing($customer);
+    }
+});
+
+it('can delete the customers from table', function () {
+    $customer = Customer::factory()->create();
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->callTableAction(TableDeleteAction::class, $customer);
+
+    $this->assertModelMissing($customer);
+});
+
+it('can edit the customers from table', function () {
+    $customer = Customer::factory()->create();
+    $newData = Customer::factory()->make();
+
+    livewire(CustomerResource\Pages\ListCustomers::class)
+        ->callTableAction(EditAction::class, $customer, data: [
+            'name' => $newData->name,
+            'phone' => $newData->phone,
+        ])
+        ->assertHasNoTableActionErrors();
+
+    expect($customer->refresh())
+        ->name->toBe($newData->name)
+        ->phone->toBe($newData->phone);
 });
