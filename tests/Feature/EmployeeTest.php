@@ -3,6 +3,8 @@
 use App\Filament\Resources\EmployeeResource;
 use App\Models\Employee;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -12,8 +14,15 @@ use Filament\Tables\Actions\EditAction;
 use function Pest\Livewire\livewire;
 
 beforeEach(function () {
+
+    $this->seed([
+        PermissionSeeder::class,
+        RoleSeeder::class,
+    ]);
+
     $this->actingAs(
         User::factory()->create()
+            ->assignRole('super-admin')
     );
 });
 
@@ -45,6 +54,7 @@ it('can create a Employee', function () {
             'phone' => $newData->phone,
             'salary' => $newData->salary,
             'employment_date' => $newData->employment_date,
+            'user_id' => $newData->user_id,
         ])
         ->call('create')
         ->assertHasNoFormErrors();
@@ -54,6 +64,7 @@ it('can create a Employee', function () {
         'phone' => $newData->phone,
         'salary' => $newData->salary * 100,
         'employment_date' => $newData->employment_date,
+        'user_id' => $newData->user_id,
     ]);
 });
 
@@ -65,9 +76,13 @@ it('can validate input to create the Employee', function () {
             'phone' => null,
             'salary' => null,
             'employment_date' => null,
+            'user_id' => null,
         ])
         ->call('create')
-        ->assertHasFormErrors(['name' => 'required']);
+        ->assertHasFormErrors([
+            'name' => 'required',
+            'user_id' => 'required',
+        ]);
 });
 
 it('can render page for editing the Employee ', function () {
@@ -86,11 +101,13 @@ it('can retrieve data for editing the Employee', function () {
         ->assertFormFieldExists('phone')
         ->assertFormFieldExists('salary')
         ->assertFormFieldExists('employment_date')
+        ->assertFormFieldExists('user_id')
         ->assertFormSet([
             'name' => $employee->name,
             'phone' => $employee->phone,
             'salary' => $employee->salary,
             'employment_date' => $employee->employment_date,
+            'user_id' => $employee->user_id,
         ]);
 });
 
@@ -106,6 +123,7 @@ it('can save edited Employee', function () {
             'phone' => $newData->phone,
             'salary' => $newData->salary,
             'employment_date' => $newData->employment_date,
+            'user_id' => $newData->user_id,
         ])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -114,7 +132,8 @@ it('can save edited Employee', function () {
         ->name->toBe($newData->name)
         ->phone->toBe($newData->phone)
         ->salary->toBe($newData->salary)
-        ->employment_date->toBe($newData->employment_date);
+        ->employment_date->toBe($newData->employment_date)
+        ->user_id->toBe($newData->user_id);
 });
 
 
@@ -129,10 +148,12 @@ it('can validate input to edit the Employee', function () {
             'phone' => null,
             'salary' => null,
             'employment_date' => null,
+            'user_id' => null,
         ])
         ->call('save')
         ->assertHasFormErrors([
             'name' => 'required',
+            'user_id' => 'required',
         ]);
 });
 
@@ -154,6 +175,7 @@ it('can render employee columns', function () {
 
     livewire(EmployeeResource\Pages\ListEmployees::class)
         ->assertCanRenderTableColumn('name')
+        ->assertCanRenderTableColumn('user.name')
         ->assertCanRenderTableColumn('phone')
         ->assertCanRenderTableColumn('salary')
         ->assertCanRenderTableColumn('employment_date');
@@ -181,6 +203,17 @@ it('can search employees by phone', function () {
         ->searchTable($phone)
         ->assertCanSeeTableRecords($employees->where('phone', $phone))
         ->assertCanNotSeeTableRecords($employees->where('phone', '!=', $phone));
+});
+
+it('can search employees by username', function () {
+    $employees = Employee::factory()->count(10)->create();
+
+    $username = $employees->first()->user->name;
+
+    livewire(EmployeeResource\Pages\ListEmployees::class)
+        ->searchTable($username)
+        ->assertCanSeeTableRecords($employees->where('user.name', $username))
+        ->assertCanNotSeeTableRecords($employees->where('user.name', '!=', $username));
 });
 
 
@@ -216,6 +249,7 @@ it('can edit employees from table', function () {
             'phone' => $newData->phone,
             'salary' => $newData->salary,
             'employment_date' => $newData->employment_date,
+            'user_id' => $newData->user_id,
         ])
         ->assertHasNoTableActionErrors();
 
@@ -223,5 +257,6 @@ it('can edit employees from table', function () {
         ->name->toBe($newData->name)
         ->phone->toBe($newData->phone)
         ->salary->toBe($newData->salary)
-        ->employment_date->toBe($newData->employment_date);
+        ->employment_date->toBe($newData->employment_date)
+        ->user_id->toBe($newData->user_id);
 });
