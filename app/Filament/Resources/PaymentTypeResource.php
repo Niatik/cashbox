@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentTypeResource\Pages;
-use App\Filament\Resources\PaymentTypeResource\RelationManagers;
 use App\Models\PaymentType;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PaymentTypeResource extends Resource
 {
@@ -19,11 +16,11 @@ class PaymentTypeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-
     protected static ?string $label = '';
-    protected static ?string $pluralLabel = 'Виды оплаты';
-    protected static ?string $navigationGroup = 'Справочники';
 
+    protected static ?string $pluralLabel = 'Виды оплаты';
+
+    protected static ?string $navigationGroup = 'Справочники';
 
     public static function form(Form $form): Form
     {
@@ -40,13 +37,17 @@ class PaymentTypeResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Наименование вида оплаты')
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
