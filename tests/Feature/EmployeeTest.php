@@ -31,7 +31,6 @@ it('can render page', function () {
     $this->get(EmployeeResource::getUrl('index'))->assertSuccessful();
 });
 
-
 it('can list employees', function () {
     $employees = Employee::factory()->count(10)->create();
 
@@ -39,11 +38,9 @@ it('can list employees', function () {
         ->assertCanSeeTableRecords($employees);
 });
 
-
 it('can render page for creating the Employee', function () {
     $this->get(EmployeeResource::getUrl('create'))->assertSuccessful();
 });
-
 
 it('can create a Employee', function () {
     $newData = Employee::factory()->make();
@@ -67,7 +64,6 @@ it('can create a Employee', function () {
         'user_id' => $newData->user_id,
     ]);
 });
-
 
 it('can validate input to create the Employee', function () {
     livewire(EmployeeResource\Pages\CreateEmployee::class)
@@ -136,7 +132,6 @@ it('can save edited Employee', function () {
         ->user_id->toBe($newData->user_id);
 });
 
-
 it('can validate input to edit the Employee', function () {
     $employee = Employee::factory()->create();
 
@@ -157,7 +152,6 @@ it('can validate input to edit the Employee', function () {
         ]);
 });
 
-
 it('can delete the Employee', function () {
     $employee = Employee::factory()->create();
 
@@ -168,7 +162,6 @@ it('can delete the Employee', function () {
 
     $this->assertModelMissing($employee);
 });
-
 
 it('can render employee columns', function () {
     Employee::factory()->count(10)->create();
@@ -181,7 +174,6 @@ it('can render employee columns', function () {
         ->assertCanRenderTableColumn('employment_date');
 });
 
-
 it('can search employees by name', function () {
     $employees = Employee::factory()->count(10)->create();
 
@@ -192,7 +184,6 @@ it('can search employees by name', function () {
         ->assertCanSeeTableRecords($employees->where('name', $name))
         ->assertCanNotSeeTableRecords($employees->where('name', '!=', $name));
 });
-
 
 it('can search employees by phone', function () {
     $employees = Employee::factory()->count(10)->create();
@@ -216,6 +207,55 @@ it('can search employees by username', function () {
         ->assertCanNotSeeTableRecords($employees->where('user.name', '!=', $username));
 });
 
+it('can sort employees by name', function () {
+    $employees = Employee::factory()->count(10)->create();
+
+    livewire(EmployeeResource\Pages\ListEmployees::class)
+        ->sortTable('name')
+        ->assertCanSeeTableRecords($employees->sortBy('name'), inOrder: true)
+        ->sortTable('name', 'desc')
+        ->assertCanSeeTableRecords($employees->sortByDesc('name'), inOrder: true);
+});
+
+it('can sort employees by user.name', function () {
+    $employees = Employee::factory()->count(10)->create();
+
+    livewire(EmployeeResource\Pages\ListEmployees::class)
+        ->sortTable('user.name')
+        ->assertCanSeeTableRecords($employees->sortBy('user.name'), inOrder: true)
+        ->sortTable('user.name', 'desc')
+        ->assertCanSeeTableRecords($employees->sortByDesc('user.name'), inOrder: true);
+});
+
+it('can sort employees by phone', function () {
+    $employees = Employee::factory()->count(10)->create();
+
+    livewire(EmployeeResource\Pages\ListEmployees::class)
+        ->sortTable('phone')
+        ->assertCanSeeTableRecords($employees->sortBy('phone'), inOrder: true)
+        ->sortTable('phone', 'desc')
+        ->assertCanSeeTableRecords($employees->sortByDesc('phone'), inOrder: true);
+});
+
+it('can sort employees by salary', function () {
+    $employees = Employee::factory()->count(10)->create();
+
+    livewire(EmployeeResource\Pages\ListEmployees::class)
+        ->sortTable('salary')
+        ->assertCanSeeTableRecords($employees->sortBy('salary'), inOrder: true)
+        ->sortTable('salary', 'desc')
+        ->assertCanSeeTableRecords($employees->sortByDesc('salary'), inOrder: true);
+});
+
+it('can sort employees by employment date', function () {
+    $employees = Employee::factory()->count(10)->create();
+
+    livewire(EmployeeResource\Pages\ListEmployees::class)
+        ->sortTable('employment_date')
+        ->assertCanSeeTableRecords($employees->sortBy('employment_date'), inOrder: true)
+        ->sortTable('employment_date', 'desc')
+        ->assertCanSeeTableRecords($employees->sortByDesc('employment_date'), inOrder: true);
+});
 
 it('can bulk delete employees from table', function () {
     $employees = Employee::factory()->count(10)->create();
@@ -228,7 +268,6 @@ it('can bulk delete employees from table', function () {
     }
 });
 
-
 it('can delete employees from table', function () {
     $employee = Employee::factory()->create();
 
@@ -237,7 +276,6 @@ it('can delete employees from table', function () {
 
     $this->assertModelMissing($employee);
 });
-
 
 it('can edit employees from table', function () {
     $employee = Employee::factory()->create();
