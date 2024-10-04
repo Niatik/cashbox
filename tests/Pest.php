@@ -11,6 +11,11 @@
 |
 */
 
+use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
+use Tests\TestCase;
+
 uses(
     Tests\TestCase::class,
     Illuminate\Foundation\Testing\RefreshDatabase::class,
@@ -41,6 +46,17 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+pest()->beforeEach(function () {
+    $this->seed([
+        PermissionSeeder::class,
+        RoleSeeder::class,
+    ]);
+    $this->actingAs(
+        User::factory()->create()
+            ->assignRole('super-admin')
+    );
+});
 
 function something()
 {

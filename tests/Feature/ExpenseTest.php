@@ -1,27 +1,17 @@
 <?php
 
 use App\Filament\Resources\ExpenseResource;
-use App\Models\User;
 use App\Models\Expense;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-
 use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
 
-beforeEach(function () {
-    $this->actingAs(
-        User::factory()->create()
-    );
-});
-
-
 it('can render page', function () {
     $this->get(ExpenseResource::getUrl('index'))->assertSuccessful();
 });
-
 
 it('can list of expenses', function () {
     $expenseTypes = Expense::factory()->count(10)->create();
@@ -30,11 +20,9 @@ it('can list of expenses', function () {
         ->assertCanSeeTableRecords($expenseTypes);
 });
 
-
 it('can render page for creating an Expense', function () {
     $this->get(ExpenseResource::getUrl('create'))->assertSuccessful();
 });
-
 
 it('can create an Expense', function () {
     $newData = Expense::factory()->make();
@@ -55,7 +43,6 @@ it('can create an Expense', function () {
     ]);
 });
 
-
 it('can validate input to create an Expense', function () {
     livewire(ExpenseResource\Pages\CreateExpense::class)
         ->fillForm([
@@ -71,13 +58,11 @@ it('can validate input to create an Expense', function () {
         ]);
 });
 
-
 it('can render page for editing the Expense', function () {
     $this->get(ExpenseResource::getUrl('edit', [
         'record' => Expense::factory()->create(),
     ]))->assertSuccessful();
 });
-
 
 it('can retrieve data for editing the Expense', function () {
     $expense = Expense::factory()->create();
@@ -94,7 +79,6 @@ it('can retrieve data for editing the Expense', function () {
             'expense_amount' => $expense->expense_amount,
         ]);
 });
-
 
 it('can save edited Expense', function () {
     $expense = Expense::factory()->create();
@@ -117,7 +101,6 @@ it('can save edited Expense', function () {
         ->expense_amount->toBe($newData->expense_amount);
 });
 
-
 it('can validate input to edit the Expense', function () {
     $expense = Expense::factory()->create();
 
@@ -137,7 +120,6 @@ it('can validate input to edit the Expense', function () {
         ]);
 });
 
-
 it('can delete the Expense', function () {
     $expense = Expense::factory()->create();
 
@@ -149,7 +131,6 @@ it('can delete the Expense', function () {
     $this->assertModelMissing($expense);
 });
 
-
 it('can render the expense columns', function () {
     Expense::factory()->count(10)->create();
 
@@ -158,7 +139,6 @@ it('can render the expense columns', function () {
         ->assertCanRenderTableColumn('expense_type.name')
         ->assertCanRenderTableColumn('expense_amount');
 });
-
 
 it('can search expenses by date', function () {
     $expenses = Expense::factory()->count(10)->create();
@@ -171,7 +151,6 @@ it('can search expenses by date', function () {
         ->assertCanNotSeeTableRecords($expenses->where('expense_date', '!=', $date));
 });
 
-
 it('can search expenses by type', function () {
     $expenses = Expense::factory()->count(10)->create();
 
@@ -183,7 +162,35 @@ it('can search expenses by type', function () {
         ->assertCanNotSeeTableRecords($expenses->where('expense_type.name', '!=', $type));
 });
 
+it('can sort expenses by date', function () {
+    $expenses = Expense::factory()->count(10)->create();
 
+    livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->sortTable('expense_date')
+        ->assertCanSeeTableRecords($expenses->sortBy('expense_date'), inOrder: true)
+        ->sortTable('expense_date', 'desc')
+        ->assertCanSeeTableRecords($expenses->sortByDesc('expense_date'), inOrder: true);
+});
+
+it('can sort expenses by amount', function () {
+    $expenses = Expense::factory()->count(10)->create();
+
+    livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->sortTable('expense_amount')
+        ->assertCanSeeTableRecords($expenses->sortBy('expense_amount'), inOrder: true)
+        ->sortTable('expense_amount', 'desc')
+        ->assertCanSeeTableRecords($expenses->sortByDesc('expense_amount'), inOrder: true);
+});
+
+it('can sort expenses by expense type', function () {
+    $expenses = Expense::factory()->count(10)->create();
+
+    livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->sortTable('expense_type.name')
+        ->assertCanSeeTableRecords($expenses->sortBy('expense_type.name'), inOrder: true)
+        ->sortTable('expense_type.name', 'desc')
+        ->assertCanSeeTableRecords($expenses->sortByDesc('expense_type.name'), inOrder: true);
+});
 
 it('can bulk delete the expenses from table', function () {
     $expenses = Expense::factory()->count(10)->create();
@@ -196,7 +203,6 @@ it('can bulk delete the expenses from table', function () {
     }
 });
 
-
 it('can delete the expenses from table', function () {
     $expense = Expense::factory()->create();
 
@@ -205,7 +211,6 @@ it('can delete the expenses from table', function () {
 
     $this->assertModelMissing($expense);
 });
-
 
 it('can edit the expenses from table', function () {
     $expense = Expense::factory()->create();
@@ -223,37 +228,4 @@ it('can edit the expenses from table', function () {
         ->expense_date->toBe($newData->expense_date)
         ->expense_type_id->toBe($newData->expense_type_id)
         ->expense_amount->toBe($newData->expense_amount);
-});
-
-
-it('can sort expenses by date', function () {
-    $expenses = Expense::factory()->count(10)->create();
-
-    livewire(ExpenseResource\Pages\ListExpenses::class)
-        ->sortTable('expense_date')
-        ->assertCanSeeTableRecords($expenses->sortBy('expense_date'), inOrder: true)
-        ->sortTable('expense_date', 'desc')
-        ->assertCanSeeTableRecords($expenses->sortByDesc('expense_date'), inOrder: true);
-});
-
-
-it('can sort expenses by amount', function () {
-    $expenses = Expense::factory()->count(10)->create();
-
-    livewire(ExpenseResource\Pages\ListExpenses::class)
-        ->sortTable('expense_amount')
-        ->assertCanSeeTableRecords($expenses->sortBy('expense_amount'), inOrder: true)
-        ->sortTable('expense_amount', 'desc')
-        ->assertCanSeeTableRecords($expenses->sortByDesc('expense_amount'), inOrder: true);
-});
-
-
-it('can sort expenses by expense type', function () {
-    $expenses = Expense::factory()->count(10)->create();
-
-    livewire(ExpenseResource\Pages\ListExpenses::class)
-        ->sortTable('expense_type.name')
-        ->assertCanSeeTableRecords($expenses->sortBy('expense_type.name'), inOrder: true)
-        ->sortTable('expense_type.name', 'desc')
-        ->assertCanSeeTableRecords($expenses->sortByDesc('expense_type.name'), inOrder: true);
 });

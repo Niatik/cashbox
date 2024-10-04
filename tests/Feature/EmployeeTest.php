@@ -2,9 +2,6 @@
 
 use App\Filament\Resources\EmployeeResource;
 use App\Models\Employee;
-use App\Models\User;
-use Database\Seeders\PermissionSeeder;
-use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -12,20 +9,6 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
-
-beforeEach(function () {
-
-    $this->seed([
-        PermissionSeeder::class,
-        RoleSeeder::class,
-    ]);
-
-    $this->actingAs(
-        User::factory()->create()
-            ->assignRole('super-admin')
-    );
-});
-
 
 it('can render page', function () {
     $this->get(EmployeeResource::getUrl('index'))->assertSuccessful();
