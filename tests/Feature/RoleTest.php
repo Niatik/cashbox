@@ -12,21 +12,15 @@ use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
 
-beforeEach(function () {
-    $this->actingAs(
-        User::factory()->create()
-    );
-});
-
 it('can render page', function () {
     $this->get(RoleResource::getUrl('index'))->assertSuccessful();
 });
 
 it('can list of roles', function () {
-    $permissions = Role::factory()->count(10)->create();
+    $roles = Role::all();
 
     livewire(RoleResource\Pages\ListRoles::class)
-        ->assertCanSeeTableRecords($permissions);
+        ->assertCanSeeTableRecords($roles);
 });
 
 it('can render page for creating a Role', function () {
@@ -128,7 +122,13 @@ it('can render the role columns', function () {
 });
 
 it('can search roles by name', function () {
-    $roles = Role::factory()->count(10)->create();
+    Role::factory()->create(
+        ['name' => 'user'],
+    );
+    Role::factory()->create(
+        ['name' => 'admin'],
+    );
+    $roles = Role::all();
 
     $name = $roles->first()->name;
 
@@ -139,7 +139,13 @@ it('can search roles by name', function () {
 });
 
 it('can sort roles by name', function () {
-    $roles = Role::factory()->count(10)->create();
+    Role::factory()->create(
+        ['name' => 'user'],
+    );
+    Role::factory()->create(
+        ['name' => 'admin'],
+    );
+    $roles = Role::all();
 
     livewire(RoleResource\Pages\ListRoles::class)
         ->sortTable('name')
