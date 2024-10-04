@@ -133,13 +133,30 @@ class PaymentResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('order.id')
+                    ->label('Заказ')
+                    ->numeric()
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('payment_type.name')
+                    ->label('Способ оплаты')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('payment_date')
+                    ->date('d.m.Y')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('payment_amount')
+                    ->numeric()
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
