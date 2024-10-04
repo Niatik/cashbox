@@ -1,7 +1,6 @@
 <?php
 
 use App\Filament\Resources\PermissionResource;
-use App\Models\User;
 use App\Models\Permission;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
@@ -11,17 +10,9 @@ use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
 
-beforeEach(function () {
-    $this->actingAs(
-        User::factory()->create()
-    );
-});
-
-
 it('can render page', function () {
     $this->get(PermissionResource::getUrl('index'))->assertSuccessful();
 });
-
 
 it('can list of permissions', function () {
     $permissions = Permission::factory()->count(10)->create();
@@ -30,11 +21,9 @@ it('can list of permissions', function () {
         ->assertCanSeeTableRecords($permissions);
 });
 
-
 it('can render page for creating a Permission', function () {
     $this->get(PermissionResource::getUrl('create'))->assertSuccessful();
 });
-
 
 it('can create a Permission', function () {
     $newData = Permission::factory()->make();
@@ -51,7 +40,6 @@ it('can create a Permission', function () {
     ]);
 });
 
-
 it('can validate input to create a Permission', function () {
     livewire(PermissionResource\Pages\CreatePermission::class)
         ->fillForm([
@@ -63,13 +51,11 @@ it('can validate input to create a Permission', function () {
         ]);
 });
 
-
 it('can render page for editing the Permission', function () {
     $this->get(PermissionResource::getUrl('edit', [
         'record' => Permission::factory()->create(),
     ]))->assertSuccessful();
 });
-
 
 it('can retrieve data for editing the Permission', function () {
     $permission = Permission::factory()->create();
@@ -82,7 +68,6 @@ it('can retrieve data for editing the Permission', function () {
             'name' => $permission->name,
         ]);
 });
-
 
 it('can save edited Permission', function () {
     $permission = Permission::factory()->create();
@@ -101,7 +86,6 @@ it('can save edited Permission', function () {
         ->name->toBe($newData->name);
 });
 
-
 it('can validate input to edit the Permission', function () {
     $permission = Permission::factory()->create();
 
@@ -117,7 +101,6 @@ it('can validate input to edit the Permission', function () {
         ]);
 });
 
-
 it('can delete the Permission', function () {
     $permission = Permission::factory()->create();
 
@@ -129,14 +112,12 @@ it('can delete the Permission', function () {
     $this->assertModelMissing($permission);
 });
 
-
 it('can render the permission columns', function () {
     Permission::factory()->count(10)->create();
 
     livewire(PermissionResource\Pages\ListPermissions::class)
         ->assertCanRenderTableColumn('name');
 });
-
 
 it('can search permissions by name', function () {
     $permissions = Permission::factory()->count(10)->create();
@@ -149,7 +130,6 @@ it('can search permissions by name', function () {
         ->assertCanNotSeeTableRecords($permissions->where('name', '!=', $name));
 });
 
-
 it('can sort permissions by name', function () {
     $permissions = Permission::factory()->count(10)->create();
 
@@ -159,7 +139,6 @@ it('can sort permissions by name', function () {
         ->sortTable('name', 'desc')
         ->assertCanSeeTableRecords($permissions->sortByDesc('name'), inOrder: true);
 });
-
 
 it('can bulk delete the permissions from table', function () {
     $permissions = Permission::factory()->count(10)->create();
@@ -172,7 +151,6 @@ it('can bulk delete the permissions from table', function () {
     }
 });
 
-
 it('can delete the permissions from table', function () {
     $permission = Permission::factory()->create();
 
@@ -181,7 +159,6 @@ it('can delete the permissions from table', function () {
 
     $this->assertModelMissing($permission);
 });
-
 
 it('can edit the permissions from table', function () {
     $permission = Permission::factory()->create();

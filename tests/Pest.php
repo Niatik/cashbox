@@ -11,10 +11,8 @@
 |
 */
 
+use App\Models\Role;
 use App\Models\User;
-use Database\Seeders\PermissionSeeder;
-use Database\Seeders\RoleSeeder;
-use Tests\TestCase;
 
 uses(
     Tests\TestCase::class,
@@ -48,10 +46,8 @@ expect()->extend('toBeOne', function () {
 */
 
 pest()->beforeEach(function () {
-    $this->seed([
-        PermissionSeeder::class,
-        RoleSeeder::class,
-    ]);
+    Role::create(['name' => 'super-admin']);
+
     $this->actingAs(
         User::factory()->create()
             ->assignRole('super-admin')
