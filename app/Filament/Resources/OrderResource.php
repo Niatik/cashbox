@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
 use App\Models\Service;
 use Filament\Forms;
@@ -13,9 +12,6 @@ use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrderResource extends Resource
 {
@@ -48,7 +44,7 @@ class OrderResource extends Resource
                             ->maxLength(18)
                             ->required(),
                     ])
-                    ->afterStateUpdated(function(?int $state, Get $get, Set $set) {
+                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         $price = 0;
                         if ($state) {
                             $service = Service::find($state);
@@ -69,7 +65,7 @@ class OrderResource extends Resource
                     ->step(15)
                     ->maxValue(1440)
                     ->required()
-                    ->afterStateUpdated(function(?int $state, Get $get, Set $set) {
+                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         if ($state && $get('people_number') && $get('service_price')) {
                             $set('sum', $get('service_price') * $get('people_number') * $state);
                         }
@@ -78,7 +74,7 @@ class OrderResource extends Resource
                     ->numeric()
                     ->maxValue(100)
                     ->required()
-                    ->afterStateUpdated(function(?int $state, Get $get, Set $set) {
+                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         if ($state && $get('time_order') && $get('service_price')) {
                             $set('sum', $get('service_price') * $get('time_order') * $state);
                         }
@@ -95,13 +91,13 @@ class OrderResource extends Resource
                     ->relationship('social_media', 'name')
                     ->searchable()
                     ->preload()
+                    ->required()
                     ->createOptionForm([
                         Forms\Components\TextInput::make('name')
                             ->label('Название')
                             ->maxLength(255)
                             ->required(),
-                    ])
-                    ->required(),
+                    ]),
                 Forms\Components\TextInput::make('sum')
                     ->numeric()
                     ->default(0)
@@ -113,13 +109,32 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('date_order')
+                    ->date('d.m.Y')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('service.name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('time_order')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('people_number')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('sum')
+                    ->numeric()
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
