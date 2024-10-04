@@ -47,9 +47,17 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Услуга')->searchable(),
-                Tables\Columns\TextColumn::make('description')->label('Описание')->searchable(),
-                Tables\Columns\TextColumn::make('price')->label('Цена'),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Услуга')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Описание')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Цена')
+                    ->sortable(),
             ])
             ->filters([
                 //
