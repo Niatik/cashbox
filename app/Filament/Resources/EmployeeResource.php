@@ -63,17 +63,24 @@ class EmployeeResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Ф.И.О.')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Пользователь')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Телефон')->searchable(),
+                    ->label('Телефон')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('salary')
                     ->label('Оклад')
-                    ->money('KZT'),
+                    ->money('KZT')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('employment_date')
-                    ->label('Дата приема'),
+                    ->label('Дата приема')
+                    ->date('d.m.Y')
+                    ->sortable(),
             ])
             ->filters([
                 //
