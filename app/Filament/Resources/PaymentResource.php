@@ -24,6 +24,7 @@ class PaymentResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('order_id')
+                    ->default(fn () => request()->input('order_id'))
                     ->relationship('order', 'id')
                     ->preload()
                     ->createOptionForm([
@@ -124,6 +125,7 @@ class PaymentResource extends Resource
                     ->required()
                     ->maxDate(now()),
                 Forms\Components\TextInput::make('payment_amount')
+                    ->default(fn () => request()->input('order_sum'))
                     ->required()
                     ->numeric(),
             ]);
