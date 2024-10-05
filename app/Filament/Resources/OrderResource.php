@@ -31,6 +31,7 @@ class OrderResource extends Resource
                     ->relationship('service', 'name')
                     ->searchable()
                     ->preload()
+                    ->live()
                     ->createOptionForm([
                         Forms\Components\TextInput::make('name')
                             ->label('Название услуги')
@@ -44,6 +45,15 @@ class OrderResource extends Resource
                             ->maxLength(18)
                             ->required(),
                     ])
+                    ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
+                        if ($state) {
+                            $service = Service::find($state);
+                            if ($service) {
+                                $price = $service->price;
+                                $set('service_price', $price);
+                            }
+                        }
+                    })
                     ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         $price = 0;
                         if ($state) {
@@ -64,6 +74,7 @@ class OrderResource extends Resource
                     ->numeric()
                     ->step(15)
                     ->maxValue(1440)
+                    ->live()
                     ->required()
                     ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         if ($state && $get('people_number') && $get('service_price')) {
@@ -73,6 +84,7 @@ class OrderResource extends Resource
                 Forms\Components\TextInput::make('people_number')
                     ->numeric()
                     ->maxValue(100)
+                    ->live()
                     ->required()
                     ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         if ($state && $get('time_order') && $get('service_price')) {
@@ -80,6 +92,7 @@ class OrderResource extends Resource
                         }
                     }),
                 Forms\Components\Select::make('status')
+                    ->default('pending')
                     ->options([
                         'pending' => 'Ожидает',
                         'advance' => 'Аванс',
@@ -101,6 +114,7 @@ class OrderResource extends Resource
                 Forms\Components\TextInput::make('sum')
                     ->numeric()
                     ->default(0)
+                    ->live()
                     ->readOnly(),
             ]);
     }

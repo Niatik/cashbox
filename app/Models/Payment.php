@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
+use App\Listeners\UpdateOrderStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,4 +33,8 @@ class Payment extends Model
     {
         return $this->belongsTo(PaymentType::class);
     }
+
+    protected $dispatchesEvents = [
+        'created' => UpdateOrderStatus::class,
+    ];
 }
