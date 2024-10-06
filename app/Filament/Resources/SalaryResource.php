@@ -16,6 +16,10 @@ class SalaryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $label = 'Зарплата';
+
+    protected static ?string $pluralLabel = 'Зарплата';
+
     public static function form(Form $form): Form
     {
         return $form

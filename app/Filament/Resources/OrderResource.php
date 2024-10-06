@@ -19,16 +19,22 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $label = '';
+
+    protected static ?string $pluralLabel = 'Заказы';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\DatePicker::make('date_order')
                     ->default(now())
+                    ->label('Дата')
                     ->required()
                     ->maxDate(now()),
                 Forms\Components\Select::make('service_id')
                     ->relationship('service', 'name')
+                    ->label('Услуга')
                     ->searchable()
                     ->preload()
                     ->live()
@@ -38,7 +44,7 @@ class OrderResource extends Resource
                             ->maxLength(255)
                             ->required(),
                         Forms\Components\TextInput::make('description')
-                            ->label('Description')
+                            ->label('Описание')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('price')
                             ->label('Цена на одного человека')
@@ -71,8 +77,10 @@ class OrderResource extends Resource
                 Forms\Components\Hidden::make('service_price')
                     ->default(0),
                 Forms\Components\TextInput::make('time_order')
+                    ->label('Время')
                     ->numeric()
                     ->step(15)
+                    ->minValue(15)
                     ->maxValue(1440)
                     ->live()
                     ->required()
@@ -83,6 +91,8 @@ class OrderResource extends Resource
                     }),
                 Forms\Components\TextInput::make('people_number')
                     ->numeric()
+                    ->label('Количество человек')
+                    ->minValue(1)
                     ->maxValue(100)
                     ->live()
                     ->required()
@@ -92,6 +102,7 @@ class OrderResource extends Resource
                         }
                     }),
                 Forms\Components\Select::make('status')
+                    ->label('Статус')
                     ->default('pending')
                     ->options([
                         'pending' => 'Ожидает',
@@ -102,6 +113,7 @@ class OrderResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('social_media_id')
                     ->relationship('social_media', 'name')
+                    ->label('Откуда')
                     ->searchable()
                     ->preload()
                     ->required()
@@ -113,6 +125,7 @@ class OrderResource extends Resource
                     ]),
                 Forms\Components\TextInput::make('sum')
                     ->numeric()
+                    ->label('Сумма')
                     ->default(0)
                     ->live()
                     ->readOnly(),

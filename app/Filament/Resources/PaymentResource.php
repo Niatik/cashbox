@@ -19,6 +19,10 @@ class PaymentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $label = '';
+
+    protected static ?string $pluralLabel = 'Оплаты';
+
     public static function form(Form $form): Form
     {
         return $form
@@ -26,14 +30,17 @@ class PaymentResource extends Resource
                 Forms\Components\Select::make('order_id')
                     ->default(fn () => request()->input('order_id'))
                     ->relationship('order', 'id')
+                    ->label('Заказ')
                     ->preload()
                     ->createOptionForm([
                         Forms\Components\DatePicker::make('date_order')
+                            ->label('Дата')
                             ->default(now())
                             ->required()
                             ->maxDate(now()),
                         Forms\Components\Select::make('service_id')
                             ->relationship('service', 'name')
+                            ->label('Услуга')
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
@@ -42,7 +49,7 @@ class PaymentResource extends Resource
                                     ->maxLength(255)
                                     ->required(),
                                 Forms\Components\TextInput::make('description')
-                                    ->label('Description')
+                                    ->label('Описание')
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('price')
                                     ->label('Цена на одного человека')
@@ -67,6 +74,8 @@ class PaymentResource extends Resource
                             ->default(0),
                         Forms\Components\TextInput::make('time_order')
                             ->numeric()
+                            ->label('Время')
+                            ->minValue(1)
                             ->step(15)
                             ->maxValue(1440)
                             ->required()
@@ -77,6 +86,8 @@ class PaymentResource extends Resource
                             }),
                         Forms\Components\TextInput::make('people_number')
                             ->numeric()
+                            ->label('Количество человек')
+                            ->minValue(1)
                             ->maxValue(100)
                             ->required()
                             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
@@ -91,9 +102,11 @@ class PaymentResource extends Resource
                                 'completed' => 'Оплачен',
                                 'cancelled' => 'Отменен',
                             ])
+                            ->label('Статус')
                             ->required(),
                         Forms\Components\Select::make('social_media_id')
                             ->relationship('social_media', 'name')
+                            ->label('Откуда')
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
@@ -105,27 +118,31 @@ class PaymentResource extends Resource
                             ->required(),
                         Forms\Components\TextInput::make('sum')
                             ->numeric()
+                            ->label('Сумма')
                             ->default(0)
                             ->readOnly(),
                     ])
                     ->required(),
                 Forms\Components\Select::make('payment_type_id')
                     ->relationship('payment_type', 'name')
+                    ->label('Способ оплаты')
                     ->searchable()
                     ->preload()
                     ->createOptionForm([
                         Forms\Components\TextInput::make('name')
-                            ->label('Способ оплаты')
+                            ->label('Наименование')
                             ->maxLength(255)
                             ->required(),
                     ])
                     ->required(),
                 Forms\Components\DatePicker::make('payment_date')
                     ->default(now())
+                    ->label('Дата')
                     ->required()
                     ->maxDate(now()),
                 Forms\Components\TextInput::make('payment_amount')
                     ->default(fn () => request()->input('order_sum'))
+                    ->label('Сумма')
                     ->required()
                     ->numeric(),
             ]);
@@ -146,10 +163,12 @@ class PaymentResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('payment_date')
                     ->date('d.m.Y')
+                    ->label('Дата')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('payment_amount')
                     ->numeric()
+                    ->label('Сумма')
                     ->searchable()
                     ->sortable(),
             ])

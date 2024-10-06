@@ -18,7 +18,7 @@ class PaymentTypeResource extends Resource
 
     protected static ?string $label = '';
 
-    protected static ?string $pluralLabel = 'Виды оплаты';
+    protected static ?string $pluralLabel = 'Виды оплат';
 
     protected static ?string $navigationGroup = 'Справочники';
 
