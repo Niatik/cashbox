@@ -19,13 +19,12 @@ class Order extends Model
         'people_number',
         'status',
         'sum',
+        'employee_id',
     ];
 
     protected $casts = [
         'sum' => MoneyCast::class,
     ];
-
-
 
     public function service(): BelongsTo
     {
@@ -35,5 +34,10 @@ class Order extends Model
     public function social_media(): BelongsTo
     {
         return $this->belongsTo(SocialMedia::class);
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
     }
 }

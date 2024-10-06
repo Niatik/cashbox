@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Employee;
 use App\Models\Service;
 use App\Models\SocialMedia;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -30,6 +31,7 @@ class OrderFactory extends Factory
             'people_number' => $peopleNumber,
             'status' => $this->faker->randomElement(['advance', 'completed', 'cancelled']),
             'sum' => $sum,
+            'employee_id' => Employee::factory(),
         ];
     }
 }

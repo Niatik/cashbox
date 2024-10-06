@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
+use App\Models\User;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -42,5 +43,14 @@ class EditOrder extends EditRecord
             'order_id' => $orderId,
             'order_sum' => $this->record->sum,
         ]));
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $user = User::find(auth()->user()->id);
+
+        $data['employee_id'] = $user->employee->id;
+
+        return $data;
     }
 }

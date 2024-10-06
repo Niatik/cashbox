@@ -116,6 +116,8 @@ class OrderResource extends Resource
                     ->default(0)
                     ->live()
                     ->readOnly(),
+                Forms\Components\TextInput::make('employee_id')
+                    ->hidden(),
             ]);
     }
 
