@@ -11,6 +11,7 @@
 |
 */
 
+use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
 
@@ -47,10 +48,12 @@ expect()->extend('toBeOne', function () {
 
 pest()->beforeEach(function () {
     Role::create(['name' => 'super-admin']);
+    $employee = Employee::factory()->create();
+    $user = User::factory()->create();
+    $user->employee()->save($employee);
 
     $this->actingAs(
-        User::factory()->create()
-            ->assignRole('super-admin')
+        $user->assignRole('super-admin')
     );
 });
 

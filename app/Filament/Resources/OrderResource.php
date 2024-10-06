@@ -146,6 +146,7 @@ class OrderResource extends Resource
                     ->sortable(),
                 Tables\Columns\SelectColumn::make('status')
                     ->label('Статус')
+                    ->sortable()
                     ->options([
                         'pending' => 'Ожидает',
                         'advance' => 'Аванс',
