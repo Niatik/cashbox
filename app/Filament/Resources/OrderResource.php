@@ -122,33 +122,45 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->striped()
             ->columns([
                 Tables\Columns\TextColumn::make('date_order')
                     ->date('d.m.Y')
+                    ->label('Дата')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('service.name')
+                    ->label('Услуга')
+                    ->limit(22)
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time_order')
                     ->numeric()
+                    ->label('Время')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('people_number')
                     ->numeric()
+                    ->label('Люди')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->sortable(),
+                Tables\Columns\SelectColumn::make('status')
+                    ->label('Статус')
+                    ->options([
+                        'pending' => 'Ожидает',
+                        'advance' => 'Аванс',
+                        'completed' => 'Оплачен',
+                        'cancelled' => 'Отменен',
+                    ]),
                 Tables\Columns\TextColumn::make('sum')
                     ->numeric()
+                    ->label('Сумма')
                     ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(),
+                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
