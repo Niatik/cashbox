@@ -31,6 +31,7 @@ it('can create the Order', function () {
     $people_number = $newData->people_number;
     $time_order = $newData->time_order;
     $sum = $price * $people_number * $time_order;
+    $customer_id = $newData->customer_id;
 
     livewire(OrderResource\Pages\CreateOrder::class)
         ->fillForm([
@@ -40,6 +41,7 @@ it('can create the Order', function () {
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
             'status' => $newData->status,
+            'customer_id' => $newData->customer_id,
         ])
         ->assertFormSet([
             'sum' => $sum,
@@ -55,6 +57,7 @@ it('can create the Order', function () {
         'people_number' => $newData->people_number,
         'status' => $newData->status,
         'sum' => $sum * 100,
+        'customer_id' => $newData->customer_id,
     ]);
 });
 
@@ -67,6 +70,7 @@ it('can validate input to create the Order', function () {
             'time_order' => null,
             'people_number' => null,
             'status' => null,
+            'customer_id' => null,
         ])
         ->call('create')
         ->assertHasFormErrors([
@@ -98,6 +102,7 @@ it('can retrieve data for editing the Order', function () {
         ->assertFormFieldExists('people_number')
         ->assertFormFieldExists('status')
         ->assertFormFieldExists('sum')
+        ->assertFormFieldExists('customer_id')
         ->assertFormSet([
             'date_order' => $order->date_order,
             'service_id' => $order->service_id,
@@ -106,6 +111,7 @@ it('can retrieve data for editing the Order', function () {
             'people_number' => $order->people_number,
             'status' => $order->status,
             'sum' => $order->sum,
+            'customer_id' => $order->customer_id,
         ]);
 });
 
@@ -123,6 +129,7 @@ it('can save edited Order', function () {
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
             'status' => $newData->status,
+            'customer_id' => $newData->customer_id,
         ])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -134,7 +141,8 @@ it('can save edited Order', function () {
         ->time_order->toBe($newData->time_order)
         ->people_number->toBe($newData->people_number)
         ->status->toBe($newData->status)
-        ->sum->toBe($newData->sum);
+        ->sum->toBe($newData->sum)
+        ->customer_id->toBe($newData->customer_id);
 });
 
 it('can validate input to edit the Order', function () {
@@ -150,6 +158,7 @@ it('can validate input to edit the Order', function () {
             'time_order' => null,
             'people_number' => null,
             'status' => null,
+            'customer_id' => null,
         ])
         ->call('save')
         ->assertHasFormErrors(['date_order' => 'required'])
@@ -180,7 +189,8 @@ it('can render order columns', function () {
         ->assertCanRenderTableColumn('time_order')
         ->assertCanRenderTableColumn('people_number')
         ->assertCanRenderTableColumn('status')
-        ->assertCanRenderTableColumn('sum');
+        ->assertCanRenderTableColumn('sum')
+        ->assertCanRenderTableColumn('customer.name');
 });
 
 it('can search orders by date', function () {
@@ -204,6 +214,18 @@ it('can search orders by service name', function () {
         ->assertCanSeeTableRecords($orders->where('service.name', $service))
         ->assertCanNotSeeTableRecords($orders->where('service.name', '!=', $service));
 });
+
+it('can search orders by customer name', function () {
+    $orders = Order::factory()->count(10)->create();
+
+    $customer = $orders->first()->customer->name;
+
+    livewire(OrderResource\Pages\ListOrders::class)
+        ->searchTable($customer)
+        ->assertCanSeeTableRecords($orders->where('customer.name', $customer))
+        ->assertCanNotSeeTableRecords($orders->where('customer.name', '!=', $customer));
+});
+
 
 it('can sort orders by date', function () {
     $orders = Order::factory()->count(10)->create();
@@ -263,6 +285,16 @@ it('can sort orders by sum', function () {
         ->assertCanSeeTableRecords($orders->sortBy('sum'), inOrder: true)
         ->sortTable('sum', 'desc')
         ->assertCanSeeTableRecords($orders->sortByDesc('sum'), inOrder: true);
+});
+
+it('can sort orders by customer name', function () {
+    $orders = Order::factory()->count(10)->create();
+
+    livewire(OrderResource\Pages\ListOrders::class)
+        ->sortTable('customer.name')
+        ->assertCanSeeTableRecords($orders->sortBy('customer.name'), inOrder: true)
+        ->sortTable('customer.name', 'desc')
+        ->assertCanSeeTableRecords($orders->sortByDesc('customer.name'), inOrder: true);
 });
 
 it('can bulk delete orders from table', function () {
