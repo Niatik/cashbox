@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Service;
 use App\Models\SocialMedia;
@@ -32,6 +33,7 @@ class OrderFactory extends Factory
             'status' => $this->faker->randomElement(['advance', 'completed', 'cancelled']),
             'sum' => $sum,
             'employee_id' => Employee::factory(),
+            'customer_id' => Customer::factory(),
         ];
     }
 }

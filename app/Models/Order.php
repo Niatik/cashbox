@@ -20,6 +20,7 @@ class Order extends Model
         'status',
         'sum',
         'employee_id',
+        'customer_id',
     ];
 
     protected $casts = [
@@ -39,5 +40,10 @@ class Order extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

@@ -129,6 +129,22 @@ class OrderResource extends Resource
                     ->default(0)
                     ->live()
                     ->readOnly(),
+                Forms\Components\Select::make('customer_id')
+                    ->relationship('customer', 'name')
+                    ->label('Клиент')
+                    ->searchable()
+                    ->preload()
+                    ->live()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Ф.И.О.')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('phone')
+                            ->label('Телефон')
+                            ->tel()
+                            ->required(),
+                    ]),
                 Forms\Components\TextInput::make('employee_id')
                     ->hidden(),
             ]);
@@ -147,6 +163,11 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('service.name')
                     ->label('Услуга')
                     ->limit(22)
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('customer.name')
+                    ->label('Клиент')
+                    ->limit(27)
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time_order')
