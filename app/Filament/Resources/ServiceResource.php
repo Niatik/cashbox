@@ -50,6 +50,7 @@ class ServiceResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('description')
                     ->label('Описание')
+                    ->limit(25)
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
