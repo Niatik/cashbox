@@ -31,11 +31,10 @@ it('can create the Order', function () {
     $people_number = $newData->people_number;
     $time_order = $newData->time_order;
     $sum = $price * $people_number * $time_order;
-    $customer_id = $newData->customer_id;
 
     livewire(OrderResource\Pages\CreateOrder::class)
         ->fillForm([
-            'date_order' => $newData->date_order,
+            'order_time' => $newData->order_time,
             'service_id' => $newData->service_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
@@ -50,7 +49,8 @@ it('can create the Order', function () {
         ->assertHasNoFormErrors();
 
     $this->assertDatabaseHas(Order::class, [
-        'date_order' => $newData->date_order,
+        'order_date' => now()->format('Y-m-d'),
+        'order_time' => $newData->order_time,
         'service_id' => $newData->service_id,
         'social_media_id' => $newData->social_media_id,
         'time_order' => $newData->time_order,
@@ -64,7 +64,7 @@ it('can create the Order', function () {
 it('can validate input to create the Order', function () {
     livewire(OrderResource\Pages\CreateOrder::class)
         ->fillForm([
-            'date_order' => null,
+            'order_time' => null,
             'service_id' => null,
             'social_media_id' => null,
             'time_order' => null,
@@ -74,7 +74,7 @@ it('can validate input to create the Order', function () {
         ])
         ->call('create')
         ->assertHasFormErrors([
-            'date_order' => 'required',
+            'order_time' => 'required',
             'service_id' => 'required',
             'social_media_id' => 'required',
             'time_order' => 'required',
@@ -95,7 +95,8 @@ it('can retrieve data for editing the Order', function () {
     livewire(OrderResource\Pages\EditOrder::class, [
         'record' => $order->getRouteKey(),
     ])
-        ->assertFormFieldExists('date_order')
+        ->assertFormFieldExists('order_date')
+        ->assertFormFieldExists('order_time')
         ->assertFormFieldExists('service_id')
         ->assertFormFieldExists('social_media_id')
         ->assertFormFieldExists('time_order')
@@ -104,7 +105,7 @@ it('can retrieve data for editing the Order', function () {
         ->assertFormFieldExists('sum')
         ->assertFormFieldExists('customer_id')
         ->assertFormSet([
-            'date_order' => $order->date_order,
+            'order_time' => $order->order_time,
             'service_id' => $order->service_id,
             'social_media_id' => $order->social_media_id,
             'time_order' => $order->time_order,
@@ -123,7 +124,7 @@ it('can save edited Order', function () {
         'record' => $order->getRouteKey(),
     ])
         ->fillForm([
-            'date_order' => $newData->date_order,
+            'order_time' => $newData->order_time,
             'service_id' => $newData->service_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
@@ -135,7 +136,8 @@ it('can save edited Order', function () {
         ->assertHasNoFormErrors();
 
     expect($order->refresh())
-        ->date_order->toBe($newData->date_order)
+        ->order_date->toBe($order->order_date)
+        ->order_time->toBe($order->order_time)
         ->service_id->toBe($newData->service_id)
         ->social_media_id->toBe($newData->social_media_id)
         ->time_order->toBe($newData->time_order)
@@ -152,7 +154,7 @@ it('can validate input to edit the Order', function () {
         'record' => $order->getRouteKey(),
     ])
         ->fillForm([
-            'date_order' => null,
+            'order_time' => null,
             'service_id' => null,
             'social_media_id' => null,
             'time_order' => null,
@@ -161,7 +163,7 @@ it('can validate input to edit the Order', function () {
             'customer_id' => null,
         ])
         ->call('save')
-        ->assertHasFormErrors(['date_order' => 'required'])
+        ->assertHasFormErrors(['order_time' => 'required'])
         ->assertHasFormErrors(['service_id' => 'required'])
         ->assertHasFormErrors(['social_media_id' => 'required'])
         ->assertHasFormErrors(['time_order' => 'required'])
@@ -184,7 +186,8 @@ it('can render order columns', function () {
     Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
-        ->assertCanRenderTableColumn('date_order')
+        ->assertCanRenderTableColumn('order_date')
+        ->assertCanRenderTableColumn('order_time')
         ->assertCanRenderTableColumn('service.name')
         ->assertCanRenderTableColumn('time_order')
         ->assertCanRenderTableColumn('people_number')
@@ -196,12 +199,23 @@ it('can render order columns', function () {
 it('can search orders by date', function () {
     $orders = Order::factory()->count(10)->create();
 
-    $date = $orders->first()->date_order;
+    $date = $orders->first()->order_date;
 
     livewire(OrderResource\Pages\ListOrders::class)
         ->searchTable($date)
-        ->assertCanSeeTableRecords($orders->where('date_order', $date))
-        ->assertCanNotSeeTableRecords($orders->where('date_order', '!=', $date));
+        ->assertCanSeeTableRecords($orders->where('order_date', $date))
+        ->assertCanNotSeeTableRecords($orders->where('order_date', '!=', $date));
+});
+
+it('can search orders by time', function () {
+    $orders = Order::factory()->count(10)->create();
+
+    $time = $orders->first()->order_time;
+
+    livewire(OrderResource\Pages\ListOrders::class)
+        ->searchTable($time)
+        ->assertCanSeeTableRecords($orders->where('order_time', $time))
+        ->assertCanNotSeeTableRecords($orders->where('order_time', '!=', $time));
 });
 
 it('can search orders by service name', function () {
@@ -231,10 +245,20 @@ it('can sort orders by date', function () {
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
-        ->sortTable('date_order')
-        ->assertCanSeeTableRecords($orders->sortBy('date_order'), inOrder: true)
-        ->sortTable('date_order', 'desc')
-        ->assertCanSeeTableRecords($orders->sortByDesc('date_order'), inOrder: true);
+        ->sortTable('order_date')
+        ->assertCanSeeTableRecords($orders->sortBy('order_date'), inOrder: true)
+        ->sortTable('order_date', 'desc')
+        ->assertCanSeeTableRecords($orders->sortByDesc('order_date'), inOrder: true);
+});
+
+it('can sort orders by order time', function () {
+    $orders = Order::factory()->count(10)->create();
+
+    livewire(OrderResource\Pages\ListOrders::class)
+        ->sortTable('order_time')
+        ->assertCanSeeTableRecords($orders->sortBy('order_time'), inOrder: true)
+        ->sortTable('order_time', 'desc')
+        ->assertCanSeeTableRecords($orders->sortByDesc('order_time'), inOrder: true);
 });
 
 it('can sort orders by service name', function () {
@@ -323,7 +347,8 @@ it('can edit orders from table', function () {
 
     livewire(OrderResource\Pages\ListOrders::class)
         ->callTableAction(EditAction::class, $order, data: [
-            'date_order' => $newData->date_order,
+            'order_date' => $newData->order_date,
+            'order_time' => $newData->order_time,
             'service_id' => $newData->service_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
@@ -333,7 +358,8 @@ it('can edit orders from table', function () {
         ->assertHasNoTableActionErrors();
 
     expect($order->refresh())
-        ->date_order->toBe($newData->date_order)
+        ->order_date->toBe($order->order_date)
+        ->order_time->toBe($order->order_time)
         ->service_id->toBe($newData->service_id)
         ->social_media_id->toBe($newData->social_media_id)
         ->time_order->toBe($newData->time_order)
