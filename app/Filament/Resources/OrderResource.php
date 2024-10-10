@@ -27,11 +27,18 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DatePicker::make('date_order')
+                Forms\Components\DatePicker::make('order_date')
                     ->default(now())
                     ->label('Дата')
                     ->required()
-                    ->maxDate(now()),
+                    ->readOnly()
+                    ->maxDate(now())
+                    ->visible(false),
+                Forms\Components\TimePicker::make('order_time')
+                    ->default(now())
+                    ->label('Время')
+                    ->required()
+                    ->readOnly(),
                 Forms\Components\Select::make('service_id')
                     ->relationship('service', 'name')
                     ->label('Услуга')
@@ -155,9 +162,14 @@ class OrderResource extends Resource
         return $table
             ->striped()
             ->columns([
-                Tables\Columns\TextColumn::make('date_order')
+                Tables\Columns\TextColumn::make('order_date')
                     ->date('d.m.Y')
                     ->label('Дата')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('order_time')
+                    ->date('H:i')
+                    ->label('Время')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('service.name')

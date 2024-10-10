@@ -14,6 +14,7 @@ class CreateOrder extends CreateRecord
     {
         $user = User::find(auth()->user()->id);
         $data['employee_id'] = $user->employee->id;
+        $data['order_date'] = now()->format('Y-m-d');
 
         return $data;
     }

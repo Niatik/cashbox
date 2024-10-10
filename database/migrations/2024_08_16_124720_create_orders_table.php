@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->date('date_order');
+            $table->date('order_date');
+            $table->time('order_time');
             $table->unsignedBigInteger('service_id');
             $table->foreign('service_id')
                 ->references('id')

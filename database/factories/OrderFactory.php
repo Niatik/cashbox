@@ -25,7 +25,8 @@ class OrderFactory extends Factory
         $timeOrder = $this->faker->numberBetween(15, 60);
         $sum = $service->price * $peopleNumber * $timeOrder;
         return [
-            'date_order' => $this->faker->date(),
+            'order_date' => $this->faker->date,
+            'order_time' => $this->faker->time,
             'service_id' => $service->id,
             'social_media_id' => SocialMedia::factory(),
             'time_order' => $timeOrder,
