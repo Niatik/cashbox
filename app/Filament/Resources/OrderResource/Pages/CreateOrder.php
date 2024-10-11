@@ -21,6 +21,11 @@ class CreateOrder extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return $this->getResource()::getUrl('index');
+        $orderId = $this->record->id;
+
+        return route('filament.admin.resources.payments.create', [
+            'order_id' => $orderId,
+            'order_sum' => $this->record->sum,
+        ]);
     }
 }
