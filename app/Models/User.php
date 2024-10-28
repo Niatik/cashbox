@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Listeners\CreateEmployeeForUser;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -58,4 +59,8 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasOne(Employee::class);
     }
+
+    protected $dispatchesEvents = [
+        'created' => CreateEmployeeForUser::class,
+    ];
 }
