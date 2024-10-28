@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\PaymentType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,9 +20,9 @@ class PaymentFactory extends Factory
     {
         return [
             'order_id' => Order::factory()->create(),
-            'payment_type_id' => PaymentType::factory()->create(),
             'payment_date' => $this->faker->date(),
-            'payment_amount' => $this->faker->numberBetween(100000, 1000000),
+            'payment_cash_amount' => $this->faker->numberBetween(10000, 100000),
+            'payment_cashless_amount' => $this->faker->numberBetween(10000, 100000),
         ];
     }
 }

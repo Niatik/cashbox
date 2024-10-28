@@ -19,14 +19,9 @@ return new class extends Migration
                 ->on('orders')
                 ->restrictOnDelete()
                 ->cascadeOnUpdate();
-            $table->unsignedBigInteger('payment_type_id');
-            $table->foreign('payment_type_id')
-                ->references('id')
-                ->on('payment_types')
-                ->restrictOnDelete()
-                ->cascadeOnUpdate();
             $table->date('payment_date');
-            $table->integer('payment_amount');
+            $table->integer('payment_cash_amount');
+            $table->integer('payment_cashless_amount');
             $table->timestamps();
         });
     }

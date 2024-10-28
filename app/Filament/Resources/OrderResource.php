@@ -5,7 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use App\Models\Service;
+use Closure;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -27,134 +34,226 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DatePicker::make('order_date')
-                    ->default(now())
-                    ->label('Дата')
-                    ->required()
-                    ->readOnly()
-                    ->maxDate(now())
-                    ->visible(false),
-                Forms\Components\TimePicker::make('order_time')
-                    ->default(now())
-                    ->label('Время')
-                    ->required()
-                    ->readOnly(),
-                Forms\Components\Select::make('service_id')
-                    ->relationship('service', 'name')
-                    ->label('Услуга')
-                    ->searchable()
-                    ->preload()
-                    ->live()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Название услуги')
-                            ->maxLength(255)
-                            ->required(),
-                        Forms\Components\TextInput::make('description')
-                            ->label('Описание')
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('price')
-                            ->label('Цена на одного человека')
-                            ->maxLength(18)
-                            ->required(),
+                static::getDateFormField()->hidden(),
+                static::getTimeFormField(),
+                static::getServiceFormField(),
+                static::getServicePriceFormField(),
+                static::getTimeOrderFormField(),
+                static::getPeopleNumberFormField(),
+                static::getSocialMediaFormField(),
+                static::getSumFormField(),
+                static::getCustomerFormField(),
+                static::getEmployeeFormField(),
+                Section::make()
+                    ->relationship('payment')
+                    ->schema([
+                        OrderResource::getPaymentDateFormField()->hidden(),
+                        OrderResource::getPaymentCashAmountFormField(),
+                        OrderResource::getPaymentCashlessAmountFormField(),
                     ])
-                    ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
-                        if ($state) {
-                            $service = Service::find($state);
-                            if ($service) {
-                                $price = $service->price;
-                                $set('service_price', $price);
-                            }
-                        }
-                    })
-                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                        $price = 0;
-                        if ($state) {
-                            $service = Service::find($state);
-                            if ($service) {
-                                $price = $service->price;
-                                $set('service_price', $price);
-                            }
-                        }
-                        if ($get('time_order') && $get('people_number')) {
-                            $set('sum', $price * $get('people_number') * $get('time_order'));
-                        }
-                    })
-                    ->required(),
-                Forms\Components\Hidden::make('service_price')
-                    ->default(0),
-                Forms\Components\TextInput::make('time_order')
-                    ->label('Время')
-                    ->numeric()
-                    ->step(15)
-                    ->minValue(15)
-                    ->maxValue(1440)
-                    ->live()
-                    ->required()
-                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                        if ($state && $get('people_number') && $get('service_price')) {
-                            $set('sum', $get('service_price') * $get('people_number') * $state);
-                        }
+                    ->columns(2)
+                    ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                        $data['payment_date'] = now()->format('Y-m-d');
+
+                        return $data;
                     }),
-                Forms\Components\TextInput::make('people_number')
-                    ->numeric()
-                    ->label('Количество человек')
-                    ->minValue(1)
-                    ->maxValue(100)
-                    ->live()
-                    ->required()
-                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                        if ($state && $get('time_order') && $get('service_price')) {
-                            $set('sum', $get('service_price') * $get('time_order') * $state);
-                        }
-                    }),
-                Forms\Components\Select::make('status')
-                    ->label('Статус')
-                    ->default('pending')
-                    ->options([
-                        'pending' => 'Ожидает',
-                        'advance' => 'Аванс',
-                        'completed' => 'Оплачен',
-                        'cancelled' => 'Отменен',
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('social_media_id')
-                    ->relationship('social_media', 'name')
-                    ->label('Откуда')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Название')
-                            ->maxLength(255)
-                            ->required(),
-                    ]),
-                Forms\Components\TextInput::make('sum')
-                    ->numeric()
-                    ->label('Сумма')
-                    ->default(0)
-                    ->live()
-                    ->readOnly(),
-                Forms\Components\Select::make('customer_id')
-                    ->relationship('customer', 'name')
-                    ->label('Клиент')
-                    ->searchable()
-                    ->preload()
-                    ->live()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Ф.И.О.')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('phone')
-                            ->label('Телефон')
-                            ->tel()
-                            ->required(),
-                    ]),
-                Forms\Components\TextInput::make('employee_id')
-                    ->hidden(),
             ]);
+    }
+
+    public static function getDateFormField(): DatePicker
+    {
+        return DatePicker::make('order_date')
+            ->default(now())
+            ->label('Дата')
+            ->required()
+            ->readOnly();
+    }
+
+    public static function getTimeFormField(): TimePicker
+    {
+        return TimePicker::make('order_time')
+            ->default(now())
+            ->label('Время')
+            ->required()
+            ->readOnly();
+    }
+
+    public static function getServiceFormField(): Select
+    {
+        return Select::make('service_id')
+            ->relationship('service', 'name')
+            ->label('Услуга')
+            ->searchable()
+            ->preload()
+            ->live()
+            ->createOptionForm([
+                Forms\Components\TextInput::make('name')
+                    ->label('Название услуги')
+                    ->maxLength(255)
+                    ->required(),
+                Forms\Components\TextInput::make('description')
+                    ->label('Описание')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('price')
+                    ->label('Цена на одного человека')
+                    ->maxLength(18)
+                    ->required(),
+            ])
+            ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
+                if ($state) {
+                    $service = Service::find($state);
+                    if ($service) {
+                        $price = $service->price;
+                        $set('service_price', $price);
+                    }
+                }
+            })
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                $price = 0;
+                if ($state) {
+                    $service = Service::find($state);
+                    if ($service) {
+                        $price = $service->price;
+                        $set('service_price', $price);
+                    }
+                }
+                if ($get('time_order') && $get('people_number')) {
+                    $set('sum', $price * $get('people_number') * $get('time_order'));
+                    $set('payment.payment_cash_amount', $price * $get('people_number') * $get('time_order'));
+                }
+            })
+            ->required();
+    }
+
+    public static function getServicePriceFormField(): Hidden
+    {
+        return Hidden::make('service_price')
+            ->default(0);
+    }
+
+    public static function getTimeOrderFormField(): TextInput
+    {
+        return TextInput::make('time_order')
+            ->label('Время')
+            ->numeric()
+            ->minValue(1)
+            ->maxValue(1440)
+            ->live()
+            ->required()
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                if ($state && $get('people_number') && $get('service_price')) {
+                    $set('sum', $get('service_price') * $get('people_number') * $state);
+                    $set('payment.payment_cash_amount', $get('service_price') * $get('people_number') * $state);
+                }
+            });
+    }
+
+    public static function getPeopleNumberFormField(): TextInput
+    {
+        return TextInput::make('people_number')
+            ->numeric()
+            ->label('Количество человек')
+            ->minValue(1)
+            ->maxValue(100)
+            ->live()
+            ->required()
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                if ($state && $get('time_order') && $get('service_price')) {
+                    $set('sum', $get('service_price') * $get('time_order') * $state);
+                    $set('payment.payment_cash_amount', $get('service_price') * $get('time_order') * $state);
+                }
+            });
+    }
+
+    public static function getSocialMediaFormField(): Select
+    {
+        return Forms\Components\Select::make('social_media_id')
+            ->relationship('social_media', 'name')
+            ->label('Откуда')
+            ->searchable()
+            ->preload()
+            ->required()
+            ->createOptionForm([
+                Forms\Components\TextInput::make('name')
+                    ->label('Название')
+                    ->maxLength(255)
+                    ->required(),
+            ]);
+    }
+
+    public static function getCustomerFormField(): Select
+    {
+        return Forms\Components\Select::make('customer_id')
+            ->relationship('customer', 'name')
+            ->label('Клиент')
+            ->searchable()
+            ->preload()
+            ->live()
+            ->createOptionForm([
+                Forms\Components\TextInput::make('name')
+                    ->label('Ф.И.О.')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('phone')
+                    ->label('Телефон')
+                    ->tel()
+                    ->required(),
+            ]);
+    }
+
+    public static function getSumFormField(): TextInput
+    {
+        return TextInput::make('sum')
+            ->numeric()
+            ->label('Сумма')
+            ->default(0)
+            ->live()
+            ->readOnly();
+    }
+
+    public static function getEmployeeFormField(): TextInput
+    {
+        return TextInput::make('employee_id')
+            ->hidden();
+    }
+
+    public static function getPaymentDateFormField(): DatePicker
+    {
+        return Forms\Components\DatePicker::make('payment_date')
+            ->default(now())
+            ->label('Дата')
+            ->required();
+    }
+
+    public static function getPaymentCashAmountFormField(): TextInput
+    {
+        return Forms\Components\TextInput::make('payment_cash_amount')
+            ->rules([
+                fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                    $cashlessAmount = $get('payment_cashless_amount');
+                    $sum = $get('../sum');
+                    if (($cashlessAmount + $value) !== $sum) {
+                        $fail('The total amount of payments does not match the order amount');
+                    }
+                },
+            ])
+            ->label('Наличные');
+    }
+
+    public static function getPaymentCashlessAmountFormField(): TextInput
+    {
+        return Forms\Components\TextInput::make('payment_cashless_amount')
+            ->rules([
+                fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                    $cashAmount = $get('payment_cash_amount');
+                    $sum = $get('../sum');
+                    if (($cashAmount + $value) !== $sum) {
+                        $fail('The total amount of payments does not match the order amount');
+                    }
+                },
+            ])
+            ->default(0)
+            ->label('Безналичные');
     }
 
     public static function table(Table $table): Table
@@ -163,12 +262,13 @@ class OrderResource extends Resource
             ->striped()
             ->columns([
                 Tables\Columns\TextColumn::make('order_date')
+                    ->hidden()
                     ->date('d.m.Y')
                     ->label('Дата')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('order_time')
-                    ->date('H:i')
+                    ->date('H:i:s')
                     ->label('Время')
                     ->searchable()
                     ->sortable(),

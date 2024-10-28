@@ -31,7 +31,6 @@ class OrderFactory extends Factory
             'social_media_id' => SocialMedia::factory(),
             'time_order' => $timeOrder,
             'people_number' => $peopleNumber,
-            'status' => $this->faker->randomElement(['advance', 'completed', 'cancelled']),
             'sum' => $sum,
             'employee_id' => Employee::factory(),
             'customer_id' => Customer::factory(),

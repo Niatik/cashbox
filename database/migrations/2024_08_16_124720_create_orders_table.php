@@ -29,7 +29,6 @@ return new class extends Migration
                 ->cascadeOnUpdate();
             $table->integer('time_order');
             $table->integer('people_number');
-            $table->string('status');
             $table->bigInteger('sum')->default(0);
             $table->timestamps();
         });
