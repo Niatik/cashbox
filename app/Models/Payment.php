@@ -14,13 +14,14 @@ class Payment extends Model
 
     protected $fillable = [
         'order_id',
-        'payment_type_id',
         'payment_date',
-        'payment_amount',
+        'payment_cash_amount',
+        'payment_cashless_amount',
     ];
 
     protected $casts = [
-        'payment_amount' => MoneyCast::class,
+        'payment_cash_amount' => MoneyCast::class,
+        'payment_cashless_amount' => MoneyCast::class,
     ];
 
 
@@ -28,13 +29,4 @@ class Payment extends Model
     {
         return $this->belongsTo(Order::class);
     }
-
-    public function payment_type(): BelongsTo
-    {
-        return $this->belongsTo(PaymentType::class);
-    }
-
-    protected $dispatchesEvents = [
-        'created' => UpdateOrderStatus::class,
-    ];
 }
