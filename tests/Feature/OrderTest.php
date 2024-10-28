@@ -2,10 +2,11 @@
 
 use App\Filament\Resources\OrderResource;
 use App\Models\Order;
+use App\Models\Payment;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-
 use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
@@ -26,6 +27,75 @@ it('can render page for creating the Order', function () {
 });
 
 it('can create the Order', function () {
+    $user = User::find(auth()->user()->id);
+    $employee_id = $user->employee->id;
+    $newData = Order::factory()->make();
+    $price = $newData->service->price;
+    $people_number = $newData->people_number;
+    $time_order = $newData->time_order;
+    $sum = $price * $people_number * $time_order;
+
+    livewire(OrderResource\Pages\CreateOrder::class)
+        ->goToWizardStep(1)
+        ->assertWizardCurrentStep(1)
+        ->fillForm([
+            'service_id' => $newData->service_id,
+            'social_media_id' => $newData->social_media_id,
+            'time_order' => $newData->time_order,
+            'people_number' => $newData->people_number,
+            'customer_id' => $newData->customer_id,
+        ])
+        ->assertFormSet([
+            'sum' => $sum,
+            'payment' => [
+                'payment_cash_amount' => $sum,
+                'payment_cashless_amount' => 0,
+            ],
+        ])
+        ->goToNextWizardStep()
+        ->assertHasNoFormErrors()
+        ->assertWizardCurrentStep(2)
+        ->assertHasNoFormErrors()
+        ->call('create');
+
+    $this->assertDatabaseHas(Order::class, [
+        'order_date' => now()->format('Y-m-d'),
+        'service_id' => $newData->service_id,
+        'social_media_id' => $newData->social_media_id,
+        'time_order' => $newData->time_order,
+        'people_number' => $newData->people_number,
+        'sum' => $sum * 100,
+        'customer_id' => $newData->customer_id,
+        'employee_id' => $employee_id,
+    ]);
+
+    $this->assertDatabaseHas(Payment::class, [
+        'order_id' => Order::latest()->first()->id,
+        'payment_cash_amount' => $sum * 100,
+        'payment_cashless_amount' => 0,
+        'payment_date' => now()->format('Y-m-d'),
+    ]);
+});
+
+it('can validate input to create the Order', function () {
+    livewire(OrderResource\Pages\CreateOrder::class)
+        ->fillForm([
+            'service_id' => null,
+            'social_media_id' => null,
+            'time_order' => null,
+            'people_number' => null,
+            'customer_id' => null,
+        ])
+        ->call('create')
+        ->assertHasFormErrors([
+            'service_id' => 'required',
+            'social_media_id' => 'required',
+            'time_order' => 'required',
+            'people_number' => 'required',
+        ]);
+});
+
+it('can validate input payment to create the Order', function () {
     $newData = Order::factory()->make();
     $price = $newData->service->price;
     $people_number = $newData->people_number;
@@ -34,52 +104,20 @@ it('can create the Order', function () {
 
     livewire(OrderResource\Pages\CreateOrder::class)
         ->fillForm([
-            'order_time' => $newData->order_time,
             'service_id' => $newData->service_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
-            'status' => $newData->status,
             'customer_id' => $newData->customer_id,
-        ])
-        ->assertFormSet([
-            'sum' => $sum,
-        ])
-        ->call('create')
-        ->assertHasNoFormErrors();
-
-    $this->assertDatabaseHas(Order::class, [
-        'order_date' => now()->format('Y-m-d'),
-        'order_time' => $newData->order_time,
-        'service_id' => $newData->service_id,
-        'social_media_id' => $newData->social_media_id,
-        'time_order' => $newData->time_order,
-        'people_number' => $newData->people_number,
-        'status' => $newData->status,
-        'sum' => $sum * 100,
-        'customer_id' => $newData->customer_id,
-    ]);
-});
-
-it('can validate input to create the Order', function () {
-    livewire(OrderResource\Pages\CreateOrder::class)
-        ->fillForm([
-            'order_time' => null,
-            'service_id' => null,
-            'social_media_id' => null,
-            'time_order' => null,
-            'people_number' => null,
-            'status' => null,
-            'customer_id' => null,
+            'payment' => [
+                'payment_cash_amount' => $sum - 200,
+                'payment_cashless_amount' => 2000,
+            ],
         ])
         ->call('create')
         ->assertHasFormErrors([
-            'order_time' => 'required',
-            'service_id' => 'required',
-            'social_media_id' => 'required',
-            'time_order' => 'required',
-            'people_number' => 'required',
-            'status' => 'required',
+            'payment.payment_cash_amount' => 'The total amount of payments does not match the order amount',
+            'payment.payment_cashless_amount' => 'The total amount of payments does not match the order amount',
         ]);
 });
 
@@ -101,18 +139,18 @@ it('can retrieve data for editing the Order', function () {
         ->assertFormFieldExists('social_media_id')
         ->assertFormFieldExists('time_order')
         ->assertFormFieldExists('people_number')
-        ->assertFormFieldExists('status')
         ->assertFormFieldExists('sum')
         ->assertFormFieldExists('customer_id')
+        ->assertFormFieldExists('employee_id')
         ->assertFormSet([
             'order_time' => $order->order_time,
             'service_id' => $order->service_id,
             'social_media_id' => $order->social_media_id,
             'time_order' => $order->time_order,
             'people_number' => $order->people_number,
-            'status' => $order->status,
             'sum' => $order->sum,
             'customer_id' => $order->customer_id,
+            'employee_id' => $order->employee_id,
         ]);
 });
 
@@ -129,7 +167,6 @@ it('can save edited Order', function () {
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
-            'status' => $newData->status,
             'customer_id' => $newData->customer_id,
         ])
         ->call('save')
@@ -142,7 +179,6 @@ it('can save edited Order', function () {
         ->social_media_id->toBe($newData->social_media_id)
         ->time_order->toBe($newData->time_order)
         ->people_number->toBe($newData->people_number)
-        ->status->toBe($newData->status)
         ->sum->toBe($newData->sum)
         ->customer_id->toBe($newData->customer_id);
 });
@@ -159,7 +195,6 @@ it('can validate input to edit the Order', function () {
             'social_media_id' => null,
             'time_order' => null,
             'people_number' => null,
-            'status' => null,
             'customer_id' => null,
         ])
         ->call('save')
@@ -167,8 +202,7 @@ it('can validate input to edit the Order', function () {
         ->assertHasFormErrors(['service_id' => 'required'])
         ->assertHasFormErrors(['social_media_id' => 'required'])
         ->assertHasFormErrors(['time_order' => 'required'])
-        ->assertHasFormErrors(['people_number' => 'required'])
-        ->assertHasFormErrors(['status' => 'required']);
+        ->assertHasFormErrors(['people_number' => 'required']);
 });
 
 it('can delete the Order', function () {
@@ -186,25 +220,13 @@ it('can render order columns', function () {
     Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
-        ->assertCanRenderTableColumn('order_date')
+        ->assertCanNotRenderTableColumn('order_date')
         ->assertCanRenderTableColumn('order_time')
         ->assertCanRenderTableColumn('service.name')
         ->assertCanRenderTableColumn('time_order')
         ->assertCanRenderTableColumn('people_number')
-        ->assertCanRenderTableColumn('status')
         ->assertCanRenderTableColumn('sum')
         ->assertCanRenderTableColumn('customer.name');
-});
-
-it('can search orders by date', function () {
-    $orders = Order::factory()->count(10)->create();
-
-    $date = $orders->first()->order_date;
-
-    livewire(OrderResource\Pages\ListOrders::class)
-        ->searchTable($date)
-        ->assertCanSeeTableRecords($orders->where('order_date', $date))
-        ->assertCanNotSeeTableRecords($orders->where('order_date', '!=', $date));
 });
 
 it('can search orders by time', function () {
@@ -238,17 +260,6 @@ it('can search orders by customer name', function () {
         ->searchTable($customer)
         ->assertCanSeeTableRecords($orders->where('customer.name', $customer))
         ->assertCanNotSeeTableRecords($orders->where('customer.name', '!=', $customer));
-});
-
-
-it('can sort orders by date', function () {
-    $orders = Order::factory()->count(10)->create();
-
-    livewire(OrderResource\Pages\ListOrders::class)
-        ->sortTable('order_date')
-        ->assertCanSeeTableRecords($orders->sortBy('order_date'), inOrder: true)
-        ->sortTable('order_date', 'desc')
-        ->assertCanSeeTableRecords($orders->sortByDesc('order_date'), inOrder: true);
 });
 
 it('can sort orders by order time', function () {
@@ -289,16 +300,6 @@ it('can sort orders by people number', function () {
         ->assertCanSeeTableRecords($orders->sortBy('people_number'), inOrder: true)
         ->sortTable('people_number', 'desc')
         ->assertCanSeeTableRecords($orders->sortByDesc('people_number'), inOrder: true);
-});
-
-it('can sort orders by status', function () {
-    $orders = Order::factory()->count(10)->create();
-
-    livewire(OrderResource\Pages\ListOrders::class)
-        ->sortTable('status')
-        ->assertCanSeeTableRecords($orders->sortBy('status'), inOrder: true)
-        ->sortTable('status', 'desc')
-        ->assertCanSeeTableRecords($orders->sortByDesc('status'), inOrder: true);
 });
 
 it('can sort orders by sum', function () {
@@ -353,7 +354,6 @@ it('can edit orders from table', function () {
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
-            'status' => $newData->status,
         ])
         ->assertHasNoTableActionErrors();
 
@@ -364,6 +364,5 @@ it('can edit orders from table', function () {
         ->social_media_id->toBe($newData->social_media_id)
         ->time_order->toBe($newData->time_order)
         ->people_number->toBe($newData->people_number)
-        ->status->toBe($newData->status)
         ->sum->toBe($newData->sum);
 });
