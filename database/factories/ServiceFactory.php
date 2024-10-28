@@ -19,7 +19,7 @@ class ServiceFactory extends Factory
         return [
             'name' => fake()->name(),
             'description' => fake()->text(),
-            'price' => fake()->numberBetween(100000, 500000),
+            'price' => fake()->numberBetween(1000, 5000),
         ];
     }
 }
