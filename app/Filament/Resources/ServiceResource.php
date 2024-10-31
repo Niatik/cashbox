@@ -18,7 +18,7 @@ class ServiceResource extends Resource
 
     protected static ?string $label = '';
 
-    protected static ?string $pluralLabel = 'Услуги';
+    protected static ?string $pluralLabel = 'Прайс';
 
     protected static ?string $navigationGroup = 'Справочники';
 
@@ -34,7 +34,7 @@ class ServiceResource extends Resource
                     ->label('Описание')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('price')
-                    ->label('Цена на одного человека')
+                    ->label('Цена на одного человека за час')
                     ->maxLength(18)
                     ->required(),
             ]);
