@@ -4,8 +4,6 @@ namespace App\Listeners;
 
 use App\Models\Employee;
 use App\Models\User;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class CreateEmployeeForUser
 {
@@ -14,12 +12,24 @@ class CreateEmployeeForUser
      */
     public function __construct(User $user)
     {
-        Employee::create([
+        $employee = Employee::firstOrNew([
             'user_id' => $user->id,
-            'name' => $user->name,
-            'phone' => '',
-            'salary' => 0,
-            'employment_date' => now(),
+            //'name' => $user->name,
+            //'salary' => 0,
+            //'employment_date' => now(),
         ]);
+        $employee->name = $user->name;
+        $employee->phone = '';
+        $employee->salary = 0;
+        $employee->employment_date = now();
+        $employee->save();
+        //$employee = Employee::create([
+        //    'user_id' => $user->id,
+        //    'name' => $user->name,
+        //    'phone' => '',
+        //    'salary' => 0,
+        //    'employment_date' => now(),
+        //]);
+        $user->assignRole('employee');
     }
 }
