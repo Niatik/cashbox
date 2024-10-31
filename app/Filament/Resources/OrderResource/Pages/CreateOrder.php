@@ -49,6 +49,7 @@ class CreateOrder extends CreateRecord
                     OrderResource::getSumFormField(),
                     OrderResource::getCustomerFormField(),
                     OrderResource::getEmployeeFormField(),
+                    OrderResource::getOptionsFormField(),
                 ]),
             Step::make('Оплата')
                 ->description('Внесите оплату за услугу и завершите оформление')

@@ -23,10 +23,12 @@ class Order extends Model
         'sum',
         'employee_id',
         'customer_id',
+        'options',
     ];
 
     protected $casts = [
         'sum' => MoneyCast::class,
+        'options' => 'array',
     ];
 
     public function service(): BelongsTo

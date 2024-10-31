@@ -28,7 +28,7 @@ class OrderResource extends Resource
 
     protected static ?string $label = '';
 
-    protected static ?string $pluralLabel = 'Заказы';
+    protected static ?string $pluralLabel = 'Услуги';
 
     public static function form(Form $form): Form
     {
@@ -44,7 +44,8 @@ class OrderResource extends Resource
                 static::getSumFormField(),
                 static::getCustomerFormField(),
                 static::getEmployeeFormField(),
-                Section::make()
+                static::getOptionsFormField(),
+                Section::make('Оплата')
                     ->relationship('payment')
                     ->schema([
                         OrderResource::getPaymentDateFormField()->hidden(),
@@ -85,7 +86,7 @@ class OrderResource extends Resource
             ->label('Услуга')
             ->searchable()
             ->preload()
-            ->live()
+            ->live(onBlur: true)
             ->createOptionForm([
                 Forms\Components\TextInput::make('name')
                     ->label('Название услуги')
@@ -103,7 +104,7 @@ class OrderResource extends Resource
                 if ($state) {
                     $service = Service::find($state);
                     if ($service) {
-                        $price = $service->price;
+                        $price = $service->price / 60;
                         $set('service_price', $price);
                     }
                 }
@@ -118,8 +119,12 @@ class OrderResource extends Resource
                     }
                 }
                 if ($get('time_order') && $get('people_number')) {
-                    $set('sum', $price * $get('people_number') * $get('time_order'));
-                    $set('payment.payment_cash_amount', $price * $get('people_number') * $get('time_order'));
+                    $discount = $get('options.discount');
+                    $prepayment = $get('options.prepayment');
+                    $additional_discount = $get('options.additional_discount');
+                    $sum = $price * $get('people_number') * $get('time_order') - $discount - $prepayment - $additional_discount;
+                    $set('sum', $sum);
+                    $set('payment.payment_cash_amount', $sum);
                 }
             })
             ->required();
@@ -138,12 +143,16 @@ class OrderResource extends Resource
             ->numeric()
             ->minValue(1)
             ->maxValue(1440)
-            ->live()
+            ->live(onBlur: true)
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 if ($state && $get('people_number') && $get('service_price')) {
-                    $set('sum', $get('service_price') * $get('people_number') * $state);
-                    $set('payment.payment_cash_amount', $get('service_price') * $get('people_number') * $state);
+                    $discount = $get('options.discount');
+                    $prepayment = $get('options.prepayment');
+                    $additional_discount = $get('options.additional_discount');
+                    $sum = $get('service_price') * $get('people_number') * $state - $discount - $prepayment - $additional_discount;
+                    $set('sum', $sum);
+                    $set('payment.payment_cash_amount', $sum);
                 }
             });
     }
@@ -155,12 +164,16 @@ class OrderResource extends Resource
             ->label('Количество человек')
             ->minValue(1)
             ->maxValue(100)
-            ->live()
+            ->live(onBlur: true)
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 if ($state && $get('time_order') && $get('service_price')) {
-                    $set('sum', $get('service_price') * $get('time_order') * $state);
-                    $set('payment.payment_cash_amount', $get('service_price') * $get('time_order') * $state);
+                    $discount = $get('options.discount');
+                    $prepayment = $get('options.prepayment');
+                    $additional_discount = $get('options.additional_discount');
+                    $sum = $get('service_price') * $get('time_order') * $state - $discount - $prepayment - $additional_discount;
+                    $set('sum', $sum);
+                    $set('payment.payment_cash_amount', $sum);
                 }
             });
     }
@@ -188,7 +201,7 @@ class OrderResource extends Resource
             ->label('Клиент')
             ->searchable()
             ->preload()
-            ->live()
+            ->live(onBlur: true)
             ->createOptionForm([
                 Forms\Components\TextInput::make('name')
                     ->label('Ф.И.О.')
@@ -207,7 +220,6 @@ class OrderResource extends Resource
             ->numeric()
             ->label('Сумма')
             ->default(0)
-            ->live()
             ->readOnly();
     }
 
@@ -256,6 +268,51 @@ class OrderResource extends Resource
             ->label('Безналичные');
     }
 
+    public static function getOptionsFormField(): Section
+    {
+        return Section::make()
+            ->statePath('options')
+            ->schema([
+                TextInput::make('discount')
+                    ->label('Скидка')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                        $discount = $state;
+                        $prepayment = $get('prepayment');
+                        $additional_discount = $get('additional_discount');
+                        $sum = $get('../service_price') * $get('../time_order') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $set('../sum', $sum);
+                        $set('../payment.payment_cash_amount', $sum);
+                    }),
+                TextInput::make('prepayment')
+                    ->label('Аванс')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                        $discount = $get('discount');
+                        $prepayment = $state;
+                        $additional_discount = $get('additional_discount');
+                        $sum = $get('../service_price') * $get('../time_order') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $set('../sum', $sum);
+                        $set('../payment.payment_cash_amount', $sum);
+                    }),
+                TextInput::make('additional_discount')
+                    ->label('Дополнительная скидка')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                        $discount = $get('discount');
+                        $prepayment = $get('prepayment');
+                        $additional_discount = $state;
+                        $sum = $get('../service_price') * $get('../time_order') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $set('../sum', $sum);
+                        $set('../payment.payment_cash_amount', $sum);
+                    }),
+                TextInput::make('additional_discount_description')
+                    ->label('Причина дополнительной скидки')
+                    ->hidden(fn (Get $get): bool => ! $get('additional_discount'))
+                    ->required(fn (Get $get): bool => filled($get('additional_discount'))),
+            ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -290,15 +347,6 @@ class OrderResource extends Resource
                     ->numeric()
                     ->label('Люди')
                     ->sortable(),
-                Tables\Columns\SelectColumn::make('status')
-                    ->label('Статус')
-                    ->sortable()
-                    ->options([
-                        'pending' => 'Ожидает',
-                        'advance' => 'Аванс',
-                        'completed' => 'Оплачен',
-                        'cancelled' => 'Отменен',
-                    ]),
                 Tables\Columns\TextColumn::make('sum')
                     ->numeric()
                     ->label('Сумма')

@@ -20,31 +20,6 @@ class EditOrder extends EditRecord
         ];
     }
 
-    protected function getFormActions(): array
-    {
-        return [
-            ...parent::getFormActions(),
-            Action::make('pay')
-                ->action('pay')
-                ->label('Оплатить'),
-        ];
-    }
-
-    public function pay(): void
-    {
-        $orderId = $this->record->id;
-
-        Notification::make()
-            ->title('Redirecting to payment')
-            ->success()
-            ->send();
-
-        $this->redirect(route('filament.admin.resources.payments.create', [
-            'order_id' => $orderId,
-            'order_sum' => $this->record->sum,
-        ]));
-    }
-
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $user = User::find(auth()->user()->id);
@@ -59,3 +34,4 @@ class EditOrder extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 }
+
