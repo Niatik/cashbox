@@ -48,6 +48,7 @@ expect()->extend('toBeOne', function () {
 
 pest()->beforeEach(function () {
     Role::create(['name' => 'super-admin']);
+    Role::create(['name' => 'employee']);
     $user = User::factory()->create();
 
     $this->actingAs(

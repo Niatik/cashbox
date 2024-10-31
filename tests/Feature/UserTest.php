@@ -219,10 +219,17 @@ it('can search users by email', function () {
 });
 
 it('can search users by employee phone', function () {
-    $users = User::factory()
-        ->count(10)
-        ->has(Employee::factory())
+    User::factory()
+        ->count(9)
         ->create();
+
+    $users = User::All();
+
+    foreach ($users as $user) {
+        $user->employee->phone = fake()->phoneNumber();
+        $user->save();
+        $user->refresh();
+    }
 
     $phone = $users->first()->employee->phone;
 
@@ -257,7 +264,6 @@ it('can sort users by email', function () {
 it('can sort users by employee name', function () {
     User::factory()
         ->count(4)
-        ->has(Employee::factory())
         ->create();
     $users = User::All();
 
@@ -271,9 +277,13 @@ it('can sort users by employee name', function () {
 it('can sort users by employee phone', function () {
     User::factory()
         ->count(4)
-        ->has(Employee::factory())
         ->create();
     $users = User::All();
+    foreach ($users as $user) {
+        $user->employee->phone = fake()->phoneNumber();
+        $user->save();
+        $user->refresh();
+    }
 
     livewire(UserResource\Pages\ListUsers::class)
         ->sortTable('employee.phone')

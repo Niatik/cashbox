@@ -15,9 +15,11 @@ it('can render page', function () {
 });
 
 it('can list employees', function () {
-    $employees = Employee::factory()->count(10)->create();
+    Employee::factory()->count(3)->create();
 
-    livewire(EmployeeResource\Pages\ListEmployees::class)
+    $employees = Employee::all();
+
+        livewire(EmployeeResource\Pages\ListEmployees::class)
         ->assertCanSeeTableRecords($employees);
 });
 
@@ -158,7 +160,8 @@ it('can render employee columns', function () {
 });
 
 it('can search employees by name', function () {
-    $employees = Employee::factory()->count(10)->create();
+    Employee::factory()->count(5)->create();
+    $employees = Employee::all();
 
     $name = $employees->first()->name;
 
@@ -169,7 +172,7 @@ it('can search employees by name', function () {
 });
 
 it('can search employees by phone', function () {
-    $employees = Employee::factory()->count(10)->create();
+    $employees = Employee::factory()->count(5)->create();
 
     $phone = $employees->first()->phone;
 
@@ -191,7 +194,8 @@ it('can search employees by username', function () {
 });
 
 it('can sort employees by name', function () {
-    $employees = Employee::factory()->count(10)->create();
+    Employee::factory()->count(4)->create();
+    $employees = Employee::all();
 
     livewire(EmployeeResource\Pages\ListEmployees::class)
         ->sortTable('name')
@@ -201,7 +205,8 @@ it('can sort employees by name', function () {
 });
 
 it('can sort employees by user.name', function () {
-    $employees = Employee::factory()->count(10)->create();
+    Employee::factory()->count(4)->create();
+    $employees = Employee::all();
 
     livewire(EmployeeResource\Pages\ListEmployees::class)
         ->sortTable('user.name')
@@ -211,7 +216,8 @@ it('can sort employees by user.name', function () {
 });
 
 it('can sort employees by phone', function () {
-    $employees = Employee::factory()->count(10)->create();
+    Employee::factory()->count(4)->create();
+    $employees = Employee::all();
 
     livewire(EmployeeResource\Pages\ListEmployees::class)
         ->sortTable('phone')
@@ -221,7 +227,8 @@ it('can sort employees by phone', function () {
 });
 
 it('can sort employees by salary', function () {
-    $employees = Employee::factory()->count(10)->create();
+    Employee::factory()->count(4)->create();
+    $employees = Employee::all();
 
     livewire(EmployeeResource\Pages\ListEmployees::class)
         ->sortTable('salary')
@@ -231,7 +238,8 @@ it('can sort employees by salary', function () {
 });
 
 it('can sort employees by employment date', function () {
-    $employees = Employee::factory()->count(10)->create();
+    Employee::factory()->count(4)->create();
+    $employees = Employee::all();
 
     livewire(EmployeeResource\Pages\ListEmployees::class)
         ->sortTable('employment_date')
