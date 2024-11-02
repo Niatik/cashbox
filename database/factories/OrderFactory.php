@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Customer;
 use App\Models\Employee;
-use App\Models\Service;
+use App\Models\Price;
 use App\Models\SocialMedia;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,14 +20,14 @@ class OrderFactory extends Factory
      */
     public function definition(): array
     {
-        $service = Service::factory()->create();
+        $price = Price::factory()->create();
         $peopleNumber = $this->faker->numberBetween(1, 10);
         $timeOrder = $this->faker->numberBetween(15, 60);
-        $sum = $service->price * $peopleNumber * $timeOrder;
+        $sum = $price->price * $peopleNumber * $timeOrder;
         return [
             'order_date' => $this->faker->date,
             'order_time' => $this->faker->time,
-            'service_id' => $service->id,
+            'price_id' => $price->id,
             'social_media_id' => SocialMedia::factory(),
             'time_order' => $timeOrder,
             'people_number' => $peopleNumber,

@@ -30,7 +30,7 @@ it('can create the Order', function () {
     $user = User::find(auth()->user()->id);
     $employee_id = $user->employee->id;
     $newData = Order::factory()->make();
-    $price = $newData->service->price;
+    $price = $newData->price->price;
     $people_number = $newData->people_number;
     $time_order = $newData->time_order;
     $sum = $price * $people_number * $time_order;
@@ -39,7 +39,7 @@ it('can create the Order', function () {
         ->goToWizardStep(1)
         ->assertWizardCurrentStep(1)
         ->fillForm([
-            'service_id' => $newData->service_id,
+            'price_id' => $newData->price_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
@@ -60,7 +60,7 @@ it('can create the Order', function () {
 
     $this->assertDatabaseHas(Order::class, [
         'order_date' => now()->format('Y-m-d'),
-        'service_id' => $newData->service_id,
+        'price_id' => $newData->price_id,
         'social_media_id' => $newData->social_media_id,
         'time_order' => $newData->time_order,
         'people_number' => $newData->people_number,
@@ -80,7 +80,7 @@ it('can create the Order', function () {
 it('can validate input to create the Order', function () {
     livewire(OrderResource\Pages\CreateOrder::class)
         ->fillForm([
-            'service_id' => null,
+            'price_id' => null,
             'social_media_id' => null,
             'time_order' => null,
             'people_number' => null,
@@ -88,7 +88,7 @@ it('can validate input to create the Order', function () {
         ])
         ->call('create')
         ->assertHasFormErrors([
-            'service_id' => 'required',
+            'price_id' => 'required',
             'social_media_id' => 'required',
             'time_order' => 'required',
             'people_number' => 'required',
@@ -97,14 +97,14 @@ it('can validate input to create the Order', function () {
 
 it('can validate input payment to create the Order', function () {
     $newData = Order::factory()->make();
-    $price = $newData->service->price;
+    $price = $newData->price->price;
     $people_number = $newData->people_number;
     $time_order = $newData->time_order;
     $sum = $price * $people_number * $time_order;
 
     livewire(OrderResource\Pages\CreateOrder::class)
         ->fillForm([
-            'service_id' => $newData->service_id,
+            'price_id' => $newData->price_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
@@ -135,7 +135,7 @@ it('can retrieve data for editing the Order', function () {
     ])
         ->assertFormFieldExists('order_date')
         ->assertFormFieldExists('order_time')
-        ->assertFormFieldExists('service_id')
+        ->assertFormFieldExists('price_id')
         ->assertFormFieldExists('social_media_id')
         ->assertFormFieldExists('time_order')
         ->assertFormFieldExists('people_number')
@@ -144,7 +144,7 @@ it('can retrieve data for editing the Order', function () {
         ->assertFormFieldExists('employee_id')
         ->assertFormSet([
             'order_time' => $order->order_time,
-            'service_id' => $order->service_id,
+            'price_id' => $order->price_id,
             'social_media_id' => $order->social_media_id,
             'time_order' => $order->time_order,
             'people_number' => $order->people_number,
@@ -163,7 +163,7 @@ it('can save edited Order', function () {
     ])
         ->fillForm([
             'order_time' => $newData->order_time,
-            'service_id' => $newData->service_id,
+            'price_id' => $newData->price_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
@@ -175,7 +175,7 @@ it('can save edited Order', function () {
     expect($order->refresh())
         ->order_date->toBe($order->order_date)
         ->order_time->toBe($order->order_time)
-        ->service_id->toBe($newData->service_id)
+        ->price_id->toBe($newData->price_id)
         ->social_media_id->toBe($newData->social_media_id)
         ->time_order->toBe($newData->time_order)
         ->people_number->toBe($newData->people_number)
@@ -191,7 +191,7 @@ it('can validate input to edit the Order', function () {
     ])
         ->fillForm([
             'order_time' => null,
-            'service_id' => null,
+            'price_id' => null,
             'social_media_id' => null,
             'time_order' => null,
             'people_number' => null,
@@ -199,7 +199,7 @@ it('can validate input to edit the Order', function () {
         ])
         ->call('save')
         ->assertHasFormErrors(['order_time' => 'required'])
-        ->assertHasFormErrors(['service_id' => 'required'])
+        ->assertHasFormErrors(['price_id' => 'required'])
         ->assertHasFormErrors(['social_media_id' => 'required'])
         ->assertHasFormErrors(['time_order' => 'required'])
         ->assertHasFormErrors(['people_number' => 'required']);
@@ -222,7 +222,7 @@ it('can render order columns', function () {
     livewire(OrderResource\Pages\ListOrders::class)
         ->assertCanNotRenderTableColumn('order_date')
         ->assertCanRenderTableColumn('order_time')
-        ->assertCanRenderTableColumn('service.name')
+        ->assertCanRenderTableColumn('price.name')
         ->assertCanRenderTableColumn('time_order')
         ->assertCanRenderTableColumn('people_number')
         ->assertCanRenderTableColumn('sum')
@@ -240,15 +240,15 @@ it('can search orders by time', function () {
         ->assertCanNotSeeTableRecords($orders->where('order_time', '!=', $time));
 });
 
-it('can search orders by service name', function () {
+it('can search orders by price name', function () {
     $orders = Order::factory()->count(10)->create();
 
-    $service = $orders->first()->service->name;
+    $price = $orders->first()->price->name;
 
     livewire(OrderResource\Pages\ListOrders::class)
-        ->searchTable($service)
-        ->assertCanSeeTableRecords($orders->where('service.name', $service))
-        ->assertCanNotSeeTableRecords($orders->where('service.name', '!=', $service));
+        ->searchTable($price)
+        ->assertCanSeeTableRecords($orders->where('price.name', $price))
+        ->assertCanNotSeeTableRecords($orders->where('price.name', '!=', $price));
 });
 
 it('can search orders by customer name', function () {
@@ -272,14 +272,14 @@ it('can sort orders by order time', function () {
         ->assertCanSeeTableRecords($orders->sortByDesc('order_time'), inOrder: true);
 });
 
-it('can sort orders by service name', function () {
+it('can sort orders by price name', function () {
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
-        ->sortTable('service.name')
-        ->assertCanSeeTableRecords($orders->sortBy('service.name'), inOrder: true)
-        ->sortTable('service.name', 'desc')
-        ->assertCanSeeTableRecords($orders->sortByDesc('service.name'), inOrder: true);
+        ->sortTable('price.name')
+        ->assertCanSeeTableRecords($orders->sortBy('price.name'), inOrder: true)
+        ->sortTable('price.name', 'desc')
+        ->assertCanSeeTableRecords($orders->sortByDesc('price.name'), inOrder: true);
 });
 
 it('can sort orders by time', function () {
@@ -350,7 +350,7 @@ it('can edit orders from table', function () {
         ->callTableAction(EditAction::class, $order, data: [
             'order_date' => $newData->order_date,
             'order_time' => $newData->order_time,
-            'service_id' => $newData->service_id,
+            'price_id' => $newData->price_id,
             'social_media_id' => $newData->social_media_id,
             'time_order' => $newData->time_order,
             'people_number' => $newData->people_number,
@@ -360,7 +360,7 @@ it('can edit orders from table', function () {
     expect($order->refresh())
         ->order_date->toBe($order->order_date)
         ->order_time->toBe($order->order_time)
-        ->service_id->toBe($newData->service_id)
+        ->price_id->toBe($newData->price_id)
         ->social_media_id->toBe($newData->social_media_id)
         ->time_order->toBe($newData->time_order)
         ->people_number->toBe($newData->people_number)

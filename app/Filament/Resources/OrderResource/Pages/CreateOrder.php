@@ -42,7 +42,7 @@ class CreateOrder extends CreateRecord
                 ->schema([
                     OrderResource::getDateFormField()->hidden(),
                     OrderResource::getTimeFormField()->readOnly(),
-                    OrderResource::getServiceFormField(),
+                    OrderResource::getPriceFormField(),
                     OrderResource::getTimeOrderFormField(),
                     OrderResource::getPeopleNumberFormField(),
                     OrderResource::getSocialMediaFormField(),

@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ServiceResource\Pages;
-use App\Models\Service;
+use App\Filament\Resources\PriceResource\Pages;
+use App\Models\Price;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
-class ServiceResource extends Resource
+class PriceResource extends Resource
 {
-    protected static ?string $model = Service::class;
+    protected static ?string $model = Price::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -81,9 +81,9 @@ class ServiceResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListServices::route('/'),
-            'create' => Pages\CreateService::route('/create'),
-            'edit' => Pages\EditService::route('/{record}/edit'),
+            'index' => Pages\ListPrices::route('/'),
+            'create' => Pages\CreatePrice::route('/create'),
+            'edit' => Pages\EditPrice::route('/{record}/edit'),
         ];
     }
 }

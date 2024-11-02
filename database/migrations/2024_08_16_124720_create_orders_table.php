@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->date('order_date');
             $table->time('order_time');
-            $table->unsignedBigInteger('service_id');
-            $table->foreign('service_id')
+            $table->unsignedBigInteger('price_id');
+            $table->foreign('price_id')
                 ->references('id')
-                ->on('services')
+                ->on('prices')
                 ->restrictOnDelete()
                 ->cascadeOnUpdate();
             $table->unsignedBigInteger('social_media_id');

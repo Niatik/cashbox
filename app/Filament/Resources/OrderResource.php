@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
-use App\Models\Service;
+use App\Models\Price;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -36,7 +36,7 @@ class OrderResource extends Resource
             ->schema([
                 static::getDateFormField()->hidden(),
                 static::getTimeFormField(),
-                static::getServiceFormField(),
+                static::getPriceFormField(),
                 static::getServicePriceFormField(),
                 static::getTimeOrderFormField(),
                 static::getPeopleNumberFormField(),
@@ -79,10 +79,10 @@ class OrderResource extends Resource
             ->readOnly();
     }
 
-    public static function getServiceFormField(): Select
+    public static function getPriceFormField(): Select
     {
-        return Select::make('service_id')
-            ->relationship('service', 'name')
+        return Select::make('price_id')
+            ->relationship('price', 'name')
             ->label('Услуга')
             ->searchable()
             ->preload()
@@ -102,7 +102,7 @@ class OrderResource extends Resource
             ])
             ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
                 if ($state) {
-                    $service = Service::find($state);
+                    $service = Price::find($state);
                     if ($service) {
                         $price = $service->price / 60;
                         $set('service_price', $price);
@@ -112,7 +112,7 @@ class OrderResource extends Resource
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 $price = 0;
                 if ($state) {
-                    $service = Service::find($state);
+                    $service = Price::find($state);
                     if ($service) {
                         $price = $service->price;
                         $set('service_price', $price);
@@ -329,7 +329,7 @@ class OrderResource extends Resource
                     ->label('Время')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('service.name')
+                Tables\Columns\TextColumn::make('price.name')
                     ->label('Услуга')
                     ->limit(22)
                     ->searchable()

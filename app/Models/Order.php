@@ -15,7 +15,7 @@ class Order extends Model
     protected $fillable = [
         'order_date',
         'order_time',
-        'service_id',
+        'price_id',
         'social_media_id',
         'time_order',
         'people_number',
@@ -31,9 +31,9 @@ class Order extends Model
         'options' => 'array',
     ];
 
-    public function service(): BelongsTo
+    public function price(): BelongsTo
     {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(Price::class);
     }
 
     public function social_media(): BelongsTo

@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Payment;
-use App\Models\Service;
+use App\Models\Price;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Service::factory(10)->create();
+        Price::factory(10)->create();
         $this->call([
             PermissionSeeder::class,
             RoleSeeder::class,
