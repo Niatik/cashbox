@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\MoneyCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Price extends Model
 {
@@ -16,9 +17,12 @@ class Price extends Model
         'price',
     ];
 
-
     protected $casts = [
         'price' => MoneyCast::class,
     ];
 
+    public function priceItems(): HasMany
+    {
+        return $this->hasMany(PriceItem::class);
+    }
 }
