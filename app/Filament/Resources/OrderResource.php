@@ -73,6 +73,7 @@ class OrderResource extends Resource
     public static function getTimeFormField(): TimePicker
     {
         return TimePicker::make('order_time')
+            ->timezone('Etc/GMT-5')
             ->default(now())
             ->label('Время')
             ->required()
@@ -327,6 +328,7 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('order_time')
                     ->date('H:i:s')
                     ->label('Время')
+                    ->timezone('Etc/GMT-5')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price.name')
