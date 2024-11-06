@@ -17,7 +17,8 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
-            $table->string('time_item');
+            $table->string('name_item');
+            $table->integer('time_item');
             $table->timestamps();
         });
     }

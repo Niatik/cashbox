@@ -17,9 +17,11 @@ class PriceItemFactory extends Factory
      */
     public function definition(): array
     {
+        $number = fake()->numberBetween(10, 100);
         return [
             'price_id' => Price::factory(),
-            'time_item' => fake()->numberBetween(10, 100),
+            'name_item' => $number.' minutes',
+            'time_item' => $number,
         ];
     }
 }
