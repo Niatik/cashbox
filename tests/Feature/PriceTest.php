@@ -1,7 +1,10 @@
 <?php
 
 use App\Filament\Resources\PriceResource;
+use App\Filament\Resources\PriceResource\Pages\EditPrice;
+use App\Filament\Resources\PriceResource\RelationManagers\PriceItemsRelationManager;
 use App\Models\Price;
+use App\Models\PriceItem;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -221,3 +224,16 @@ it('can edit prices from table', function () {
         ->description->toBe($newData->description)
         ->price->toBe($newData->price);
 });
+
+it('can render relation manager for Price Items', function () {
+    $price = Price::factory()
+        ->has(PriceItem::factory()->count(3))
+        ->create();
+
+    livewire(PriceItemsRelationManager::class, [
+        'ownerRecord' => $price,
+        'pageClass' => EditPrice::class,
+    ])
+        ->assertSuccessful();
+});
+
