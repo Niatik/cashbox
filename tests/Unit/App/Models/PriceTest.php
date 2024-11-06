@@ -11,16 +11,13 @@ it('has the price items', function () {
             PriceItem::factory()
                 ->count(5)
                 ->state(new Sequence(
-                    fn (Sequence $sequence) => ['time_item' => 'test'.$sequence->index * 10],
+                    fn (Sequence $sequence) => [
+                        'name_item' => 'test'.$sequence->index * 10,
+                        'time_item' => $sequence->index * 10,
+                    ],
                 ))
         )
-        ->create(
-            [
-                'name' => 'test',
-                'description' => 'test',
-                'price' => 100,
-            ]
-        );
+        ->create();
 
     //Act
     $priceItems = $price->priceItems;
