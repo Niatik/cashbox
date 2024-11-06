@@ -16,8 +16,8 @@ class Order extends Model
         'order_date',
         'order_time',
         'price_id',
+        'price_item_id',
         'social_media_id',
-        'time_order',
         'people_number',
         'status',
         'sum',
@@ -34,6 +34,11 @@ class Order extends Model
     public function price(): BelongsTo
     {
         return $this->belongsTo(Price::class);
+    }
+
+    public function price_item(): BelongsTo
+    {
+        return $this->belongsTo(PriceItem::class);
     }
 
     public function social_media(): BelongsTo

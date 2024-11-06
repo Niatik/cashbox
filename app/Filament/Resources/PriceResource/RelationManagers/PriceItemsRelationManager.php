@@ -4,6 +4,8 @@ namespace App\Filament\Resources\PriceResource\RelationManagers;
 
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -11,15 +13,29 @@ use Filament\Tables\Table;
 class PriceItemsRelationManager extends RelationManager
 {
     protected static string $relationship = 'priceItems';
+    protected static ?string $title = 'Время услуги';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name_item')
+                    ->label('Описание')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->live(onBlur: true)
+                    ->afterStateHydrated(function (?string $state, Get $get, Set $set) {
+                        if ($state) {
+                            $set('time_item', intval($state));
+                        }
+                    })
+                    ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                        if ($state) {
+                            $set('time_item', intval($state));
+                        }
+                    }),
                 Forms\Components\TextInput::make('time_item')
+                    ->label('Время')
                     ->required()
                     ->numeric(),
 
@@ -29,16 +45,24 @@ class PriceItemsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+
             ->recordTitleAttribute('name_item')
             ->columns([
-                Tables\Columns\TextColumn::make('name_item'),
-                Tables\Columns\TextColumn::make('time_item'),
+                Tables\Columns\TextColumn::make('name_item')
+                    ->label('Описание')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('time_item')
+                    ->label('Время')
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->modalHeading('Создание времени услуги'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

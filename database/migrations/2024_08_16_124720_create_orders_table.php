@@ -21,13 +21,18 @@ return new class extends Migration
                 ->on('prices')
                 ->restrictOnDelete()
                 ->cascadeOnUpdate();
+            $table->unsignedBigInteger('price_item_id');
+            $table->foreign('price_item_id')
+                ->references('id')
+                ->on('price_items')
+                ->restrictOnDelete()
+                ->cascadeOnUpdate();
             $table->unsignedBigInteger('social_media_id');
             $table->foreign('social_media_id')
                 ->references('id')
                 ->on('social_media')
                 ->restrictOnDelete()
                 ->cascadeOnUpdate();
-            $table->integer('time_order');
             $table->integer('people_number');
             $table->bigInteger('sum')->default(0);
             $table->timestamps();

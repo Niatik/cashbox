@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use App\Models\Price;
+use App\Models\PriceItem;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -19,6 +20,7 @@ use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 
 class OrderResource extends Resource
 {
@@ -37,8 +39,9 @@ class OrderResource extends Resource
                 static::getDateFormField()->hidden(),
                 static::getTimeFormField(),
                 static::getPriceFormField(),
+                static::getPriceItemFormField(),
                 static::getServicePriceFormField(),
-                static::getTimeOrderFormField(),
+                static::getServiceTimeFormField(),
                 static::getPeopleNumberFormField(),
                 static::getSocialMediaFormField(),
                 static::getSumFormField(),
@@ -119,16 +122,56 @@ class OrderResource extends Resource
                         $set('service_price', $price);
                     }
                 }
-                if ($get('time_order') && $get('people_number')) {
+                if ($get('service_time') && $get('people_number')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
                     $additional_discount = $get('options.additional_discount');
-                    $sum = $price * $get('people_number') * $get('time_order') - $discount - $prepayment - $additional_discount;
+                    $sum = $price * $get('people_number') * $get('service_time') - $discount - $prepayment - $additional_discount;
                     $set('sum', $sum);
                     $set('payment.payment_cash_amount', $sum);
                 }
             })
             ->required();
+    }
+
+    public static function getPriceItemFormField(): Select
+    {
+        return Select::make('price_item_id')
+            ->label('Время услуги')
+            ->options(fn (Get $get): Collection => PriceItem::query()
+                ->where('price_id', $get('price_id'))
+                ->orderBy('time_item')
+                ->pluck('name_item', 'id'))
+            ->live(onBlur: true)
+            ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
+                if ($state) {
+                    $priceItem = PriceItem::find($state);
+                    $serviceTime = $priceItem->time_item;
+                    if ($priceItem) {
+                        $set('service_time', $serviceTime);
+                    }
+                }
+            })
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                $serviceTime = 0;
+                if ($state) {
+                    $priceItem = PriceItem::find($state);
+                    if ($priceItem) {
+                        $serviceTime = $priceItem->time_item;
+                        $set('service_time', $serviceTime);
+                    }
+                }
+                if ($get('people_number') && $get('service_price')) {
+                    $discount = $get('options.discount');
+                    $prepayment = $get('options.prepayment');
+                    $additional_discount = $get('options.additional_discount');
+                    $sum = $get('service_price') * $get('people_number') * $serviceTime - $discount - $prepayment - $additional_discount;
+                    $set('sum', $sum);
+                    $set('payment.payment_cash_amount', $sum);
+                }
+            });
+
+
     }
 
     public static function getServicePriceFormField(): Hidden
@@ -137,25 +180,10 @@ class OrderResource extends Resource
             ->default(0);
     }
 
-    public static function getTimeOrderFormField(): TextInput
+    public static function getServiceTimeFormField(): Hidden
     {
-        return TextInput::make('time_order')
-            ->label('Время')
-            ->numeric()
-            ->minValue(1)
-            ->maxValue(1440)
-            ->live(onBlur: true)
-            ->required()
-            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                if ($state && $get('people_number') && $get('service_price')) {
-                    $discount = $get('options.discount');
-                    $prepayment = $get('options.prepayment');
-                    $additional_discount = $get('options.additional_discount');
-                    $sum = $get('service_price') * $get('people_number') * $state - $discount - $prepayment - $additional_discount;
-                    $set('sum', $sum);
-                    $set('payment.payment_cash_amount', $sum);
-                }
-            });
+        return Hidden::make('service_time')
+            ->default(0);
     }
 
     public static function getPeopleNumberFormField(): TextInput
@@ -168,11 +196,11 @@ class OrderResource extends Resource
             ->live(onBlur: true)
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                if ($state && $get('time_order') && $get('service_price')) {
+                if ($state && $get('service_time') && $get('service_price')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
                     $additional_discount = $get('options.additional_discount');
-                    $sum = $get('service_price') * $get('time_order') * $state - $discount - $prepayment - $additional_discount;
+                    $sum = $get('service_price') * $get('service_time') * $state - $discount - $prepayment - $additional_discount;
                     $set('sum', $sum);
                     $set('payment.payment_cash_amount', $sum);
                 }
@@ -281,7 +309,7 @@ class OrderResource extends Resource
                         $discount = $state;
                         $prepayment = $get('prepayment');
                         $additional_discount = $get('additional_discount');
-                        $sum = $get('../service_price') * $get('../time_order') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cash_amount', $sum);
                     }),
@@ -292,7 +320,7 @@ class OrderResource extends Resource
                         $discount = $get('discount');
                         $prepayment = $state;
                         $additional_discount = $get('additional_discount');
-                        $sum = $get('../service_price') * $get('../time_order') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cash_amount', $sum);
                     }),
@@ -303,7 +331,7 @@ class OrderResource extends Resource
                         $discount = $get('discount');
                         $prepayment = $get('prepayment');
                         $additional_discount = $state;
-                        $sum = $get('../service_price') * $get('../time_order') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cash_amount', $sum);
                     }),
@@ -341,7 +369,7 @@ class OrderResource extends Resource
                     ->limit(27)
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('time_order')
+                Tables\Columns\TextColumn::make('price_item.name_item')
                     ->numeric()
                     ->label('Время')
                     ->sortable(),
