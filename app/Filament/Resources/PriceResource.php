@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PriceResource\Pages;
+use App\Filament\Resources\PriceResource\RelationManagers\PriceItemsRelationManager;
 use App\Models\Price;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -74,7 +75,7 @@ class PriceResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PriceItemsRelationManager::class,
         ];
     }
 
