@@ -20,6 +20,7 @@ use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class OrderResource extends Resource
@@ -137,6 +138,7 @@ class OrderResource extends Resource
     public static function getPriceItemFormField(): Select
     {
         return Select::make('price_item_id')
+            ->required()
             ->label('Время услуги')
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
@@ -146,8 +148,8 @@ class OrderResource extends Resource
             ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
                 if ($state) {
                     $priceItem = PriceItem::find($state);
-                    $serviceTime = $priceItem->time_item;
                     if ($priceItem) {
+                        $serviceTime = $priceItem->time_item;
                         $set('service_time', $serviceTime);
                     }
                 }
@@ -161,7 +163,7 @@ class OrderResource extends Resource
                         $set('service_time', $serviceTime);
                     }
                 }
-                if ($get('people_number') && $get('service_price')) {
+                if ($get('service_time') && $get('people_number') && $get('service_price')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
                     $additional_discount = $get('options.additional_discount');
@@ -410,5 +412,10 @@ class OrderResource extends Resource
             'create' => Pages\CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereDate('order_date', '=', now(tz: 'Etc/GMT-5'));
     }
 }
