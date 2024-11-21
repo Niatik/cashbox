@@ -142,7 +142,7 @@ class OrderResource extends Resource
             ->label('Время услуги')
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
-                ->orderBy('time_item')
+                ->orderBy('name_item')
                 ->pluck('name_item', 'id'))
             ->live(onBlur: true)
             ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
