@@ -296,7 +296,15 @@ class OrderResource extends Resource
                 },
             ])
             ->default(0)
-            ->label('Безналичные');
+            ->live()
+            ->debounce(500)
+            ->label('Безналичные')
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                if ($state) {
+                    $cashAmount = $get('payment_cash_amount');
+                    $set('payment_cash_amount', $cashAmount - $state);
+                }
+            });
     }
 
     public static function getOptionsFormField(): Section
