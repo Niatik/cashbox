@@ -24,16 +24,6 @@ class CreateOrder extends CreateRecord
         return $data;
     }
 
-    //protected function getRedirectUrl(): string
-    //{
-    //$orderId = $this->record->id;
-
-    //return route('filament.admin.resources.payments.create', [
-    //    'order_id' => $orderId,
-    //    'order_sum' => $this->record->sum,
-    //]);
-    //}
-
     protected function getSteps(): array
     {
         return [
