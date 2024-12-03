@@ -109,7 +109,7 @@ class OrderResource extends Resource
                 if ($state) {
                     $service = Price::find($state);
                     if ($service) {
-                        $price = $service->price / 60;
+                        $price = $service->price;
                         $set('service_price', $price);
                     }
                 }
@@ -123,11 +123,12 @@ class OrderResource extends Resource
                         $set('service_price', $price);
                     }
                 }
-                if ($get('service_time') && $get('people_number')) {
+                if ($get('service_time')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
-                    $additional_discount = $get('options.additional_discount');
-                    $sum = $price * $get('people_number') * $get('service_time') - $discount - $prepayment - $additional_discount;
+                    $additionalDiscount = $get('options.additional_discount');
+                    $peopleNumber = $get('people_number') ?? 1;
+                    $sum = $price * $peopleNumber * $get('service_time') - $discount - $prepayment - $additionalDiscount;
                     $set('sum', $sum);
                     $set('payment.payment_cashless_amount', $sum);
                 }
@@ -139,17 +140,27 @@ class OrderResource extends Resource
     {
         return Select::make('price_item_id')
             ->required()
-            ->label('Время услуги')
+            ->label(function (Select $component, Set $set): string {
+                $currentOption = $component->getOptionLabel() ?? 'Время услуги';
+
+                if (str_contains($currentOption, 'человек')) {
+                    $currentOption = 'Количество человек';
+                }
+                $set('name_item', $currentOption);
+
+                return $currentOption;
+            })
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
                 ->orderBy('name_item')
                 ->pluck('name_item', 'id'))
-            ->live(onBlur: true)
+            ->live()
+            ->debounce()
             ->afterStateHydrated(function (Forms\Components\Select $component, $state, Set $set) {
                 if ($state) {
                     $priceItem = PriceItem::find($state);
                     if ($priceItem) {
-                        $serviceTime = $priceItem->time_item;
+                        $serviceTime = $priceItem->factor;
                         $set('service_time', $serviceTime);
                     }
                 }
@@ -159,21 +170,20 @@ class OrderResource extends Resource
                 if ($state) {
                     $priceItem = PriceItem::find($state);
                     if ($priceItem) {
-                        $serviceTime = $priceItem->time_item;
+                        $serviceTime = $priceItem->factor;
                         $set('service_time', $serviceTime);
                     }
                 }
-                if ($get('service_time') && $get('people_number') && $get('service_price')) {
+                if ($get('service_time') && $get('service_price')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
-                    $additional_discount = $get('options.additional_discount');
-                    $sum = $get('service_price') * $get('people_number') * $serviceTime - $discount - $prepayment - $additional_discount;
+                    $additionalDiscount = $get('options.additional_discount');
+                    $peopleNumber = $get('people_number') ?? 1;
+                    $sum = $get('service_price') * $peopleNumber * $serviceTime - $discount - $prepayment - $additionalDiscount;
                     $set('sum', $sum);
                     $set('payment.payment_cashless_amount', $sum);
                 }
             });
-
-
     }
 
     public static function getServicePriceFormField(): Hidden
@@ -186,6 +196,12 @@ class OrderResource extends Resource
     {
         return Hidden::make('service_time')
             ->default(0);
+    }
+
+    public static function getNameOfPriceItemFormField(): Hidden
+    {
+        return Hidden::make('name_item')
+            ->default('');
     }
 
     public static function getPeopleNumberFormField(): TextInput
@@ -201,12 +217,13 @@ class OrderResource extends Resource
                 if ($state && $get('service_time') && $get('service_price')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
-                    $additional_discount = $get('options.additional_discount');
-                    $sum = $get('service_price') * $get('service_time') * $state - $discount - $prepayment - $additional_discount;
+                    $additionalDiscount = $get('options.additional_discount');
+                    $sum = $get('service_price') * $get('service_time') * $state - $discount - $prepayment - $additionalDiscount;
                     $set('sum', $sum);
                     $set('payment.payment_cashless_amount', $sum);
                 }
-            });
+            })
+            ->hidden(fn (Get $get): bool => $get('name_item') == 'Количество человек');
     }
 
     public static function getSocialMediaFormField(): Select
@@ -318,8 +335,9 @@ class OrderResource extends Resource
                     ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         $discount = $state;
                         $prepayment = $get('prepayment');
-                        $additional_discount = $get('additional_discount');
-                        $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $additionalDiscount = $get('additional_discount');
+                        $peopleNumber = $get('../people_number') ?? 1;
+                        $sum = $get('../service_price') * $get('../service_time') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cashless_amount', $sum);
                     }),
@@ -329,8 +347,9 @@ class OrderResource extends Resource
                     ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         $discount = $get('discount');
                         $prepayment = $state;
-                        $additional_discount = $get('additional_discount');
-                        $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $additionalDiscount = $get('additional_discount');
+                        $peopleNumber = $get('../people_number') ?? 1;
+                        $sum = $get('../service_price') * $get('../service_time') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cashless_amount', $sum);
                     }),
@@ -340,8 +359,9 @@ class OrderResource extends Resource
                     ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                         $discount = $get('discount');
                         $prepayment = $get('prepayment');
-                        $additional_discount = $state;
-                        $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
+                        $additionalDiscount = $state;
+                        $peopleNumber = $get('../people_number') ?? 1;
+                        $sum = $get('../service_price') * $get('../service_time') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cashless_amount', $sum);
                     }),

@@ -13,11 +13,11 @@ class PriceItem extends Model
     protected $fillable = [
         'price_id',
         'name_item',
-        'time_item',
+        'factor',
     ];
 
     protected $casts = [
-        'time_item' => ThousandthCast::class,
+        'factor' => ThousandthCast::class,
     ];
 
 }

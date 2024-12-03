@@ -26,15 +26,15 @@ class PriceItemsRelationManager extends RelationManager
                     ->live(onBlur: true)
                     ->afterStateHydrated(function (?string $state, Get $get, Set $set) {
                         if ($state) {
-                            $set('time_item', floatval($state));
+                            $set('factor', floatval($state));
                         }
                     })
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         if ($state) {
-                            $set('time_item', floatval($state));
+                            $set('factor', floatval($state));
                         }
                     }),
-                Forms\Components\TextInput::make('time_item')
+                Forms\Components\TextInput::make('factor')
                     ->label('Время')
                     ->required()
                     ->numeric(),
@@ -52,7 +52,7 @@ class PriceItemsRelationManager extends RelationManager
                     ->label('Описание')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('time_item')
+                Tables\Columns\TextColumn::make('factor')
                     ->label('Время')
                     ->searchable()
                     ->sortable(),
