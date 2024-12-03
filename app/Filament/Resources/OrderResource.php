@@ -129,7 +129,7 @@ class OrderResource extends Resource
                     $additional_discount = $get('options.additional_discount');
                     $sum = $price * $get('people_number') * $get('service_time') - $discount - $prepayment - $additional_discount;
                     $set('sum', $sum);
-                    $set('payment.payment_cash_amount', $sum);
+                    $set('payment.payment_cashless_amount', $sum);
                 }
             })
             ->required();
@@ -169,7 +169,7 @@ class OrderResource extends Resource
                     $additional_discount = $get('options.additional_discount');
                     $sum = $get('service_price') * $get('people_number') * $serviceTime - $discount - $prepayment - $additional_discount;
                     $set('sum', $sum);
-                    $set('payment.payment_cash_amount', $sum);
+                    $set('payment.payment_cashless_amount', $sum);
                 }
             });
 
@@ -204,7 +204,7 @@ class OrderResource extends Resource
                     $additional_discount = $get('options.additional_discount');
                     $sum = $get('service_price') * $get('service_time') * $state - $discount - $prepayment - $additional_discount;
                     $set('sum', $sum);
-                    $set('payment.payment_cash_amount', $sum);
+                    $set('payment.payment_cashless_amount', $sum);
                 }
             });
     }
@@ -321,7 +321,7 @@ class OrderResource extends Resource
                         $additional_discount = $get('additional_discount');
                         $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
                         $set('../sum', $sum);
-                        $set('../payment.payment_cash_amount', $sum);
+                        $set('../payment.payment_cashless_amount', $sum);
                     }),
                 TextInput::make('prepayment')
                     ->label('Аванс')
@@ -332,7 +332,7 @@ class OrderResource extends Resource
                         $additional_discount = $get('additional_discount');
                         $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
                         $set('../sum', $sum);
-                        $set('../payment.payment_cash_amount', $sum);
+                        $set('../payment.payment_cashless_amount', $sum);
                     }),
                 TextInput::make('additional_discount')
                     ->label('Дополнительная скидка')
@@ -343,7 +343,7 @@ class OrderResource extends Resource
                         $additional_discount = $state;
                         $sum = $get('../service_price') * $get('../service_time') * $get('../people_number') - $discount - $prepayment - $additional_discount;
                         $set('../sum', $sum);
-                        $set('../payment.payment_cash_amount', $sum);
+                        $set('../payment.payment_cashless_amount', $sum);
                     }),
                 TextInput::make('additional_discount_description')
                     ->label('Причина дополнительной скидки')
