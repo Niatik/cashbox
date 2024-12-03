@@ -13,7 +13,7 @@ use Filament\Tables\Table;
 class PriceItemsRelationManager extends RelationManager
 {
     protected static string $relationship = 'priceItems';
-    protected static ?string $title = 'Время услуги';
+    protected static ?string $title = 'Коэффициенты';
 
     public function form(Form $form): Form
     {
@@ -35,7 +35,7 @@ class PriceItemsRelationManager extends RelationManager
                         }
                     }),
                 Forms\Components\TextInput::make('factor')
-                    ->label('Время')
+                    ->label('Коэффициент')
                     ->required()
                     ->numeric(),
 
@@ -53,7 +53,7 @@ class PriceItemsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('factor')
-                    ->label('Время')
+                    ->label('Коэффициент')
                     ->searchable()
                     ->sortable(),
             ])
@@ -62,7 +62,7 @@ class PriceItemsRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->modalHeading('Создание времени услуги'),
+                    ->modalHeading('Создание коэффициента'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

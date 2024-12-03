@@ -35,7 +35,7 @@ class PriceResource extends Resource
                     ->label('Описание')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('price')
-                    ->label('Цена на одного человека за час')
+                    ->label('Цена')
                     ->maxLength(18)
                     ->required(),
             ]);

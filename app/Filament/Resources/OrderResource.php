@@ -41,8 +41,8 @@ class OrderResource extends Resource
                 static::getTimeFormField(),
                 static::getPriceFormField(),
                 static::getPriceItemFormField(),
-                static::getServicePriceFormField(),
-                static::getServiceTimeFormField(),
+                static::getPriceValueFormField(),
+                static::getPriceFactorFormField(),
                 static::getPeopleNumberFormField(),
                 static::getSocialMediaFormField(),
                 static::getSumFormField(),
@@ -110,7 +110,7 @@ class OrderResource extends Resource
                     $service = Price::find($state);
                     if ($service) {
                         $price = $service->price;
-                        $set('service_price', $price);
+                        $set('price', $price);
                     }
                 }
             })
@@ -120,15 +120,15 @@ class OrderResource extends Resource
                     $service = Price::find($state);
                     if ($service) {
                         $price = $service->price;
-                        $set('service_price', $price);
+                        $set('price', $price);
                     }
                 }
-                if ($get('service_time')) {
+                if ($get('price_factor')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
                     $additionalDiscount = $get('options.additional_discount');
                     $peopleNumber = $get('people_number') ?? 1;
-                    $sum = $price * $peopleNumber * $get('service_time') - $discount - $prepayment - $additionalDiscount;
+                    $sum = $price * $peopleNumber * $get('price_factor') - $discount - $prepayment - $additionalDiscount;
                     $set('sum', $sum);
                     $set('payment.payment_cashless_amount', $sum);
                 }
@@ -160,41 +160,41 @@ class OrderResource extends Resource
                 if ($state) {
                     $priceItem = PriceItem::find($state);
                     if ($priceItem) {
-                        $serviceTime = $priceItem->factor;
-                        $set('service_time', $serviceTime);
+                        $priceFactor = $priceItem->factor;
+                        $set('price_factor', $priceFactor);
                     }
                 }
             })
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                $serviceTime = 0;
+                $priceFactor = 0;
                 if ($state) {
                     $priceItem = PriceItem::find($state);
                     if ($priceItem) {
-                        $serviceTime = $priceItem->factor;
-                        $set('service_time', $serviceTime);
+                        $priceFactor = $priceItem->factor;
+                        $set('price_factor', $priceFactor);
                     }
                 }
-                if ($get('service_time') && $get('service_price')) {
+                if ($get('price_factor') && $get('price')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
                     $additionalDiscount = $get('options.additional_discount');
                     $peopleNumber = $get('people_number') ?? 1;
-                    $sum = $get('service_price') * $peopleNumber * $serviceTime - $discount - $prepayment - $additionalDiscount;
+                    $sum = $get('price') * $peopleNumber * $priceFactor - $discount - $prepayment - $additionalDiscount;
                     $set('sum', $sum);
                     $set('payment.payment_cashless_amount', $sum);
                 }
             });
     }
 
-    public static function getServicePriceFormField(): Hidden
+    public static function getPriceValueFormField(): Hidden
     {
-        return Hidden::make('service_price')
+        return Hidden::make('price')
             ->default(0);
     }
 
-    public static function getServiceTimeFormField(): Hidden
+    public static function getPriceFactorFormField(): Hidden
     {
-        return Hidden::make('service_time')
+        return Hidden::make('price_factor')
             ->default(0);
     }
 
@@ -214,11 +214,11 @@ class OrderResource extends Resource
             ->live(onBlur: true)
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                if ($state && $get('service_time') && $get('service_price')) {
+                if ($state && $get('price_factor') && $get('price')) {
                     $discount = $get('options.discount');
                     $prepayment = $get('options.prepayment');
                     $additionalDiscount = $get('options.additional_discount');
-                    $sum = $get('service_price') * $get('service_time') * $state - $discount - $prepayment - $additionalDiscount;
+                    $sum = $get('price') * $get('price_factor') * $state - $discount - $prepayment - $additionalDiscount;
                     $set('sum', $sum);
                     $set('payment.payment_cashless_amount', $sum);
                 }
@@ -337,7 +337,7 @@ class OrderResource extends Resource
                         $prepayment = $get('prepayment');
                         $additionalDiscount = $get('additional_discount');
                         $peopleNumber = $get('../people_number') ?? 1;
-                        $sum = $get('../service_price') * $get('../service_time') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
+                        $sum = $get('../price') * $get('../price_factor') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cashless_amount', $sum);
                     }),
@@ -349,7 +349,7 @@ class OrderResource extends Resource
                         $prepayment = $state;
                         $additionalDiscount = $get('additional_discount');
                         $peopleNumber = $get('../people_number') ?? 1;
-                        $sum = $get('../service_price') * $get('../service_time') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
+                        $sum = $get('../price') * $get('../price_factor') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cashless_amount', $sum);
                     }),
@@ -361,7 +361,7 @@ class OrderResource extends Resource
                         $prepayment = $get('prepayment');
                         $additionalDiscount = $state;
                         $peopleNumber = $get('../people_number') ?? 1;
-                        $sum = $get('../service_price') * $get('../service_time') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
+                        $sum = $get('../price') * $get('../price_factor') * $peopleNumber - $discount - $prepayment - $additionalDiscount;
                         $set('../sum', $sum);
                         $set('../payment.payment_cashless_amount', $sum);
                     }),
