@@ -5,7 +5,7 @@ namespace App\Casts;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
 
-class MoneyCast implements CastsAttributes
+class ThousandthCast implements CastsAttributes
 {
     /**
      * Cast the given value.
@@ -15,7 +15,8 @@ class MoneyCast implements CastsAttributes
     public function get(Model $model, string $key, mixed $value, array $attributes): float
     {
         // Transform the integer stored in the database into a float.
-        return round(floatval($value) / 100, precision: 2);
+        return round(floatval($value) / 1000, precision: 3);
+
     }
 
     /**
@@ -23,9 +24,9 @@ class MoneyCast implements CastsAttributes
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function set(Model $model, string $key, mixed $value, array $attributes): int
+    public function set(Model $model, string $key, mixed $value, array $attributes): mixed
     {
         // Transform the float into an integer for storage.
-        return (int) round(floatval($value) * 100);
+        return (int) round(floatval($value) * 1000);
     }
 }

@@ -18,7 +18,7 @@ return new class extends Migration
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
             $table->string('name_item');
-            $table->integer('time_item');
+            $table->bigInteger('time_item');
             $table->timestamps();
         });
     }

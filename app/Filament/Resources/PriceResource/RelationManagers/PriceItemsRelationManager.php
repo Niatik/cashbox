@@ -26,12 +26,12 @@ class PriceItemsRelationManager extends RelationManager
                     ->live(onBlur: true)
                     ->afterStateHydrated(function (?string $state, Get $get, Set $set) {
                         if ($state) {
-                            $set('time_item', intval($state));
+                            $set('time_item', floatval($state));
                         }
                     })
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         if ($state) {
-                            $set('time_item', intval($state));
+                            $set('time_item', floatval($state));
                         }
                     }),
                 Forms\Components\TextInput::make('time_item')
