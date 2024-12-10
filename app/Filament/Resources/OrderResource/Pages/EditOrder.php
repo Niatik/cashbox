@@ -25,6 +25,7 @@ class EditOrder extends EditRecord
         $user = User::find(auth()->user()->id);
 
         $data['employee_id'] = $user->employee->id;
+        $data['people_number'] = $data['name_item'] == 'Количество человек' ? $data['people_item'] : $data['people_number'];
 
         return $data;
     }

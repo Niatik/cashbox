@@ -22,7 +22,7 @@ class CreateOrder extends CreateRecord
         $data['order_date'] = now()->format('Y-m-d');
         $data['order_time'] = now()->format('H:i:s');
         if (! Arr::exists($data, 'people_number')) {
-            $data['people_number'] = 1;
+            $data['people_number'] = $data['people_item'];
         }
 
         return $data;
@@ -41,6 +41,8 @@ class CreateOrder extends CreateRecord
                     OrderResource::getPriceValueFormField(),
                     OrderResource::getPriceFactorFormField(),
                     OrderResource::getPeopleNumberFormField(),
+                    OrderResource::getPeopleItemFormField(),
+                    OrderResource::getNameOfPriceItemFormField(),
                     OrderResource::getSocialMediaFormField(),
                     OrderResource::getSumFormField(),
                     OrderResource::getCustomerFormField(),
