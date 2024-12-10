@@ -14,6 +14,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -50,6 +51,7 @@ class OrderResource extends Resource
                 static::getSumFormField(),
                 static::getCustomerFormField(),
                 static::getEmployeeFormField(),
+                static::getIsPaidFormField(),
                 static::getOptionsFormField(),
                 Section::make('Оплата')
                     ->relationship('payment')
@@ -333,11 +335,20 @@ class OrderResource extends Resource
             ]);
     }
 
+    public static function getIsPaidFormField(): Toggle
+    {
+        return Toggle::make('is_paid')
+            ->label('Оплачено')
+            ->default(true);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
             ->striped()
             ->columns([
+                Tables\Columns\ToggleColumn::make('is_paid')
+                    ->label('Оплачено'),
                 Tables\Columns\TextColumn::make('order_date')
                     ->hidden()
                     ->date('d.m.Y')
@@ -452,6 +463,8 @@ class OrderResource extends Resource
         }
     }
 
+
+
     public static function calcSum(?Select $component, Get $get, Set $set): void
     {
         [$price, $priceFactor, $discount, $prepayment, $additionalDiscount] = self::setVariablesForSumCalculation($get);
@@ -476,7 +489,6 @@ class OrderResource extends Resource
     public static function calcSumFromOptions(Get $get, Set $set): void
     {
         [$price, $priceFactor, $discount, $prepayment, $additionalDiscount] = self::setVariablesForSumCalculationFromOptions($get);
-        // TODO: Изменить расчет цены в зависимости от вида услуги и количества человек
         $peopleNumber = $get('../name_item') == 'Количество человек' ? 1 : $get('../people_number');
         $sum = $price * $priceFactor * $peopleNumber - $discount - $prepayment - $additionalDiscount;
         $set('../sum', $sum);

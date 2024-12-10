@@ -47,6 +47,7 @@ class CreateOrder extends CreateRecord
                     OrderResource::getSumFormField(),
                     OrderResource::getCustomerFormField(),
                     OrderResource::getEmployeeFormField(),
+                    OrderResource::getIsPaidFormField(),
                     OrderResource::getOptionsFormField(),
                 ]),
             Step::make('Оплата')

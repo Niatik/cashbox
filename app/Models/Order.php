@@ -24,11 +24,13 @@ class Order extends Model
         'employee_id',
         'customer_id',
         'options',
+        'is_paid',
     ];
 
     protected $casts = [
         'sum' => MoneyCast::class,
         'options' => 'array',
+        'is_paid' => 'boolean',
     ];
 
     public function price(): BelongsTo

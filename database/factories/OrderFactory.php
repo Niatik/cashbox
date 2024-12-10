@@ -38,6 +38,7 @@ class OrderFactory extends Factory
             'sum' => $sum,
             'employee_id' => Employee::factory(),
             'customer_id' => Customer::factory(),
+            'is_paid' => true,
         ];
     }
 }
