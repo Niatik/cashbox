@@ -297,7 +297,16 @@ class OrderResource extends Resource
                     }
                 },
             ])
-            ->label('Наличные');
+            ->default(0)
+            ->live()
+            ->debounce(1000)
+            ->label('Наличные')
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                $sum = $get('../sum');
+                $cashAmount = $state;
+                $set('payment_cashless_amount', $sum - $cashAmount);
+            });
+
     }
 
     public static function getPaymentCashlessAmountFormField(): TextInput
@@ -314,13 +323,12 @@ class OrderResource extends Resource
             ])
             ->default(0)
             ->live()
-            ->debounce(500)
+            ->debounce(1000)
             ->label('Безналичные')
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                if ($state) {
-                    $cashAmount = $get('payment_cash_amount');
-                    $set('payment_cash_amount', $cashAmount - $state);
-                }
+                $sum = $get('../sum');
+                $cashlessAmount = $state;
+                $set('payment_cash_amount', $sum - $cashlessAmount);
             });
     }
 
