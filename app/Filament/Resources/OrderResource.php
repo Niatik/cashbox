@@ -233,7 +233,7 @@ class OrderResource extends Resource
     {
         return TextInput::make('sum')
             ->numeric()
-            ->label('Сумма')
+            ->label('Сумма к оплате')
             ->default(0)
             ->readOnly();
     }
@@ -242,7 +242,7 @@ class OrderResource extends Resource
     {
         return TextInput::make('net_sum')
             ->numeric()
-            ->label('Чистая сумма')
+            ->label('Сумма')
             ->default(0)
             ->readOnly();
     }
