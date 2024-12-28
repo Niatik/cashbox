@@ -4,13 +4,14 @@ namespace Database\Factories;
 
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
 use App\Models\SocialMedia;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Order>
+ * @extends Factory<Order>
  */
 class OrderFactory extends Factory
 {
@@ -36,6 +37,7 @@ class OrderFactory extends Factory
             'social_media_id' => SocialMedia::factory(),
             'people_number' => $peopleNumber,
             'sum' => $sum,
+            'net_sum' => $sum,
             'employee_id' => Employee::factory(),
             'customer_id' => Customer::factory(),
             'is_paid' => true,

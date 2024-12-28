@@ -14,7 +14,6 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -48,10 +47,10 @@ class OrderResource extends Resource
                 static::getPeopleItemFormField(),
                 static::getNameOfPriceItemFormField(),
                 static::getSocialMediaFormField(),
+                static::getNetSumFormField(),
                 static::getSumFormField(),
                 static::getCustomerFormField(),
                 static::getEmployeeFormField(),
-                static::getIsPaidFormField(),
                 static::getOptionsFormField(),
                 Section::make('Оплата')
                     ->relationship('payment')
@@ -95,8 +94,7 @@ class OrderResource extends Resource
             ->label('Услуга')
             ->searchable()
             ->preload()
-            ->live()
-            ->debounce()
+            ->live(debounce: 1000)
             ->createOptionForm([
                 Forms\Components\TextInput::make('name')
                     ->label('Название услуги')
@@ -141,8 +139,7 @@ class OrderResource extends Resource
                 ->where('price_id', $get('price_id'))
                 ->orderBy('name_item')
                 ->pluck('name_item', 'id'))
-            ->live()
-            ->debounce()
+            ->live(debounce: 1000)
             ->afterStateHydrated(function (?int $state, Get $get, Set $set) {
                 self::getPriceItem($state, $set);
             })
@@ -183,13 +180,14 @@ class OrderResource extends Resource
             ->label('Количество человек')
             ->minValue(1)
             ->maxValue(100)
-            ->live()
-            ->debounce()
+            ->live(debounce: 1000)
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 [$price, $priceFactor, $discount, $prepayment, $additionalDiscount] = self::setVariablesForSumCalculation($get);
                 $sum = $price * $priceFactor * $state - $discount - $prepayment - $additionalDiscount;
+                $netSum = $price * $priceFactor * $state;
                 $set('sum', $sum);
+                $set('net_sum', $netSum);
                 $set('payment.payment_cashless_amount', $sum);
 
             })
@@ -219,7 +217,6 @@ class OrderResource extends Resource
             ->label('Клиент')
             ->searchable()
             ->preload()
-            ->live(onBlur: true)
             ->createOptionForm([
                 Forms\Components\TextInput::make('name')
                     ->label('Ф.И.О.')
@@ -237,6 +234,15 @@ class OrderResource extends Resource
         return TextInput::make('sum')
             ->numeric()
             ->label('Сумма')
+            ->default(0)
+            ->readOnly();
+    }
+
+    public static function getNetSumFormField(): TextInput
+    {
+        return TextInput::make('net_sum')
+            ->numeric()
+            ->label('Чистая сумма')
             ->default(0)
             ->readOnly();
     }
@@ -260,20 +266,20 @@ class OrderResource extends Resource
         return Forms\Components\TextInput::make('payment_cash_amount')
             ->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                    $cashlessAmount = $get('payment_cashless_amount');
+                    $numValue = intval(floatval($value) * 100) / 100;
+                    $cashlessAmount = intval(floatval($get('payment_cashless_amount')) * 100) / 100;
                     $sum = $get('../sum');
-                    if (($cashlessAmount + $value) !== $sum) {
+                    if (($cashlessAmount + $numValue) !== $sum) {
                         $fail('The total amount of payments does not match the order amount');
                     }
                 },
             ])
-            ->default(0)
-            ->live()
-            ->debounce(1000)
+            ->default('')
+            ->live(debounce: 1000)
             ->label('Наличные')
-            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                 $sum = $get('../sum');
-                $cashAmount = $state;
+                $cashAmount = intval(floatval($state) * 100) / 100;
                 $set('payment_cashless_amount', $sum - $cashAmount);
             });
 
@@ -284,18 +290,18 @@ class OrderResource extends Resource
         return Forms\Components\TextInput::make('payment_cashless_amount')
             ->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                    $cashAmount = $get('payment_cash_amount');
+                    $numValue = intval(floatval($value) * 100) / 100;
+                    $cashAmount = intval(floatval($get('payment_cash_amount')) * 100) / 100;
                     $sum = $get('../sum');
-                    if (($cashAmount + $value) !== $sum) {
+                    if (($cashAmount + $numValue) !== $sum) {
                         $fail('The total amount of payments does not match the order amount');
                     }
                 },
             ])
-            ->default(0)
-            ->live()
-            ->debounce(1000)
+            ->default('')
+            ->live(debounce: 1000)
             ->label('Безналичные')
-            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                 $sum = $get('../sum');
                 $cashlessAmount = $state;
                 $set('payment_cash_amount', $sum - $cashlessAmount);
@@ -309,23 +315,20 @@ class OrderResource extends Resource
             ->schema([
                 TextInput::make('discount')
                     ->label('Скидка')
-                    ->live()
-                    ->debounce()
-                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                    ->live(debounce: 1000)
+                    ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 TextInput::make('prepayment')
                     ->label('Аванс')
-                    ->live()
-                    ->debounce()
-                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                    ->live(debounce: 1000)
+                    ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 TextInput::make('additional_discount')
                     ->label('Дополнительная скидка')
-                    ->live()
-                    ->debounce()
-                    ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                    ->live(debounce: 1000)
+                    ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 TextInput::make('additional_discount_description')
@@ -333,13 +336,6 @@ class OrderResource extends Resource
                     ->hidden(fn (Get $get): bool => ! $get('additional_discount'))
                     ->required(fn (Get $get): bool => filled($get('additional_discount'))),
             ]);
-    }
-
-    public static function getIsPaidFormField(): Toggle
-    {
-        return Toggle::make('is_paid')
-            ->label('Оплачено')
-            ->default(true);
     }
 
     public static function table(Table $table): Table
@@ -372,7 +368,6 @@ class OrderResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price_item.name_item')
-                    ->numeric()
                     ->label('Время')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('people_number')
@@ -432,22 +427,22 @@ class OrderResource extends Resource
 
     public static function setVariablesForSumCalculation(Get $get): array
     {
-        $price = $get('price');
-        $priceFactor = $get('price_factor');
-        $discount = $get('options.discount');
-        $prepayment = $get('options.prepayment');
-        $additionalDiscount = $get('options.additional_discount');
+        $price = intval(floatval($get('price')) * 100) / 100;
+        $priceFactor = intval(floatval($get('price_factor')) * 1000) / 1000;
+        $discount = intval(floatval($get('options.discount')) * 100) / 100;
+        $prepayment = intval(floatval($get('options.prepayment')) * 100) / 100;
+        $additionalDiscount = intval(floatval($get('options.additional_discount')) * 100) / 100;
 
         return [$price, $priceFactor, $discount, $prepayment, $additionalDiscount];
     }
 
     public static function setVariablesForSumCalculationFromOptions(Get $get): array
     {
-        $price = $get('../price');
-        $priceFactor = $get('../price_factor');
-        $discount = $get('discount');
-        $prepayment = $get('prepayment');
-        $additionalDiscount = $get('additional_discount');
+        $price = intval(floatval($get('../price')) * 100) / 100;
+        $priceFactor = intval(floatval($get('../price_factor')) * 1000) / 1000;
+        $discount = intval(floatval($get('discount')) * 100) / 100;
+        $prepayment = intval(floatval($get('prepayment')) * 100) / 100;
+        $additionalDiscount = intval(floatval($get('additional_discount')) * 100) / 100;
 
         return [$price, $priceFactor, $discount, $prepayment, $additionalDiscount];
     }
@@ -462,8 +457,6 @@ class OrderResource extends Resource
             }
         }
     }
-
-
 
     public static function calcSum(?Select $component, Get $get, Set $set): void
     {
@@ -481,9 +474,11 @@ class OrderResource extends Resource
 
         $peopleNumber = $get('name_item') == 'Количество человек' ? 1 : $get('people_number');
         $sum = $price * $peopleNumber * $priceFactor - $discount - $prepayment - $additionalDiscount;
+        $netSum = $price * $priceFactor * $peopleNumber;
         $set('sum', $sum);
+        $set('net_sum', $netSum);
         $set('payment.payment_cashless_amount', $sum);
-        $set('payment.payment_cash_amount', 0);
+        $set('payment.payment_cash_amount', '');
     }
 
     public static function calcSumFromOptions(Get $get, Set $set): void
@@ -491,8 +486,10 @@ class OrderResource extends Resource
         [$price, $priceFactor, $discount, $prepayment, $additionalDiscount] = self::setVariablesForSumCalculationFromOptions($get);
         $peopleNumber = $get('../name_item') == 'Количество человек' ? 1 : $get('../people_number');
         $sum = $price * $priceFactor * $peopleNumber - $discount - $prepayment - $additionalDiscount;
+        $netSum = $price * $priceFactor * $peopleNumber;
         $set('../sum', $sum);
+        $set('../net_sum', $netSum);
         $set('../payment.payment_cashless_amount', $sum);
-        $set('../payment.payment_cash_amount', 0);
+        $set('../payment.payment_cash_amount', '');
     }
 }

@@ -21,6 +21,7 @@ class Order extends Model
         'people_number',
         'status',
         'sum',
+        'net_sum',
         'employee_id',
         'customer_id',
         'options',
@@ -29,6 +30,7 @@ class Order extends Model
 
     protected $casts = [
         'sum' => MoneyCast::class,
+        'net_sum' => MoneyCast::class,
         'options' => 'array',
         'is_paid' => 'boolean',
     ];
