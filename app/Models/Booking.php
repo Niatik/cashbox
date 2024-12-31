@@ -38,7 +38,7 @@ class Booking extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    /*protected $dispatchesEvents = [
+    protected $dispatchesEvents = [
         'created' => BookingCreated::class,
-    ];*/
+    ];
 }
