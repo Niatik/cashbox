@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\ThousandthCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PriceItem extends Model
 {
@@ -20,4 +21,8 @@ class PriceItem extends Model
         'factor' => ThousandthCast::class,
     ];
 
+    public function price(): BelongsTo
+    {
+        return $this->belongsTo(Price::class);
+    }
 }

@@ -21,7 +21,7 @@ class PriceItemFactory extends Factory
         return [
             'price_id' => Price::factory(),
             'name_item' => $number.' minutes',
-            'time_item' => $number,
+            'factor' => $number,
         ];
     }
 }
