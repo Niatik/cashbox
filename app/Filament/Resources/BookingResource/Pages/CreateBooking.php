@@ -40,32 +40,4 @@ class CreateBooking extends CreateRecord
             ]);
         }
     }
-
-    protected function beforeFill(): void
-    {
-
-        // Runs before the form fields are populated with their default values.
-    }
-
-    protected function afterFill(): void
-    {
-        //dd($this->form);
-        // Runs after the form fields are populated with their default values.
-    }
-
-    protected function beforeValidate(): void
-    {
-        //dd($this->form->getRawState());
-        // Runs before the form fields are validated when the form is submitted.
-    }
-
-    protected function afterValidate(): void
-    {
-        //dd($this->form->getRawState());
-    }
-
-    protected function beforeCreate(): void
-    {
-        //dd('kjkkk');
-    }
 }
