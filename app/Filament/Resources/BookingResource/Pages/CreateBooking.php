@@ -10,6 +10,11 @@ class CreateBooking extends CreateRecord
 {
     protected static string $resource = BookingResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     public ?string $date = null;
 
     protected function mutateFormDataBeforeCreate(array $data): array
