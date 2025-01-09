@@ -15,17 +15,17 @@ class BookingCreated
     public function __construct(Booking $booking)
     {
         $bookingDate = $booking->booking_date;
-        $bookingTime = $booking->booking_time;
-        $prepayment = $booking->prepayment;
         $customer = $booking->customer_id;
         $employee = $booking->employee_id;
         $prices = $booking->booking_price_items;
 
         foreach ($prices as $price) {
+            $bookingTime = $price['booking_time'];
             $price_id = $price['price_id'];
             $price_item_id = $price['price_item_id'];
             $people_number = $price['people_number'];
             $people_item = $price['people_item'];
+            $prepayment = $price['prepayment_price_item'];
 
             $price = Price::find($price_id)->price;
             $factor = PriceItem::find($price_item_id)->factor;
@@ -43,23 +43,14 @@ class BookingCreated
                 'social_media_id' => 1,
                 'people_number' => $people_save,
                 'sum' => $sum,
+                'net_sum' => $net_sum,
                 'employee_id' => $employee,
                 'customer_id' => $customer,
                 'options' => [
                     'prepayment' => $prepayment,
                 ],
             ]);
-
-            $prepayment = 0;
         }
 
-    }
-
-    /**
-     * Handle the event.
-     */
-    public function handle(object $event): void
-    {
-        //
     }
 }

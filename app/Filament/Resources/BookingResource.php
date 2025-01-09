@@ -39,7 +39,6 @@ class BookingResource extends Resource
         return $form
             ->schema([
                 static::getDateFormField(),
-                static::getTimeFormField(),
                 static::getBookingPriceItemFormField(),
                 static::getSumFormField(),
                 static::getPrepaymentFormField(),
@@ -61,6 +60,7 @@ class BookingResource extends Resource
     {
         return TimePicker::make('booking_time')
             ->timezone('Etc/GMT-5')
+            ->format('H:i')
             ->default(now())
             ->label('Время')
             ->required();
@@ -70,11 +70,13 @@ class BookingResource extends Resource
     {
         return Forms\Components\Repeater::make('booking_price_items')
             ->schema([
+                static::getTimeFormField(),
                 static::getPriceFormField(),
                 static::getPriceItemFormField(),
                 static::getPeopleNumberFormField(),
                 static::getNameOfPriceItemFormField(),
                 static::getPeopleItemFormField(),
+                static::getPrepaymentPriceItemFormField(),
             ])
             ->label('Услуги')
             ->collapsible()
@@ -168,8 +170,21 @@ class BookingResource extends Resource
         return TextInput::make('prepayment')
             ->numeric()
             ->label('Предоплата')
-            ->default(0);
+            ->default(0)
+            ->readOnly();
     }
+
+    public static function getPrepaymentPriceItemFormField(): TextInput
+    {
+        return TextInput::make('prepayment_price_item')
+            ->numeric()
+            ->label('Предоплата')
+            ->live(debounce: 1000)
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                self::calcSum($get, $set);
+            });
+    }
+
 
     public static function getCustomerFormField(): Select
     {
@@ -201,22 +216,30 @@ class BookingResource extends Resource
     {
         $bookingPriceItems = $get('../../booking_price_items');
         $sum = 0;
+        $prepayment = 0;
         foreach ($bookingPriceItems as $bookingPriceItem) {
             $price = 0;
-            $price_factor = 0;
-            $people_number = 0;
+            $priceFactor = 0;
+            $peopleNumber = 0;
+            $prepaymentPriceItem = 0;
             if (Arr::exists($bookingPriceItem, 'price_id')) {
                 $price = $bookingPriceItem['price_id'] ? Price::find($bookingPriceItem['price_id'])->price : 0;
             }
             if (Arr::exists($bookingPriceItem, 'price_item_id')) {
-                $price_factor = $bookingPriceItem['price_item_id'] ? PriceItem::find($bookingPriceItem['price_item_id'])->factor : 0;
+                $priceFactor = $bookingPriceItem['price_item_id'] ? PriceItem::find($bookingPriceItem['price_item_id'])->factor : 0;
             }
             if (Arr::exists($bookingPriceItem, 'people_number')) {
-                $people_number = $bookingPriceItem['people_number'] ?? 1;
+                $peopleNumber = $bookingPriceItem['people_number'] ?? 1;
             }
-            $sum = $sum + $people_number * $price_factor * $price;
+            if (Arr::exists($bookingPriceItem, 'prepayment_price_item')) {
+                $prepaymentPriceItem = $bookingPriceItem['prepayment_price_item'] ?? 0;
+            }
+            $prepaymentPriceItem = intval(floatval($prepaymentPriceItem) * 100) / 100;
+            $sum = $sum + $peopleNumber * $priceFactor * $price;
+            $prepayment = $prepayment + $prepaymentPriceItem;
         }
         $set('../../sum', $sum);
+        $set('../../prepayment', $prepayment);
     }
 
     public static function table(Table $table): Table
