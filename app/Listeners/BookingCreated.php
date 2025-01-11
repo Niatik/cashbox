@@ -26,6 +26,7 @@ class BookingCreated
             $people_number = $price['people_number'];
             $people_item = $price['people_item'];
             $prepayment = $price['prepayment_price_item'];
+            $isCash = $price['is_cash'];
 
             $price = Price::find($price_id)->price;
             $factor = PriceItem::find($price_item_id)->factor;
@@ -48,6 +49,7 @@ class BookingCreated
                 'customer_id' => $customer,
                 'options' => [
                     'prepayment' => $prepayment,
+                    'is_cash' => $isCash,
                 ],
                 'is_paid' => false,
             ]);

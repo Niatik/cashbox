@@ -14,6 +14,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -325,6 +326,9 @@ class OrderResource extends Resource
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
+                Toggle::make('is_cash')
+                    ->label('Наличные')
+                    ->default(true),
                 TextInput::make('additional_discount')
                     ->label('Дополнительная скидка')
                     ->live(debounce: 1000)

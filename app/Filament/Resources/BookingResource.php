@@ -12,6 +12,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -77,6 +78,7 @@ class BookingResource extends Resource
                 static::getNameOfPriceItemFormField(),
                 static::getPeopleItemFormField(),
                 static::getPrepaymentPriceItemFormField(),
+                static::getIsCashFormField(),
             ])
             ->label('Услуги')
             ->collapsible()
@@ -183,6 +185,13 @@ class BookingResource extends Resource
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 self::calcSum($get, $set);
             });
+    }
+
+    public static function getIsCashFormField(): Toggle
+    {
+        return Toggle::make('is_cash')
+            ->label('Наличные')
+            ->default(true);
     }
 
 
