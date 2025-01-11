@@ -49,6 +49,7 @@ class BookingCreated
                 'options' => [
                     'prepayment' => $prepayment,
                 ],
+                'is_paid' => false,
             ]);
         }
 
