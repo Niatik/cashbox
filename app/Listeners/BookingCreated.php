@@ -52,6 +52,7 @@ class BookingCreated
                     'is_cash' => $isCash,
                 ],
                 'is_paid' => false,
+                'booking_id' => $booking->id,
             ]);
         }
 

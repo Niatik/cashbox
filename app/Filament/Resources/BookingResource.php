@@ -191,9 +191,8 @@ class BookingResource extends Resource
     {
         return Toggle::make('is_cash')
             ->label('Наличные')
-            ->default(true);
+            ->default(false);
     }
-
 
     public static function getCustomerFormField(): Select
     {
@@ -254,31 +253,58 @@ class BookingResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                //$query->crossJoin('orders', 'orders.booking_id', '=', 'bookings.id'); //->ddRawSql();
+                $query
+                    ->join('customers', 'bookings.customer_id', '=', 'customers.id')
+                    ->join('orders', 'bookings.id', '=', 'orders.booking_id')
+                    ->join('prices', 'orders.price_id', '=', 'prices.id')
+                    ->join('price_items', 'orders.price_item_id', '=', 'price_items.id')
+                    ->select(
+                        'bookings.id',
+                        'bookings.booking_date',
+                        'orders.order_time',
+                        'prices.name as price_name',
+                        'price_items.name_item',
+                        'customers.name as customer_name',
+                        'orders.people_number as people_number',
+                        'orders.sum as order_sum',
+                    );
+            })
             ->columns([
                 TextColumn::make('booking_date')
                     ->date('d.m.Y')
                     ->label('Дата')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('booking_time')
+                TextColumn::make('order_time')
                     ->date('H:i:s')
                     ->label('Время')
                     ->timezone('Etc/GMT-5')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('prepayment')
-                    ->numeric()
-                    ->label('Аванс')
+                TextColumn::make('price_name')
+                    ->label('Услуга')
+                    ->limit(22)
+                    ->searchable()
                     ->sortable(),
-                TextColumn::make('sum')
-                    ->numeric()
-                    ->label('Сумма')
-                    ->sortable(),
-                TextColumn::make('customer.name')
+                TextColumn::make('customer_name')
                     ->label('Клиент')
                     ->limit(27)
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('name_item')
+                    ->label('Время')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('people_number')
+                    ->numeric()
+                    ->label('Люди')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('order_sum')
+                    ->numeric()
+                    ->label('Сумма')
+                    ->sortable()
+                    ->formatStateUsing(fn (int $state): string => $state / 100),
             ])
             ->filters(
                 self::getTableFilters()

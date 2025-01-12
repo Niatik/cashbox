@@ -26,6 +26,7 @@ class Order extends Model
         'customer_id',
         'options',
         'is_paid',
+        'booking_id',
     ];
 
     protected $casts = [
