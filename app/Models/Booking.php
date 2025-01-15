@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Listeners\BookingCreated;
+use App\Listeners\BookingSaved;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,5 +47,6 @@ class Booking extends Model
 
     protected $dispatchesEvents = [
         'created' => BookingCreated::class,
+        'saved' => BookingSaved::class,
     ];
 }

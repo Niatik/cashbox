@@ -7,13 +7,15 @@ use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
 
-class BookingCreated
+class BookingSaved
 {
     /**
      * Create the event listener.
      */
     public function __construct(Booking $booking)
     {
+        Order::where('booking_id', $booking->id)->delete();
+
         $bookingDate = $booking->booking_date;
         $customer = $booking->customer_id;
         $employee = $booking->employee_id;
@@ -55,5 +57,13 @@ class BookingCreated
                 'booking_id' => $booking->id,
             ]);
         }
+    }
+
+    /**
+     * Handle the event.
+     */
+    public function handle(object $event): void
+    {
+        //
     }
 }
