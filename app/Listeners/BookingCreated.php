@@ -27,11 +27,18 @@ class BookingCreated
             $people_item = $price['people_item'];
             $prepayment = $price['prepayment_price_item'];
             $isCash = $price['is_cash'];
-
             $price = Price::find($price_id)->price;
             $factor = PriceItem::find($price_item_id)->factor;
-            $people_calc = $people_number ?? 1;
-            $people_save = $people_number ?? $people_item;
+
+            $people_calc = intval($people_number);
+            if ($people_calc == 0) {
+                $people_calc = 1;
+            }
+
+            $people_save = $people_number;
+            if ($people_item > 1) {
+                $people_save = $people_item;
+            }
 
             $net_sum = $people_calc * $factor * $price;
             $sum = $net_sum - $prepayment;

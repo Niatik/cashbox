@@ -147,7 +147,7 @@ class BookingResource extends Resource
     {
         return TextInput::make('people_number')
             ->numeric()
-            ->default(1)
+            ->default('')
             ->label('Количество человек')
             ->minValue(1)
             ->maxValue(100)
@@ -237,12 +237,13 @@ class BookingResource extends Resource
                 $priceFactor = $bookingPriceItem['price_item_id'] ? PriceItem::find($bookingPriceItem['price_item_id'])->factor : 0;
             }
             if (Arr::exists($bookingPriceItem, 'people_number')) {
-                $peopleNumber = $bookingPriceItem['people_number'] ?? 1;
+                $peopleNumber = intval($bookingPriceItem['people_number']) == 0 ?? 1;
             }
             if (Arr::exists($bookingPriceItem, 'prepayment_price_item')) {
                 $prepaymentPriceItem = $bookingPriceItem['prepayment_price_item'] ?? 0;
             }
             $prepaymentPriceItem = intval(floatval($prepaymentPriceItem) * 100) / 100;
+
             $sum = $sum + $peopleNumber * $priceFactor * $price;
             $prepayment = $prepayment + $prepaymentPriceItem;
         }
@@ -254,7 +255,6 @@ class BookingResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                //$query->crossJoin('orders', 'orders.booking_id', '=', 'bookings.id'); //->ddRawSql();
                 $query
                     ->join('customers', 'bookings.customer_id', '=', 'customers.id')
                     ->join('orders', 'bookings.id', '=', 'orders.booking_id')
@@ -306,23 +306,14 @@ class BookingResource extends Resource
                     ->sortable()
                     ->formatStateUsing(fn (int $state): string => $state / 100),
             ])
+            ->defaultSort('booking_date')
             ->filters(
                 self::getTableFilters()
             )
             ->actions([
                 Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(),
                 Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->whereDate('booking_date', '>', now(tz: 'Etc/GMT-5')->subDay());
     }
 
     public static function getPages(): array
@@ -338,9 +329,10 @@ class BookingResource extends Resource
     {
         return [
             Filter::make('selected_date')
-                ->default(now())
+                ->default()
                 ->form([
                     DatePicker::make('select_date')
+                        ->default(now())
                         ->label('Выберите дату'),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {
