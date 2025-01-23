@@ -24,6 +24,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->sidebarWidth('15rem')
             ->id('admin')
             ->path('admin')
             ->login()
