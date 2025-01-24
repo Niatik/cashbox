@@ -3,15 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ExpenseResource\Pages;
-use App\Filament\Resources\ExpenseResource\RelationManagers;
 use App\Models\Expense;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ExpenseResource extends Resource
 {
@@ -31,12 +32,6 @@ class ExpenseResource extends Resource
                     ->label('Тип расхода')
                     ->relationship('expense_type', 'name')
                     ->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Тип расхода')
-                            ->maxLength(255)
-                            ->required(),
-                    ])
                     ->required(),
                 Forms\Components\DatePicker::make('expense_date')
                     ->label('Дата раcхода')
@@ -68,18 +63,14 @@ class ExpenseResource extends Resource
                     ->sortable()
                     ->money('KZT'),
             ])
-            ->filters([
-                //
-            ])
+            ->defaultSort('expense_date')
+            ->filters(
+                self::getTableFilters()
+            )
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()->hiddenLabel(),
+                Tables\Actions\DeleteAction::make()->hiddenLabel(),
 
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 
@@ -98,4 +89,25 @@ class ExpenseResource extends Resource
             'edit' => Pages\EditExpense::route('/{record}/edit'),
         ];
     }
+
+    protected static function getTableFilters(): array
+    {
+        return [
+            Filter::make('selected_date')
+                ->default()
+                ->form([
+                    DatePicker::make('select_date')
+                        ->default(now())
+                        ->label('Выберите дату'),
+                ])
+                ->query(function (Builder $query, array $data, Get $get): Builder {
+                    return $query
+                        ->when(
+                            $data['select_date'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('expense_date', '=', $date),
+                        );
+                }),
+        ];
+    }
+
 }
