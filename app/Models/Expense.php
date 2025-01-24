@@ -15,12 +15,15 @@ class Expense extends Model
     protected $fillable = [
         'expense_date',
         'expense_type_id',
+        'description',
         'expense_amount',
+        'is_cash',
     ];
 
 
     protected $casts = [
         'expense_amount' => MoneyCast::class,
+        'is_cash' => 'boolean',
     ];
 
 

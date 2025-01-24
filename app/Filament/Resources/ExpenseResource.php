@@ -6,6 +6,9 @@ use App\Filament\Resources\ExpenseResource\Pages;
 use App\Models\Expense;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
@@ -28,20 +31,25 @@ class ExpenseResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('expense_type_id')
+                Select::make('expense_type_id')
                     ->label('Тип расхода')
                     ->relationship('expense_type', 'name')
                     ->preload()
                     ->required(),
-                Forms\Components\DatePicker::make('expense_date')
+                DatePicker::make('expense_date')
                     ->label('Дата раcхода')
                     ->default(now())
                     ->required()
                     ->maxDate(now()),
-                Forms\Components\TextInput::make('expense_amount')
+                TextInput::make('description')
+                    ->label('Описание расхода'),
+                TextInput::make('expense_amount')
                     ->label('Сумма расхода')
                     ->required()
                     ->numeric(),
+                Toggle::make('is_cash')
+                    ->label('Наличные')
+                    ->default(false),
             ]);
     }
 
@@ -58,10 +66,14 @@ class ExpenseResource extends Resource
                     ->label('Тип расхода')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Описание'),
                 Tables\Columns\TextColumn::make('expense_amount')
                     ->label('Сумма расхода')
                     ->sortable()
                     ->money('KZT'),
+                Tables\Columns\ToggleColumn::make('is_cash')
+                    ->label('Нал'),
             ])
             ->defaultSort('expense_date')
             ->filters(
