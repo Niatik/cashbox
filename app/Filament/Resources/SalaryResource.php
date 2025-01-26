@@ -12,7 +12,9 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class SalaryResource extends Resource
 {
@@ -91,9 +93,9 @@ class SalaryResource extends Resource
                     ->label('Нал'),
             ])
             ->defaultSort('salary_date')
-            ->filters([
-                //
-            ])
+            ->filters(
+                self::getTableFilters()
+            )
             ->actions([
                 Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
                 Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
@@ -114,5 +116,33 @@ class SalaryResource extends Resource
             'create' => Pages\CreateSalary::route('/create'),
             'edit' => Pages\EditSalary::route('/{record}/edit'),
         ];
+    }
+
+    protected static function getTableFilters(): array
+    {
+        return [
+            Filter::make('selected_range_dates')
+                ->default()
+                ->form([
+                    DatePicker::make('start_date')
+                        ->label('Начальная дата')
+                        ->default(now()->subDays(30)),
+                    DatePicker::make('end_date')
+                        ->label('Конечная дата')
+                        ->default(now()),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['start_date'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('salary_date', '>=', $date),
+                        )
+                        ->when(
+                            $data['end_date'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('salary_date', '<=', $date),
+                        );
+                }),
+        ];
+
     }
 }
