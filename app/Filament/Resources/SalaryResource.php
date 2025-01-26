@@ -5,6 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SalaryResource\Pages;
 use App\Models\Salary;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -24,7 +28,7 @@ class SalaryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('employee_id')
+                Select::make('employee_id')
                     ->label('Работник')
                     ->relationship('employee', 'name')
                     ->preload()
@@ -33,26 +37,34 @@ class SalaryResource extends Resource
                             ->label('Ф.И.О.')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('phone')
+                        TextInput::make('phone')
                             ->label('Телефон')
                             ->tel(),
-                        Forms\Components\TextInput::make('salary')
+                        TextInput::make('salary')
                             ->label('Оклад')
                             ->numeric(),
-                        Forms\Components\DatePicker::make('employment_date')
+                        DatePicker::make('employment_date')
                             ->label('Дата приема на работу'),
 
                     ])
                     ->required(),
-                Forms\Components\DatePicker::make('salary_date')
+                DatePicker::make('salary_date')
                     ->label('Дата')
                     ->default(now())
                     ->required()
                     ->maxDate(now()),
-                Forms\Components\TextInput::make('salary_amount')
+                TextInput::make('description')
+                    ->label('Описание расхода'),
+
+                TextInput::make('salary_amount')
                     ->label('Сумма')
                     ->required()
                     ->numeric(),
+                Toggle::make('is_cash')
+                    ->label('Наличные')
+                    ->required()
+                    ->default(false),
+
             ]);
     }
 
@@ -69,22 +81,22 @@ class SalaryResource extends Resource
                     ->label('Работник')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Описание'),
                 Tables\Columns\TextColumn::make('salary_amount')
                     ->label('Сумма расхода')
                     ->sortable()
                     ->money('KZT'),
+                Tables\Columns\ToggleColumn::make('is_cash')
+                    ->label('Нал'),
             ])
+            ->defaultSort('salary_date')
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
                 Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

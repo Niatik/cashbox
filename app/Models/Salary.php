@@ -14,11 +14,14 @@ class Salary extends Model
     protected $fillable = [
         'salary_date',
         'employee_id',
+        'description',
         'salary_amount',
+        'is_cash',
     ];
 
     protected $casts = [
         'salary_amount' => MoneyCast::class,
+        'is_cash' => 'boolean',
     ];
 
     public function employee(): BelongsTo
