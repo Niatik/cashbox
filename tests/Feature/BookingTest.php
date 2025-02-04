@@ -3,16 +3,15 @@
 use App\Filament\Resources\BookingResource;
 use App\Listeners\BookingCreated;
 use App\Models\Booking;
-use App\Models\SocialMedia;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
+
 use function Pest\Livewire\livewire;
 
 it('can render page of bookings', function () {
