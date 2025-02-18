@@ -57,107 +57,6 @@ class BookingResource extends Resource
             ->required();
     }
 
-    public static function getTimeFormField(): TimePicker
-    {
-        return TimePicker::make('booking_time')
-            ->timezone('Etc/GMT-5')
-            ->format('H:i')
-            ->default(now())
-            ->label('Время')
-            ->required();
-    }
-
-    public static function getBookingPriceItemFormField(): Forms\Components\Repeater
-    {
-        return Forms\Components\Repeater::make('booking_price_items')
-            ->schema([
-                static::getTimeFormField(),
-                static::getPriceFormField(),
-                static::getPriceItemFormField(),
-                static::getPeopleNumberFormField(),
-                static::getNameOfPriceItemFormField(),
-                static::getPeopleItemFormField(),
-                static::getPrepaymentPriceItemFormField(),
-                static::getIsCashFormField(),
-            ])
-            ->label('Услуги')
-            ->collapsible()
-            ->reorderableWithDragAndDrop(false)
-            ->columns(3);
-    }
-
-    public static function getNameOfPriceItemFormField(): Hidden
-    {
-        return Hidden::make('name_item')
-            ->default('');
-    }
-
-    public static function getPeopleItemFormField(): Hidden
-    {
-        return Hidden::make('people_item')
-            ->default(1);
-    }
-
-    public static function getPriceFormField(): Select
-    {
-        return Select::make('price_id')
-            ->options(fn (Get $get): Collection => Price::query()
-                ->orderBy('name')
-                ->pluck('name', 'id'))
-
-            ->label('Услуга')
-            ->searchable()
-            ->preload()
-            ->live(debounce: 1000)
-            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                self::calcSum($get, $set);
-            })
-            ->required();
-    }
-
-    public static function getPriceItemFormField(): Select
-    {
-        return Select::make('price_item_id')
-            ->required()
-            ->label(function (Select $component, Set $set): string {
-                $currentOption = $component->getOptionLabel() ?? 'Время услуги';
-                $peopleItem = 1;
-
-                if (str_contains($currentOption, 'человек')) {
-                    $peopleItem = intval(last(explode('/', $currentOption)));
-                    $currentOption = 'Количество человек';
-                }
-                $set('name_item', $currentOption);
-                $set('people_item', $peopleItem);
-
-                return $currentOption == 'Количество человек' ? 'Количество человек' : 'Время услуги';
-            })
-            ->options(fn (Get $get): Collection => PriceItem::query()
-                ->where('price_id', $get('price_id'))
-                ->orderBy('name_item')
-                ->pluck('name_item', 'id'))
-            ->live()
-            ->debounce()
-            ->afterStateUpdated(function (Select $component, ?int $state, Get $get, Set $set) {
-                self::calcSum($get, $set);
-            });
-    }
-
-    public static function getPeopleNumberFormField(): TextInput
-    {
-        return TextInput::make('people_number')
-            ->numeric()
-            ->default('')
-            ->label('Количество человек')
-            ->minValue(1)
-            ->maxValue(100)
-            ->live(debounce: 1000)
-            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                self::calcSum($get, $set);
-            })
-            ->hidden(fn (Get $get): bool => $get('name_item') == 'Количество человек');
-    }
-
     public static function getSumFormField(): TextInput
     {
         return TextInput::make('sum')
@@ -174,24 +73,6 @@ class BookingResource extends Resource
             ->label('Предоплата')
             ->default(0)
             ->readOnly();
-    }
-
-    public static function getPrepaymentPriceItemFormField(): TextInput
-    {
-        return TextInput::make('prepayment_price_item')
-            ->numeric()
-            ->label('Предоплата')
-            ->live(debounce: 1000)
-            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
-                self::calcSum($get, $set);
-            });
-    }
-
-    public static function getIsCashFormField(): Toggle
-    {
-        return Toggle::make('is_cash')
-            ->label('Наличные')
-            ->default(false);
     }
 
     public static function getCustomerFormField(): Select
@@ -220,15 +101,135 @@ class BookingResource extends Resource
             ->hidden();
     }
 
+    public static function getTimeFormField(): TimePicker
+    {
+        return TimePicker::make('booking_time')
+            ->timezone('Etc/GMT-5')
+            ->format('H:i')
+            ->default(now())
+            ->label('Время')
+            ->required();
+    }
+
+    public static function getBookingPriceItemFormField(): Forms\Components\Repeater
+    {
+        return Forms\Components\Repeater::make('booking_price_items')
+            ->schema([
+                static::getTimeFormField(),
+                static::getPriceFormField(),
+                static::getPriceItemFormField(),
+                static::getPeopleNumberFormField(),
+                static::getPrepaymentPriceItemFormField(),
+                static::getIsCashFormField(),
+                static::getNameOfPriceItemFormField(),
+                static::getPeopleItemFormField(),
+            ])
+            ->label('Услуги')
+            ->collapsible()
+            ->reorderableWithDragAndDrop(false)
+            ->columns(3);
+    }
+
+    public static function getPriceFormField(): Select
+    {
+        return Select::make('price_id')
+            ->options(fn (Get $get): Collection => Price::query()
+                ->orderBy('name')
+                ->pluck('name', 'id'))
+
+            ->label('Услуга')
+            ->searchable()
+            ->preload()
+            ->live(debounce: 1000)
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                self::calcSum($get, $set);
+            })
+            ->required();
+    }
+
+    public static function getNameOfPriceItemFormField(): Hidden
+    {
+        return Hidden::make('name_item')
+            ->default('');
+    }
+
+    public static function getPeopleItemFormField(): HIdden
+    {
+        return Hidden::make('people_item')
+            ->default(1);
+    }
+
+    public static function getPriceItemFormField(): Select
+    {
+        return Select::make('price_item_id')
+            ->required()
+            ->label(function (Select $component, Set $set): string {
+                $currentOption = $component->getOptionLabel() ?? 'Время услуги';
+                $peopleItem = 1;
+
+                if (str_contains($currentOption, 'человек')) {
+                    $peopleItem = intval(last(explode('/', $currentOption)));
+                    $currentOption = 'Количество человек';
+                }
+                $set('name_item', $currentOption);
+                $set('people_item', $peopleItem);
+
+                return $currentOption == 'Количество человек' ? 'Количество человек' : 'Время услуги';
+            })
+            ->options(fn (Get $get): Collection => PriceItem::query()
+                ->where('price_id', $get('price_id'))
+                ->orderBy('name_item')
+                ->pluck('name_item', 'id'))
+            ->live(debounce: 1000)
+            ->debounce()
+            ->afterStateUpdated(function (Select $component, ?int $state, Get $get, Set $set) {
+                self::calcSum($get, $set);
+            });
+    }
+
+    public static function getPeopleNumberFormField(): TextInput
+    {
+        return TextInput::make('people_number')
+            ->numeric()
+            ->default('')
+            ->label('Количество человек')
+            ->minValue(1)
+            ->maxValue(100)
+            ->live(debounce: 1000)
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                self::calcSum($get, $set);
+            })
+            ->hidden(fn (Get $get): bool => $get('name_item') == 'Количество человек');
+    }
+
+    public static function getPrepaymentPriceItemFormField(): TextInput
+    {
+        return TextInput::make('prepayment_price_item')
+            ->numeric()
+            ->label('Предоплата')
+            ->live(debounce: 1000)
+            ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                self::calcSum($get, $set);
+            });
+    }
+
+    public static function getIsCashFormField(): Toggle
+    {
+        return Toggle::make('is_cash')
+            ->label('Наличные')
+            ->default(false);
+    }
+
     public static function calcSum(Get $get, Set $set): void
     {
         $bookingPriceItems = $get('../../booking_price_items');
         $sum = 0;
         $prepayment = 0;
+        $debug = 1;
         foreach ($bookingPriceItems as $bookingPriceItem) {
             $price = 0;
             $priceFactor = 0;
-            $peopleNumber = 0;
+            $peopleNumber = 1;
             $prepaymentPriceItem = 0;
             if (Arr::exists($bookingPriceItem, 'price_id')) {
                 $price = $bookingPriceItem['price_id'] ? Price::find($bookingPriceItem['price_id'])->price : 0;
@@ -237,7 +238,7 @@ class BookingResource extends Resource
                 $priceFactor = $bookingPriceItem['price_item_id'] ? PriceItem::find($bookingPriceItem['price_item_id'])->factor : 0;
             }
             if (Arr::exists($bookingPriceItem, 'people_number')) {
-                $peopleNumber = intval($bookingPriceItem['people_number']) == 0 ?? 1;
+                $peopleNumber = $bookingPriceItem['name_item'] == 'Количество человек' ? 1 : intval($bookingPriceItem['people_number']);
             }
             if (Arr::exists($bookingPriceItem, 'prepayment_price_item')) {
                 $prepaymentPriceItem = $bookingPriceItem['prepayment_price_item'] ?? 0;
@@ -246,6 +247,7 @@ class BookingResource extends Resource
 
             $sum = $sum + $peopleNumber * $priceFactor * $price;
             $prepayment = $prepayment + $prepaymentPriceItem;
+            $debug = $debug + 1;
         }
         $set('../../sum', $sum);
         $set('../../prepayment', $prepayment);
