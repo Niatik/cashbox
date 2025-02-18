@@ -35,61 +35,61 @@ class CashReportResource extends Resource
                             ->date('d.m.Y'),
                         Infolists\Components\TextEntry::make('morning_cash_balance')
                             ->label('Баланс на начало дня (наличные)')
-                            ->money('KZT'),
+                            ->numeric(decimalPlaces: 0),
                     ])->columns(2),
 
                 Infolists\Components\Section::make('Доходы')
                     ->schema([
                         Infolists\Components\TextEntry::make('total_income')
                             ->label('Доход общий')
-                            ->money('KZT')
+                            ->numeric(decimalPlaces: 0)
                             ->getStateUsing(fn (Model $record) => $record->cash_income + $record->cashless_income),
                         Infolists\Components\TextEntry::make('cash_income')
                             ->label('Доход наличными')
-                            ->money('KZT'),
+                            ->numeric(decimalPlaces: 0),
                         Infolists\Components\TextEntry::make('cashless_income')
                             ->label('Доход безналичный')
-                            ->money('KZT'),
+                            ->numeric(decimalPlaces: 0),
                     ])->columns(3),
 
                 Infolists\Components\Section::make('Расходы')
                     ->schema([
                         Infolists\Components\TextEntry::make('total_expense')
                             ->label('Расход общий')
-                            ->money('KZT')
+                            ->numeric(decimalPlaces: 0)
                             ->getStateUsing(fn (Model $record) => $record->cash_expense + $record->cashless_expense),
                         Infolists\Components\TextEntry::make('cash_expense')
                             ->label('Расход наличными')
-                            ->money('KZT'),
+                            ->numeric(decimalPlaces: 0),
                         Infolists\Components\TextEntry::make('cashless_expense')
                             ->label('Расход безналичный')
-                            ->money('KZT'),
+                            ->numeric(decimalPlaces: 0),
                     ])->columns(3),
 
                 Infolists\Components\Section::make('Зарплаты')
                     ->schema([
                         Infolists\Components\TextEntry::make('total_salary')
                             ->label('Зарплата общая')
-                            ->money('KZT')
+                            ->numeric(decimalPlaces: 0)
                             ->getStateUsing(fn (Model $record) => $record->cash_salary + $record->cashless_salary),
                         Infolists\Components\TextEntry::make('cash_salary')
                             ->label('Зарплата наличными')
-                            ->money('KZT'),
+                            ->numeric(decimalPlaces: 0),
                         Infolists\Components\TextEntry::make('cashless_salary')
                             ->label('Зарплата безналичная')
-                            ->money('KZT'),
+                            ->numeric(decimalPlaces: 0),
                     ])->columns(3),
 
                 Infolists\Components\Section::make('Итоговый баланс')
                     ->schema([
                         Infolists\Components\TextEntry::make('evening_cash_balance')
                             ->label('Остаток наличными')
-                            ->money('KZT')
+                            ->numeric(decimalPlaces: 0)
                             ->getStateUsing(fn (Model $record) => $record->morning_cash_balance + $record->cash_income - $record->cash_expense - $record->cash_salary
                             ),
                         Infolists\Components\TextEntry::make('evening_cashless_balance')
                             ->label('Остаток безналичный')
-                            ->money('KZT')
+                            ->numeric(decimalPlaces: 0)
                             ->getStateUsing(fn (Model $record) => $record->cashless_income - $record->cashless_expense - $record->cashless_salary
                             ),
                     ])->columns(2),
@@ -107,12 +107,12 @@ class CashReportResource extends Resource
 
                 TextColumn::make('morning_cash_balance')
                     ->label('Баланс на начало дня (наличные)')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('total_income')
                     ->label('Доход общий')
-                    ->money('kZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_income + $record->cashless_income;
@@ -120,17 +120,17 @@ class CashReportResource extends Resource
 
                 TextColumn::make('cash_income')
                     ->label('Доход наличными')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('cashless_income')
                     ->label('Доход безналичный')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('total_expense')
                     ->label('Расход общий')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_expense + $record->cashless_expense;
@@ -138,17 +138,17 @@ class CashReportResource extends Resource
 
                 TextColumn::make('cash_expense')
                     ->label('Расход наличными')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('cashless_expense')
                     ->label('Расход безналичный')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('total_salary')
                     ->label('Зарплата общая')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_salary + $record->cashless_salary;
@@ -156,17 +156,17 @@ class CashReportResource extends Resource
 
                 TextColumn::make('cash_salary')
                     ->label('Зарплата наличными')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('cashless_salary')
                     ->label('Зарплата безналичная')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('evening_cash_balance')
                     ->label('Остаток наличными')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->morning_cash_balance + $record->cash_income - $record->cash_expense - $record->cash_salary;
@@ -174,13 +174,14 @@ class CashReportResource extends Resource
 
                 TextColumn::make('evening_cashless_balance')
                     ->label('Остаток безналичный')
-                    ->money('KZT')
+                    ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->cashless_income - $record->cashless_expense - $record->cashless_salary;
                     }),
 
             ])
+            ->defaultSort('date', 'desc')
             ->filters([
                 //
             ])
