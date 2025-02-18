@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
+use App\Listeners\SalaryCreated;
+use App\Listeners\SalaryDeleted;
+use App\Listeners\SalaryUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,4 +31,11 @@ class Salary extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    protected $dispatchesEvents = [
+        'created' => SalaryCreated::class,
+        'updated' => SalaryUpdated::class,
+        'deleted' => SalaryDeleted::class,
+    ];
+
 }

@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
+use App\Listeners\ExpenseCreated;
+use App\Listeners\ExpenseDeleted;
+use App\Listeners\ExpenseUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +28,13 @@ class Expense extends Model
         'expense_amount' => MoneyCast::class,
         'is_cash' => 'boolean',
     ];
+
+    protected $dispatchesEvents = [
+        'created' => ExpenseCreated::class,
+        'updated' => ExpenseUpdated::class,
+        'deleted' => ExpenseDeleted::class,
+    ];
+
 
 
     public function expense_type(): BelongsTo
