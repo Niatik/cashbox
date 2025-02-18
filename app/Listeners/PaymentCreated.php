@@ -28,7 +28,7 @@ class PaymentCreated
             $previousCashReport = DB::table('cash_reports')->whereDate('date', '<', $date)->orderBy('date', 'desc')->first();
             CashReport::create([
                 'date' => $date,
-                'morning_cash_balance' => $previousCashReport->morningBalanceCash,
+                'morning_cash_balance' => $previousCashReport->morning_cash_balance,
                 'cash_income' => $cash_amount,
                 'cashless_income' => $cashless_amount,
                 'cash_expense' => 0,

@@ -28,7 +28,7 @@ class ExpenseCreated
             if ($expense->is_cash) {
                 CashReport::create([
                     'date' => $date,
-                    'morning_cash_balance' => $previousCashReport->morningBalanceCash,
+                    'morning_cash_balance' => $previousCashReport->morning_cash_balance,
                     'cash_income' => 0,
                     'cashless_income' => 0,
                     'cash_expense' => $amount,
@@ -39,7 +39,7 @@ class ExpenseCreated
             } else {
                 CashReport::create([
                     'date' => $date,
-                    'morning_cash_balance' => $previousCashReport->morningBalanceCash,
+                    'morning_cash_balance' => $previousCashReport->morning_cash_balance,
                     'cash_income' => 0,
                     'cashless_income' => 0,
                     'cash_expense' => 0,
