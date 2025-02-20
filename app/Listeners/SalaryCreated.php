@@ -16,7 +16,7 @@ class SalaryCreated
     public function __construct(Salary $salary)
     {
         $date = $salary->salary_date;
-        $amount = $salary->salary_amount;
+        $amount = $salary->salary_amount * 100;
         if ($salary->is_cash) {
             DB::table('cash_reports')->whereDate('date', $date)->increment('cash_salary', $amount);
             DB::table('cash_reports')->whereDate('date', '>', $date)->decrement('morning_cash_balance', $amount);
@@ -30,24 +30,24 @@ class SalaryCreated
             if ($salary->is_cash) {
                 CashReport::create([
                     'date' => $date,
-                    'morning_cash_balance' => $previousCashReport->morningBalanceCash,
+                    'morning_cash_balance' => $previousCashReport->morningBalanceCash / 100,
                     'cash_income' => 0,
                     'cashless_income' => 0,
                     'cash_expense' => 0,
                     'cashless_expense' => 0,
-                    'cash_salary' => $amount,
+                    'cash_salary' => $salary->salary_amount,
                     'cashless_salary' => 0,
                 ]);
             } else {
                 CashReport::create([
                     'date' => $date,
-                    'morning_cash_balance' => $previousCashReport->morningBalanceCash,
+                    'morning_cash_balance' => $previousCashReport->morningBalanceCash / 100,
                     'cash_income' => 0,
                     'cashless_income' => 0,
                     'cash_expense' => 0,
                     'cashless_expense' => 0,
                     'cash_salary' => 0,
-                    'cashless_salary' => $amount,
+                    'cashless_salary' => $salary->salary_amount,
                 ]);
             }
         }
