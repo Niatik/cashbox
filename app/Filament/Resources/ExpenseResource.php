@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ExpenseResource\Pages;
 use App\Models\Expense;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -71,7 +70,7 @@ class ExpenseResource extends Resource
                 Tables\Columns\TextColumn::make('expense_amount')
                     ->label('Сумма расхода')
                     ->sortable()
-                    ->money('KZT'),
+                    ->numeric(0),
                 Tables\Columns\ToggleColumn::make('is_cash')
                     ->label('Нал'),
             ])
