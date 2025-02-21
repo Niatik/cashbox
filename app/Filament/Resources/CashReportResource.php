@@ -106,63 +106,33 @@ class CashReportResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('morning_cash_balance')
-                    ->label('Баланс на начало дня (наличные)')
+                    ->label('Начало дня')
                     ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
                 TextColumn::make('total_income')
-                    ->label('Доход общий')
+                    ->label('Доход')
                     ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_income + $record->cashless_income;
                     }),
 
-                TextColumn::make('cash_income')
-                    ->label('Доход наличными')
-                    ->numeric(decimalPlaces: 0)
-                    ->sortable(),
-
-                TextColumn::make('cashless_income')
-                    ->label('Доход безналичный')
-                    ->numeric(decimalPlaces: 0)
-                    ->sortable(),
-
                 TextColumn::make('total_expense')
-                    ->label('Расход общий')
+                    ->label('Расход')
                     ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_expense + $record->cashless_expense;
                     }),
 
-                TextColumn::make('cash_expense')
-                    ->label('Расход наличными')
-                    ->numeric(decimalPlaces: 0)
-                    ->sortable(),
-
-                TextColumn::make('cashless_expense')
-                    ->label('Расход безналичный')
-                    ->numeric(decimalPlaces: 0)
-                    ->sortable(),
-
                 TextColumn::make('total_salary')
-                    ->label('Зарплата общая')
+                    ->label('Зарплата')
                     ->numeric(decimalPlaces: 0)
                     ->sortable()
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_salary + $record->cashless_salary;
                     }),
-
-                TextColumn::make('cash_salary')
-                    ->label('Зарплата наличными')
-                    ->numeric(decimalPlaces: 0)
-                    ->sortable(),
-
-                TextColumn::make('cashless_salary')
-                    ->label('Зарплата безналичная')
-                    ->numeric(decimalPlaces: 0)
-                    ->sortable(),
 
                 TextColumn::make('evening_cash_balance')
                     ->label('Остаток наличными')
