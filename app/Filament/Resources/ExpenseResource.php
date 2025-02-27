@@ -48,7 +48,7 @@ class ExpenseResource extends Resource
                     ->numeric(),
                 Toggle::make('is_cash')
                     ->label('Наличные')
-                    ->default(false),
+                    ->default(true),
             ]);
     }
 

@@ -276,6 +276,7 @@ class OrderResource extends Resource
                 },
             ])
             ->default('')
+            ->numeric()
             ->live(debounce: 1000)
             ->label('Наличные')
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
@@ -300,6 +301,7 @@ class OrderResource extends Resource
                 },
             ])
             ->default('')
+            ->numeric()
             ->live(debounce: 1000)
             ->label('Безналичные')
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
@@ -316,21 +318,24 @@ class OrderResource extends Resource
             ->schema([
                 TextInput::make('discount')
                     ->label('Скидка')
+                    ->numeric()
                     ->live(debounce: 1000)
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 TextInput::make('prepayment')
                     ->label('Аванс')
+                    ->numeric()
                     ->live(debounce: 1000)
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 Toggle::make('is_cash')
                     ->label('Наличные')
-                    ->default(true),
+                    ->default(false),
                 TextInput::make('additional_discount')
                     ->label('Дополнительная скидка')
+                    ->numeric()
                     ->live(debounce: 1000)
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);

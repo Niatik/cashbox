@@ -50,7 +50,7 @@ class SalaryResource extends Resource
                 Toggle::make('is_cash')
                     ->label('Наличные')
                     ->required()
-                    ->default(false),
+                    ->default(true),
 
             ]);
     }

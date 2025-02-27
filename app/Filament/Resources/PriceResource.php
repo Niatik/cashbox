@@ -36,6 +36,7 @@ class PriceResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('price')
                     ->label('Цена')
+                    ->numeric()
                     ->maxLength(18)
                     ->required(),
             ]);
