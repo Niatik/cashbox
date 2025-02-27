@@ -171,17 +171,17 @@ class BookingResource extends Resource
                     $peopleItem = intval(last(explode('/', $currentOption)));
                     $currentOption = 'Количество человек';
                 }
+                $currentOption = ($currentOption == 'Количество человек') ? 'Количество человек' : 'Время услуги';
                 $set('name_item', $currentOption);
                 $set('people_item', $peopleItem);
 
-                return $currentOption == 'Количество человек' ? 'Количество человек' : 'Время услуги';
+                return $currentOption;
             })
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
                 ->orderBy('name_item')
                 ->pluck('name_item', 'id'))
             ->live(debounce: 1000)
-            ->debounce()
             ->afterStateUpdated(function (Select $component, ?int $state, Get $get, Set $set) {
                 self::calcSum($get, $set);
             });
@@ -231,15 +231,24 @@ class BookingResource extends Resource
             $priceFactor = 0;
             $peopleNumber = 1;
             $prepaymentPriceItem = 0;
+
             if (Arr::exists($bookingPriceItem, 'price_id')) {
                 $price = $bookingPriceItem['price_id'] ? Price::find($bookingPriceItem['price_id'])->price : 0;
             }
             if (Arr::exists($bookingPriceItem, 'price_item_id')) {
-                $priceFactor = $bookingPriceItem['price_item_id'] ? PriceItem::find($bookingPriceItem['price_item_id'])->factor : 0;
+                $priceItem = PriceItem::find($bookingPriceItem['price_item_id']);
+                $priceFactor = $bookingPriceItem['price_item_id'] ? $priceItem->factor : 0;
+                if (Arr::exists($bookingPriceItem, 'people_number') && $priceItem) {
+                    $nameItem = $priceItem->name_item;
+                    if (str_contains($nameItem, 'человек')) {
+                        $nameItem = 'Количество человек';
+                    }
+                    $peopleNumber = $nameItem == 'Количество человек' ? 1 : intval($bookingPriceItem['people_number']);
+                }
             }
-            if (Arr::exists($bookingPriceItem, 'people_number')) {
+            /*if (Arr::exists($bookingPriceItem, 'people_number')) {
                 $peopleNumber = $bookingPriceItem['name_item'] == 'Количество человек' ? 1 : intval($bookingPriceItem['people_number']);
-            }
+            }*/
             if (Arr::exists($bookingPriceItem, 'prepayment_price_item')) {
                 $prepaymentPriceItem = $bookingPriceItem['prepayment_price_item'] ?? 0;
             }
