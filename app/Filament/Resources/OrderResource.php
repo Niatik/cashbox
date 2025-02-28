@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
 use Closure;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
@@ -20,6 +19,7 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -97,14 +97,14 @@ class OrderResource extends Resource
             ->preload()
             ->live(debounce: 1000)
             ->createOptionForm([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->label('Название услуги')
                     ->maxLength(255)
                     ->required(),
-                Forms\Components\TextInput::make('description')
+                TextInput::make('description')
                     ->label('Описание')
                     ->maxLength(255),
-                Forms\Components\TextInput::make('price')
+                TextInput::make('price')
                     ->label('Цена на одного человека')
                     ->maxLength(18)
                     ->required(),
@@ -197,14 +197,14 @@ class OrderResource extends Resource
 
     public static function getSocialMediaFormField(): Select
     {
-        return Forms\Components\Select::make('social_media_id')
+        return Select::make('social_media_id')
             ->relationship('social_media', 'name')
             ->label('Откуда')
             ->searchable()
             ->preload()
             ->required()
             ->createOptionForm([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->label('Название')
                     ->maxLength(255)
                     ->required(),
@@ -213,17 +213,17 @@ class OrderResource extends Resource
 
     public static function getCustomerFormField(): Select
     {
-        return Forms\Components\Select::make('customer_id')
+        return Select::make('customer_id')
             ->relationship('customer', 'name')
             ->label('Клиент')
             ->searchable()
             ->preload()
             ->createOptionForm([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->label('Ф.И.О.')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('phone')
+                TextInput::make('phone')
                     ->label('Телефон')
                     ->tel()
                     ->required(),
@@ -256,7 +256,7 @@ class OrderResource extends Resource
 
     public static function getPaymentDateFormField(): DatePicker
     {
-        return Forms\Components\DatePicker::make('payment_date')
+        return DatePicker::make('payment_date')
             ->default(now())
             ->label('Дата')
             ->required();
@@ -264,7 +264,7 @@ class OrderResource extends Resource
 
     public static function getPaymentCashAmountFormField(): TextInput
     {
-        return Forms\Components\TextInput::make('payment_cash_amount')
+        return TextInput::make('payment_cash_amount')
             ->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                     $numValue = intval(floatval($value) * 100) / 100;
@@ -289,7 +289,7 @@ class OrderResource extends Resource
 
     public static function getPaymentCashlessAmountFormField(): TextInput
     {
-        return Forms\Components\TextInput::make('payment_cashless_amount')
+        return TextInput::make('payment_cashless_amount')
             ->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                     $numValue = intval(floatval($value) * 100) / 100;
@@ -388,9 +388,9 @@ class OrderResource extends Resource
                     ->label('Сумма')
                     ->sortable(),
             ])
-            ->filters([
-                //
-            ])
+            ->filters(
+                self::getTableFilters()
+            )
             ->actions([
                 Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(),
                 Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(),
@@ -416,11 +416,6 @@ class OrderResource extends Resource
             'create' => Pages\CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->whereDate('order_date', '=', now(tz: 'Etc/GMT-5'));
     }
 
     public static function getPrice(?int $state, Set $set): void
@@ -500,5 +495,25 @@ class OrderResource extends Resource
         $set('../net_sum', $netSum);
         $set('../payment.payment_cashless_amount', $sum);
         $set('../payment.payment_cash_amount', '');
+    }
+
+    protected static function getTableFilters(): array
+    {
+        return [
+            Filter::make('selected_date')
+                ->default()
+                ->form([
+                    DatePicker::make('select_date')
+                        ->default(now())
+                        ->label('Выберите дату'),
+                ])
+                ->query(function (Builder $query, array $data, Get $get): Builder {
+                    return $query
+                        ->when(
+                            $data['select_date'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('order_date', '=', $date),
+                        );
+                }),
+        ];
     }
 }
