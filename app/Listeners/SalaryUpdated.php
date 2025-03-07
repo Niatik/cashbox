@@ -3,8 +3,6 @@
 namespace App\Listeners;
 
 use App\Models\Salary;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 
 class SalaryUpdated
@@ -12,8 +10,14 @@ class SalaryUpdated
     /**
      * Create the event listener.
      */
-    public function __construct(Salary $salary)
+    public function __construct(Salary $salary) {}
+
+    /**
+     * Handle the event.
+     */
+    public function handle(object $event): void
     {
+        $salary = $event->salary;
         $date = $salary->salary_date;
         $amount = $salary->salary_amount * 100;
         if ($salary->is_cash) {
@@ -22,13 +26,5 @@ class SalaryUpdated
         } else {
             DB::table('cash_reports')->whereDate('date', $date)->increment('cashless_salary', $amount);
         }
-    }
-
-    /**
-     * Handle the event.
-     */
-    public function handle(object $event): void
-    {
-        //
     }
 }

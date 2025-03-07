@@ -12,8 +12,11 @@ class BookingCreated
     /**
      * Create the event listener.
      */
-    public function __construct(Booking $booking)
+    public function __construct(Booking $booking) {}
+
+    public function handle(object $event): void
     {
+        $booking = $event->booking;
         $bookingDate = $booking->booking_date;
         $customer = $booking->customer_id;
         $employee = $booking->employee_id;

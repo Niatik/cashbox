@@ -3,8 +3,6 @@
 namespace App\Listeners;
 
 use App\Models\Expense;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 
 class ExpenseDeleted
@@ -12,8 +10,14 @@ class ExpenseDeleted
     /**
      * Create the event listener.
      */
-    public function __construct(Expense $expense)
+    public function __construct(Expense $expense) {}
+
+    /**
+     * Handle the event.
+     */
+    public function handle(object $event): void
     {
+        $expense = $event->expense;
         $date = $expense->expense_date;
         $amount = $expense->expense_amount * 100;
         if ($expense->is_cash) {
@@ -22,14 +26,5 @@ class ExpenseDeleted
         } else {
             DB::table('cash_reports')->whereDate('date', $date)->decrement('cashless_expense', $amount);
         }
-
-    }
-
-    /**
-     * Handle the event.
-     */
-    public function handle(object $event): void
-    {
-        //
     }
 }

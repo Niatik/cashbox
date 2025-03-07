@@ -4,8 +4,6 @@ namespace App\Listeners;
 
 use App\Models\CashReport;
 use App\Models\Payment;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 
 class PaymentCreated
@@ -13,8 +11,14 @@ class PaymentCreated
     /**
      * Create the event listener.
      */
-    public function __construct(Payment $payment)
+    public function __construct(Payment $payment) {}
+
+    /**
+     * Handle the event.
+     */
+    public function handle(object $event): void
     {
+        $payment = $event->payment;
         $date = $payment->payment_date;
         $cash_amount = $payment->payment_cash_amount * 100;
         $cashless_amount = $payment->payment_cashless_amount * 100;
@@ -37,13 +41,5 @@ class PaymentCreated
                 'cashless_salary' => 0,
             ]);
         }
-    }
-
-    /**
-     * Handle the event.
-     */
-    public function handle(object $event): void
-    {
-        //
     }
 }

@@ -12,8 +12,14 @@ class BookingUpdated
     /**
      * Create the event listener.
      */
-    public function __construct(Booking $booking)
+    public function __construct(Booking $booking) {}
+
+    /**
+     * Handle the event.
+     */
+    public function handle(object $event): void
     {
+        $booking = $event->booking;
         Order::where('booking_id', $booking->id)->delete();
 
         $bookingDate = $booking->booking_date;
@@ -65,13 +71,5 @@ class BookingUpdated
                 'booking_id' => $booking->id,
             ]);
         }
-    }
-
-    /**
-     * Handle the event.
-     */
-    public function handle(object $event): void
-    {
-        //
     }
 }
