@@ -59,29 +59,30 @@ class CashReportService
 
     public function calculateAndSaveDailyData(): void
     {
-        $minIncomeDate = Payment::min('payment_date');
-        $maxIncomeDate = Payment::max('payment_date');
-        $minExpenseDate = Expense::min('expense_date');
-        $maxExpenseDate = Expense::max('expense_date');
-        $minSalaryDate = Salary::min('salary_date');
-        $maxSalaryDate = Salary::max('salary_date');
+        $minIncomeDate = Payment::min('payment_date') ?? Carbon::now();
+        $maxIncomeDate = Payment::max('payment_date') ?? Carbon::now();
+        $minExpenseDate = Expense::min('expense_date') ?? Carbon::now();
+        $maxExpenseDate = Expense::max('expense_date') ?? Carbon::now();
+        $minSalaryDate = Salary::min('salary_date') ?? Carbon::now();
+        $maxSalaryDate = Salary::max('salary_date') ?? Carbon::now();
 
         $minDate = Carbon::parse(min($minIncomeDate, $minExpenseDate, $minSalaryDate));
         $maxDate = Carbon::parse(max($maxIncomeDate, $maxExpenseDate, $maxSalaryDate));
 
         for ($date = $minDate; $date <= $maxDate; $date->addDay()) {
-            $morningBalanceCash = $this->getMorningCashBalance($date);
-            $cashIncome = $this->getCashIncome($date);
-            $cashlessIncome = $this->getCashlessIncome($date);
-            $cashExpense = $this->getCashExpense($date);
-            $cashlessExpense = $this->getCashlessExpense($date);
-            $cashSalary = $this->getCashSalary($date);
-            $cashlessSalary = $this->getCashlessSalary($date);
+            $strDate = $date->format('Y-m-d');
+            $morningBalanceCash = $this->getMorningCashBalance($strDate);
+            $cashIncome = $this->getCashIncome($strDate);
+            $cashlessIncome = $this->getCashlessIncome($strDate);
+            $cashExpense = $this->getCashExpense($strDate);
+            $cashlessExpense = $this->getCashlessExpense($strDate);
+            $cashSalary = $this->getCashSalary($strDate);
+            $cashlessSalary = $this->getCashlessSalary($strDate);
 
-            CashReport::whereDate('date', $date)->delete();
+            CashReport::whereDate('date', $strDate)->delete();
 
             CashReport::create([
-                'date' => $date,
+                'date' => $strDate,
                 'morning_cash_balance' => $morningBalanceCash / 100,
                 'cash_income' => $cashIncome / 100,
                 'cashless_income' => $cashlessIncome / 100,
