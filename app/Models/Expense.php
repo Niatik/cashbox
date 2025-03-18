@@ -3,9 +3,6 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
-use App\Listeners\ExpenseCreated;
-use App\Listeners\ExpenseDeleted;
-use App\Listeners\ExpenseUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
