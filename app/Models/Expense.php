@@ -29,14 +29,6 @@ class Expense extends Model
         'is_cash' => 'boolean',
     ];
 
-    protected $dispatchesEvents = [
-        'created' => ExpenseCreated::class,
-        'updated' => ExpenseUpdated::class,
-        'deleted' => ExpenseDeleted::class,
-    ];
-
-
-
     public function expense_type(): BelongsTo
     {
         return $this->belongsTo(ExpenseType::class);

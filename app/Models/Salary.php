@@ -31,11 +31,4 @@ class Salary extends Model
     {
         return $this->belongsTo(Employee::class);
     }
-
-    protected $dispatchesEvents = [
-        'created' => SalaryCreated::class,
-        'updated' => SalaryUpdated::class,
-        'deleted' => SalaryDeleted::class,
-    ];
-
 }

@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CashReport extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'date',
         'morning_cash_balance',

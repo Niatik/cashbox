@@ -93,4 +93,17 @@ class CashReportService
             ]);
         }
     }
+
+    /**
+     * Обновить данные при создании платежа
+     */
+    public function updateOnPaymentCreated(Payment $payment): void
+    {
+        $date = $payment->payment_date;
+        $cashAmount = $payment->payment_cash_amount;
+        $cashlessAmount = $payment->payment_cashless_amount;
+        CashReport::whereDate('date', $date)->increment('cash_income', $cashAmount * 100);
+        CashReport::whereDate('date', $date)->increment('cashless_income', $cashlessAmount * 100);
+        CashReport::whereDate('date', '>', $date)->increment('morning_cash_balance', $cashAmount * 100);
+    }
 }

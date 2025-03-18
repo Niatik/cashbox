@@ -3,9 +3,7 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
-use App\Listeners\PaymentCreated;
-use App\Listeners\PaymentDeleted;
-use App\Listeners\PaymentUpdated;
+use App\Events\PaymentCreated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,7 +24,6 @@ class Payment extends Model
         'payment_cashless_amount' => MoneyCast::class,
     ];
 
-
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
@@ -34,8 +31,5 @@ class Payment extends Model
 
     protected $dispatchesEvents = [
         'created' => PaymentCreated::class,
-        'updated' => PaymentUpdated::class,
-        'deleted' => PaymentDeleted::class,
     ];
-
 }
