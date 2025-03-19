@@ -109,7 +109,7 @@ class CashReportService
             CashReport::whereDate('date', $date)->increment('cash_income', $cashAmount * 100);
             CashReport::whereDate('date', $date)->increment('cashless_income', $cashlessAmount * 100);
         } else {
-            $morningCashBalance = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first()->morning_cash_balance;
+            $morningCashBalance = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first()?->morning_cash_balance ?? 0.00;
             CashReport::create([
                 'date' => $date,
                 'morning_cash_balance' => $morningCashBalance,
@@ -120,6 +120,18 @@ class CashReportService
                 'cash_salary' => 0.00,
                 'cashless_salary' => 0.00,
             ]);
+            if (! CashReport::whereDate('date', '>', $date)->exists()) {
+                CashReport::create([
+                    'date' => Carbon::parse($date)->addDay()->format('Y-m-d'),
+                    'morning_cash_balance' => $morningCashBalance + $cashAmount,
+                    'cash_income' => 0.00,
+                    'cashless_income' => 0.00,
+                    'cash_expense' => 0.00,
+                    'cashless_expense' => 0.00,
+                    'cash_salary' => 0.00,
+                    'cashless_salary' => 0.00,
+                ]);
+            }
         }
     }
 }
