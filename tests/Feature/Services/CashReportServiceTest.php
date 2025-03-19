@@ -12,15 +12,21 @@ beforeEach(function () {
 
 it('calculates and saves daily data', function () {
     // Arrange
-    Payment::factory()->create(['payment_date' => '2023-10-26', 'payment_cash_amount' => 1000, 'payment_cashless_amount' => 500]);
-    Payment::factory()->create(['payment_date' => '2023-10-27', 'payment_cash_amount' => 2000, 'payment_cashless_amount' => 1000]);
-    Expense::factory()->create(['expense_date' => '2023-10-26', 'expense_amount' => 500, 'is_cash' => true]);
-    Expense::factory()->create(['expense_date' => '2023-10-27', 'expense_amount' => 1000, 'is_cash' => false]);
-    Salary::factory()->create(['salary_date' => '2023-10-26', 'salary_amount' => 200, 'is_cash' => true]);
-    Salary::factory()->create(['salary_date' => '2023-10-27', 'salary_amount' => 400, 'is_cash' => false]);
-    Payment::factory()->create(['payment_date' => '2023-10-25', 'payment_cash_amount' => 100, 'payment_cashless_amount' => 0]);
-    Expense::factory()->create(['expense_date' => '2023-10-25', 'expense_amount' => 50, 'is_cash' => true]);
-    Salary::factory()->create(['salary_date' => '2023-10-25', 'salary_amount' => 10, 'is_cash' => true]);
+    Payment::withoutEvents(function () {
+        Payment::factory()->create(['payment_date' => '2023-10-26', 'payment_cash_amount' => 1000, 'payment_cashless_amount' => 500]);
+        Payment::factory()->create(['payment_date' => '2023-10-27', 'payment_cash_amount' => 2000, 'payment_cashless_amount' => 1000]);
+        Payment::factory()->create(['payment_date' => '2023-10-25', 'payment_cash_amount' => 100, 'payment_cashless_amount' => 0]);
+    });
+    Expense::withoutEvents(function () {
+        Expense::factory()->create(['expense_date' => '2023-10-26', 'expense_amount' => 500, 'is_cash' => true]);
+        Expense::factory()->create(['expense_date' => '2023-10-27', 'expense_amount' => 1000, 'is_cash' => false]);
+        Expense::factory()->create(['expense_date' => '2023-10-25', 'expense_amount' => 50, 'is_cash' => true]);
+    });
+    Salary::withoutEvents(function () {
+        Salary::factory()->create(['salary_date' => '2023-10-26', 'salary_amount' => 200, 'is_cash' => true]);
+        Salary::factory()->create(['salary_date' => '2023-10-27', 'salary_amount' => 400, 'is_cash' => false]);
+        Salary::factory()->create(['salary_date' => '2023-10-25', 'salary_amount' => 10, 'is_cash' => true]);
+    });
 
     // Act
     $this->cashReportService->calculateAndSaveDailyData();
@@ -61,7 +67,9 @@ it('calculates and saves daily data', function () {
 
 it('correctly deletes existing reports for date', function () {
     // Arrange
-    Payment::factory()->create(['payment_date' => date('Y-m-d'), 'payment_cash_amount' => 1000, 'payment_cashless_amount' => 500]);
+    Payment::withoutEvents(function () {
+        Payment::factory()->create(['payment_date' => date('Y-m-d'), 'payment_cash_amount' => 1000, 'payment_cashless_amount' => 500]);
+    });
     $this->cashReportService->calculateAndSaveDailyData();
     expect(CashReport::count('date'))->toBe(1);
 
@@ -123,6 +131,50 @@ it('correctly updates existing reports when payment is created', function () {
             ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
             ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
             ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+});
+
+it('correctly creates report when payment is created on new date', function () {
+    $data = prepareCashReportData();
+    $cashAmount = 1000.00;
+    $cashlessAmount = 500.00;
+
+    Payment::factory()->create(
+        [
+            'payment_date' => '2025-03-09',
+            'payment_cash_amount' => $cashAmount,
+            'payment_cashless_amount' => $cashlessAmount,
+        ]
+    );
+    $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
+    $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
+    $afterReports = CashReport::whereDate('date', '>', '2025-03-09')->orderBy('date')->get();
+
+    expect(count($beforeReports))->toBe(7)
+        ->and(count($reports))->toBe(1)
+        ->and(count($afterReports))->toBe(0)
+        ->and(CashReport::count())->toBe(8);
+
+    $item = 0;
+    foreach ($beforeReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($reports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($cashAmount)
+            ->and($report->cashless_income)->toBe($cashlessAmount)
+            ->and($report->cash_expense)->toBe(0.00)
+            ->and($report->cashless_expense)->toBe(0.00)
+            ->and($report->cash_salary)->toBe(0.00)
+            ->and($report->cashless_salary)->toBe(0.00);
         $item++;
     }
 });
