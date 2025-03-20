@@ -21,7 +21,9 @@ class ExpenseFactory extends Factory
         return [
             'expense_date' => $this->faker->date(),
             'expense_type_id' => ExpenseType::factory(),
+            'description' => $this->faker->text(),
             'expense_amount' => $this->faker->numberBetween(1000000, 10000000),
+            'is_cash' => true,
         ];
     }
 }
