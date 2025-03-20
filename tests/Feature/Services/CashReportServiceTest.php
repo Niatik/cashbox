@@ -261,7 +261,47 @@ it('correctly creates report when payment is created on non existing date betwee
     }
 });
 
-it('correctly creates report when payment is created and there are still no reports at all.', function () {
+it('correctly creates report when payment is created and there are still no reports at all', function () {
+    $cashAmount = 1000.00;
+    $cashlessAmount = 500.00;
+
+    Payment::factory()->create(
+        [
+            'payment_date' => '2025-03-09',
+            'payment_cash_amount' => $cashAmount,
+            'payment_cashless_amount' => $cashlessAmount,
+        ]
+    );
+    $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
+    $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
+    $afterReports = CashReport::whereDate('date', '>', '2025-03-09')->orderBy('date')->get();
+
+    expect(count($beforeReports))->toBe(0)
+        ->and(count($reports))->toBe(1)
+        ->and(count($afterReports))->toBe(1)
+        ->and(CashReport::count())->toBe(2);
+
+    foreach ($reports as $report) {
+        expect($report->morning_cash_balance)->toBe(0.00)
+            ->and($report->cash_income)->toBe($cashAmount)
+            ->and($report->cashless_income)->toBe($cashlessAmount)
+            ->and($report->cash_expense)->toBe(0.00)
+            ->and($report->cashless_expense)->toBe(0.00)
+            ->and($report->cash_salary)->toBe(0.00)
+            ->and($report->cashless_salary)->toBe(0.00);
+    }
+    foreach ($afterReports as $report) {
+        expect($report->morning_cash_balance)->toBe($cashAmount)
+            ->and($report->cash_income)->toBe(0.00)
+            ->and($report->cashless_income)->toBe(0.00)
+            ->and($report->cash_expense)->toBe(0.00)
+            ->and($report->cashless_expense)->toBe(0.00)
+            ->and($report->cash_salary)->toBe(0.00)
+            ->and($report->cashless_salary)->toBe(0.00);
+    }
+});
+
+it('correctly updates report when payment is deleted', function () {
     $cashAmount = 1000.00;
     $cashlessAmount = 500.00;
 
@@ -378,6 +418,171 @@ function prepareCashReportData(): array
 
     foreach ($data as $item) {
         CashReport::factory()->create($item);
+    }
+
+    return $data;
+}
+
+function preparePaymentData(): array
+{
+    $data = [
+        [
+            'payment_date' => '2025-03-02',
+            'payment_cash_amount' => 700.00,
+            'payment_cashless_amount' => 0.00,
+        ],
+        [
+            'payment_date' => '2025-03-02',
+            'payment_cash_amount' => 300.00,
+            'payment_cashless_amount' => 0.00,
+        ],
+        [
+            'payment_date' => '2025-03-03',
+            'payment_cash_amount' => 2000.00,
+            'payment_cashless_amount' => 0.00,
+        ],
+        [
+            'payment_date' => '2025-03-04',
+            'payment_cash_amount' => 1000.00,
+            'payment_cashless_amount' => 500.00,
+        ],
+        [
+            'payment_date' => '2025-03-05',
+            'payment_cash_amount' => 500.00,
+            'payment_cashless_amount' => 600.00,
+        ],
+        [
+            'payment_date' => '2025-03-05',
+            'payment_cash_amount' => 500.00,
+            'payment_cashless_amount' => 400.00,
+        ],
+        [
+            'payment_date' => '2025-03-05',
+            'payment_cash_amount' => 500.00,
+            'payment_cashless_amount' => 0.00,
+        ],
+        [
+            'payment_date' => '2025-03-06',
+            'payment_cash_amount' => 0.00,
+            'payment_cashless_amount' => 500.00,
+        ],
+        [
+            'payment_date' => '2025-03-06',
+            'payment_cash_amount' => 0.00,
+            'payment_cashless_amount' => 500.00,
+        ],
+        [
+            'payment_date' => '2025-03-07',
+            'payment_cash_amount' => 2000.00,
+            'payment_cashless_amount' => 1000.00,
+        ],
+        [
+            'payment_date' => '2025-03-07',
+            'payment_cash_amount' => 1000.00,
+            'payment_cashless_amount' => 0.00,
+        ],
+        [
+            'payment_date' => '2025-03-08',
+            'payment_cash_amount' => 1500.00,
+            'payment_cashless_amount' => 0.00,
+        ],
+        [
+            'payment_date' => '2025-03-08',
+            'payment_cash_amount' => 500.00,
+            'payment_cashless_amount' => 0.00,
+        ],
+    ];
+
+    foreach ($data as $item) {
+        Payment::factory()->create($item);
+    }
+
+    return $data;
+}
+
+function prepareExpenseOrSalaryData(bool $isExpense = true): array
+{
+    $data = [
+        [
+            'expense_date' => '2025-03-02',
+            'expense_amount' => 500.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-03',
+            'expense_amount' => 0.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-04',
+            'expense_amount' => 1000.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-04',
+            'expense_amount' => 1000.00,
+            'is_cash' => false,
+        ],
+        [
+            'expense_date' => '2025-03-04',
+            'expense_amount' => 1000.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-05',
+            'expense_amount' => 500.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-05',
+            'expense_amount' => 500.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-06',
+            'expense_amount' => 500.00,
+            'is_cash' => false,
+        ],
+        [
+            'expense_date' => '2025-03-06',
+            'expense_amount' => 1000.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-07',
+            'expense_amount' => 500.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-07',
+            'expense_amount' => 800.00,
+            'is_cash' => false,
+        ],
+        [
+            'expense_date' => '2025-03-07',
+            'expense_amount' => 200.00,
+            'is_cash' => true,
+        ],
+        [
+            'expense_date' => '2025-03-08',
+            'expense_amount' => 500.00,
+            'is_cash' => false,
+        ],
+        [
+            'expense_date' => '2025-03-08',
+            'expense_amount' => 500.00,
+            'is_cash' => false,
+        ],
+    ];
+
+    if ($isExpense) {
+        foreach ($data as $item) {
+            Expense::factory()->create($item);
+        }
+    } else {
+        foreach ($data as $item) {
+            Salary::factory()->create($item);
+        }
     }
 
     return $data;
