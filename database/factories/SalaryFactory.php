@@ -21,7 +21,7 @@ class SalaryFactory extends Factory
         return [
             'salary_date' => $this->faker->date(),
             'employee_id' => Employee::factory(),
-            'description' => $this->faker->text(),
+            'description' => $this->faker->text(maxNbChars: 50),
             'salary_amount' => $this->faker->numberBetween(1000000, 10000000),
             'is_cash' => true,
         ];
