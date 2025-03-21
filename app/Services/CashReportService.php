@@ -144,4 +144,18 @@ class CashReportService
         CashReport::where('date', $date)->decrement('cashless_income', $cashlessAmount * 100);
         CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $cashAmount * 100);
     }
+
+    public function updateOnPaymentUpdated(Payment $payment)
+    {
+        $oldCashAmount = $payment->getOriginal('payment_cash_amount');
+        $oldCashlessAmount = $payment->getOriginal('payment_cashless_amount');
+        $date = $payment->payment_date;
+        $cashAmount = $payment->payment_cash_amount;
+        $cashlessAmount = $payment->payment_cashless_amount;
+        $diffCashAmount = $cashAmount - $oldCashAmount;
+        $diffCashlessAmount = $cashlessAmount - $oldCashlessAmount;
+        CashReport::where('date', $date)->increment('cash_income', $diffCashAmount * 100);
+        CashReport::where('date', $date)->increment('cashless_income', $diffCashlessAmount * 100);
+        CashReport::where('date', '>', $date)->increment('morning_cash_balance', $diffCashAmount * 100);
+    }
 }
