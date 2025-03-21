@@ -158,4 +158,17 @@ class CashReportService
         CashReport::where('date', $date)->increment('cashless_income', $diffCashlessAmount * 100);
         CashReport::where('date', '>', $date)->increment('morning_cash_balance', $diffCashAmount * 100);
     }
+
+    public function updateOnExpenseDeleted(Expense $expense): void
+    {
+        $date = $expense->expense_date;
+        $cashAmount = $expense->expense_amount;
+        $isCash = $expense->is_cash;
+        if ($isCash) {
+            CashReport::where('date', $date)->decrement('cash_expense', $cashAmount * 100);
+            CashReport::where('date', '>', $date)->increment('morning_cash_balance', $cashAmount * 100);
+        } else {
+            CashReport::where('date', $date)->decrement('cashless_expense', $cashAmount * 100);
+        }
+    }
 }
