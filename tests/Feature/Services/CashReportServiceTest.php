@@ -660,7 +660,107 @@ it('correctly updates report when expense is updated to a lower amount', functio
     }
 });
 
+it('correctly updates report when salary is updated to a higher amount', function () {
+    $data = prepareCashReportData();
+    preparePaymentData();
+    prepareExpenseOrSalaryData(isExpense: false);
+    $salary = Salary::where('salary_date', '2025-03-06')->where('is_cash', true)->first();
+    $cashAmount = $salary->salary_amount;
+    $salary->salary_amount = $cashAmount + 1500;
+    $salary->save();
 
+    $beforeReports = CashReport::whereDate('date', '<', '2025-03-06')->orderBy('date')->get();
+    $reports = CashReport::whereDate('date', '2025-03-06')->orderBy('date')->get();
+    $afterReports = CashReport::whereDate('date', '>', '2025-03-06')->orderBy('date')->get();
+
+    expect(count($beforeReports))->toBe(4)
+        ->and(count($reports))->toBe(1)
+        ->and(count($afterReports))->toBe(2)
+        ->and(CashReport::count())->toBe(7);
+
+    $item = 0;
+    foreach ($beforeReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($reports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'] + 1500)
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($afterReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'] - 1500)
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+});
+
+it('correctly updates report when salary is updated to a lower amount', function () {
+    $data = prepareCashReportData();
+    preparePaymentData();
+    prepareExpenseOrSalaryData(isExpense: false);
+    $salary = Salary::where('salary_date', '2025-03-06')->where('is_cash', true)->first();
+    $cashAmount = $salary->salary_amount;
+    $salary->salary_amount = $cashAmount - 500;
+    $salary->save();
+
+    $beforeReports = CashReport::whereDate('date', '<', '2025-03-06')->orderBy('date')->get();
+    $reports = CashReport::whereDate('date', '2025-03-06')->orderBy('date')->get();
+    $afterReports = CashReport::whereDate('date', '>', '2025-03-06')->orderBy('date')->get();
+
+    expect(count($beforeReports))->toBe(4)
+        ->and(count($reports))->toBe(1)
+        ->and(count($afterReports))->toBe(2)
+        ->and(CashReport::count())->toBe(7);
+
+    $item = 0;
+    foreach ($beforeReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($reports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'] - 500)
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($afterReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'] + 500)
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+});
 
 function prepareCashReportData(): array
 {
