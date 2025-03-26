@@ -508,6 +508,55 @@ it('correctly updates report when cash expense is deleted', function () {
     }
 });
 
+it('correctly updates report when cash salary is deleted', function () {
+    $data = prepareCashReportData();
+    preparePaymentData();
+    prepareExpenseOrSalaryData(isExpense: false);
+    $salary = Salary::where('salary_date', '2025-03-06')->where('is_cash', true)->first();
+    $cashAmount = $salary->salary_amount;
+    $salary->delete();
+
+    $beforeReports = CashReport::whereDate('date', '<', '2025-03-06')->orderBy('date')->get();
+    $reports = CashReport::whereDate('date', '2025-03-06')->orderBy('date')->get();
+    $afterReports = CashReport::whereDate('date', '>', '2025-03-06')->orderBy('date')->get();
+
+    expect(count($beforeReports))->toBe(4)
+        ->and(count($reports))->toBe(1)
+        ->and(count($afterReports))->toBe(2)
+        ->and(CashReport::count())->toBe(7);
+
+    $item = 0;
+    foreach ($beforeReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($reports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'] - $cashAmount)
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($afterReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'] + $cashAmount)
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+});
 
 
 function prepareCashReportData(): array
@@ -673,70 +722,71 @@ function preparePaymentData(): array
 
 function prepareExpenseOrSalaryData(bool $isExpense = true): array
 {
+    $typeOfModel = $isExpense ? 'expense' : 'salary';
     $data = [
         [
-            'expense_date' => '2025-03-02',
-            'expense_amount' => 500.00,
+            $typeOfModel.'_date' => '2025-03-02',
+            $typeOfModel.'_amount' => 500.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-04',
-            'expense_amount' => 1000.00,
+            $typeOfModel.'_date' => '2025-03-04',
+            $typeOfModel.'_amount' => 1000.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-04',
-            'expense_amount' => 1000.00,
+            $typeOfModel.'_date' => '2025-03-04',
+            $typeOfModel.'_amount' => 1000.00,
             'is_cash' => false,
         ],
         [
-            'expense_date' => '2025-03-04',
-            'expense_amount' => 1000.00,
+            $typeOfModel.'_date' => '2025-03-04',
+            $typeOfModel.'_amount' => 1000.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-05',
-            'expense_amount' => 500.00,
+            $typeOfModel.'_date' => '2025-03-05',
+            $typeOfModel.'_amount' => 500.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-05',
-            'expense_amount' => 500.00,
+            $typeOfModel.'_date' => '2025-03-05',
+            $typeOfModel.'_amount' => 500.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-06',
-            'expense_amount' => 500.00,
+            $typeOfModel.'_date' => '2025-03-06',
+            $typeOfModel.'_amount' => 500.00,
             'is_cash' => false,
         ],
         [
-            'expense_date' => '2025-03-06',
-            'expense_amount' => 1000.00,
+            $typeOfModel.'_date' => '2025-03-06',
+            $typeOfModel.'_amount' => 1000.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-07',
-            'expense_amount' => 500.00,
+            $typeOfModel.'_date' => '2025-03-07',
+            $typeOfModel.'_amount' => 500.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-07',
-            'expense_amount' => 800.00,
+            $typeOfModel.'_date' => '2025-03-07',
+            $typeOfModel.'_amount' => 800.00,
             'is_cash' => false,
         ],
         [
-            'expense_date' => '2025-03-07',
-            'expense_amount' => 200.00,
+            $typeOfModel.'_date' => '2025-03-07',
+            $typeOfModel.'_amount' => 200.00,
             'is_cash' => true,
         ],
         [
-            'expense_date' => '2025-03-08',
-            'expense_amount' => 500.00,
+            $typeOfModel.'_date' => '2025-03-08',
+            $typeOfModel.'_amount' => 500.00,
             'is_cash' => false,
         ],
         [
-            'expense_date' => '2025-03-08',
-            'expense_amount' => 500.00,
+            $typeOfModel.'_date' => '2025-03-08',
+            $typeOfModel.'_amount' => 500.00,
             'is_cash' => false,
         ],
     ];
