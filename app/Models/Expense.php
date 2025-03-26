@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Events\ExpenseDeleted;
+use App\Events\ExpenseUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +35,7 @@ class Expense extends Model
 
     protected $dispatchesEvents = [
         'deleted' => ExpenseDeleted::class,
+        'updated' => ExpenseUpdated::class,
     ];
 
 }
