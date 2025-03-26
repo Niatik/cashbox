@@ -199,4 +199,19 @@ class CashReportService
             CashReport::where('date', $date)->increment('cashless_expense', $diffCashAmount * 100);
         }
     }
+
+    public function updateOnSalaryUpdated(Salary $salary): void
+    {
+        $oldCashAmount = $salary->getOriginal('salary_amount');
+        $date = $salary->salary_date;
+        $cashAmount = $salary->salary_amount;
+        $isCash = $salary->is_cash;
+        $diffCashAmount = $cashAmount - $oldCashAmount;
+        if ($isCash) {
+            CashReport::where('date', $date)->increment('cash_salary', $diffCashAmount * 100);
+            CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $diffCashAmount * 100);
+        } else {
+            CashReport::where('date', $date)->increment('cashless_salary', $diffCashAmount * 100);
+        }
+    }
 }
