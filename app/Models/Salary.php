@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
+use App\Events\SalaryCreated;
 use App\Events\SalaryDeleted;
 use App\Events\SalaryUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,6 +33,7 @@ class Salary extends Model
     }
 
     protected $dispatchesEvents = [
+        'created' => SalaryCreated::class,
         'deleted' => SalaryDeleted::class,
         'updated' => SalaryUpdated::class,
     ];
