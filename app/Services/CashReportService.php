@@ -135,7 +135,7 @@ class CashReportService
         }
     }
 
-    public function updateOnPaymentDeleted(Payment $payment)
+    public function updateOnPaymentDeleted(Payment $payment): void
     {
         $date = $payment->payment_date;
         $cashAmount = $payment->payment_cash_amount;
@@ -145,7 +145,7 @@ class CashReportService
         CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $cashAmount * 100);
     }
 
-    public function updateOnPaymentUpdated(Payment $payment)
+    public function updateOnPaymentUpdated(Payment $payment): void
     {
         $oldCashAmount = $payment->getOriginal('payment_cash_amount');
         $oldCashlessAmount = $payment->getOriginal('payment_cashless_amount');
