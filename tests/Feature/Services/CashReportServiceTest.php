@@ -818,6 +818,58 @@ it('correctly updates existing reports when expense is created', function () {
     }
 });
 
+it('correctly creates report when expense is created on new date', function () {
+    $data = prepareCashReportData();
+    $cashAmount = 1000.00;
+
+    Expense::factory()->create(
+        [
+            'expense_date' => '2025-03-09',
+            'expense_amount' => $cashAmount,
+            'is_cash' => true,
+        ]
+    );
+    $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
+    $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
+    $afterReports = CashReport::whereDate('date', '>', '2025-03-09')->orderBy('date')->get();
+
+    expect(count($beforeReports))->toBe(7)
+        ->and(count($reports))->toBe(1)
+        ->and(count($afterReports))->toBe(1)
+        ->and(CashReport::count())->toBe(9);
+
+    $item = 0;
+    foreach ($beforeReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe($data[$item]['cash_income'])
+            ->and($report->cashless_income)->toBe($data[$item]['cashless_income'])
+            ->and($report->cash_expense)->toBe($data[$item]['cash_expense'])
+            ->and($report->cashless_expense)->toBe($data[$item]['cashless_expense'])
+            ->and($report->cash_salary)->toBe($data[$item]['cash_salary'])
+            ->and($report->cashless_salary)->toBe($data[$item]['cashless_salary']);
+        $item++;
+    }
+    foreach ($reports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+            ->and($report->cash_income)->toBe(0.00)
+            ->and($report->cashless_income)->toBe(0.00)
+            ->and($report->cash_expense)->toBe($cashAmount)
+            ->and($report->cashless_expense)->toBe(0.00)
+            ->and($report->cash_salary)->toBe(0.00)
+            ->and($report->cashless_salary)->toBe(0.00);
+    }
+    foreach ($afterReports as $report) {
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] - $cashAmount)
+            ->and($report->cash_income)->toBe(0.00)
+            ->and($report->cashless_income)->toBe(0.00)
+            ->and($report->cash_expense)->toBe(0.00)
+            ->and($report->cashless_expense)->toBe(0.00)
+            ->and($report->cash_salary)->toBe(0.00)
+            ->and($report->cashless_salary)->toBe(0.00);
+    }
+});
+
+
 
 function prepareCashReportData(): array
 {
