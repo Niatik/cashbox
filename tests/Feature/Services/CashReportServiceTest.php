@@ -942,6 +942,46 @@ it('correctly creates report when expense is created on non existing date betwee
     }
 });
 
+it('correctly creates report when expense is created and there are still no reports at all', function () {
+    $cashAmount = 1000.00;
+
+    Expense::factory()->create(
+        [
+            'expense_date' => '2025-03-09',
+            'expense_amount' => $cashAmount,
+            'is_cash' => true,
+        ]
+    );
+    $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
+    $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
+    $afterReports = CashReport::whereDate('date', '>', '2025-03-09')->orderBy('date')->get();
+
+    expect(count($beforeReports))->toBe(0)
+        ->and(count($reports))->toBe(1)
+        ->and(count($afterReports))->toBe(1)
+        ->and(CashReport::count())->toBe(2);
+
+    foreach ($reports as $report) {
+        expect($report->morning_cash_balance)->toBe(0.00)
+            ->and($report->cash_income)->toBe(0.00)
+            ->and($report->cashless_income)->toBe(0.00)
+            ->and($report->cash_expense)->toBe($cashAmount)
+            ->and($report->cashless_expense)->toBe(0.00)
+            ->and($report->cash_salary)->toBe(0.00)
+            ->and($report->cashless_salary)->toBe(0.00);
+    }
+    foreach ($afterReports as $report) {
+        expect($report->morning_cash_balance)->toBe(-$cashAmount)
+            ->and($report->cash_income)->toBe(0.00)
+            ->and($report->cashless_income)->toBe(0.00)
+            ->and($report->cash_expense)->toBe(0.00)
+            ->and($report->cashless_expense)->toBe(0.00)
+            ->and($report->cash_salary)->toBe(0.00)
+            ->and($report->cashless_salary)->toBe(0.00);
+    }
+});
+
+
 
 
 
