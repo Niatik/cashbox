@@ -332,7 +332,11 @@ class OrderResource extends Resource
                     }),
                 Toggle::make('is_cash')
                     ->label('Наличные')
-                    ->default(false),
+                    ->default(false)
+                    ->live(debounce: 1000)
+                    ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                        self::calcSumFromOptions($get, $set);
+                    }),
                 TextInput::make('additional_discount')
                     ->label('Дополнительная скидка')
                     ->numeric()
@@ -447,8 +451,9 @@ class OrderResource extends Resource
         $discount = intval(floatval($get('discount')) * 100) / 100;
         $prepayment = intval(floatval($get('prepayment')) * 100) / 100;
         $additionalDiscount = intval(floatval($get('additional_discount')) * 100) / 100;
+        $isCash = $get('is_cash');
 
-        return [$price, $priceFactor, $discount, $prepayment, $additionalDiscount];
+        return [$price, $priceFactor, $discount, $prepayment, $additionalDiscount, $isCash];
     }
 
     public static function getPriceItem(?int $state, Set $set): void
@@ -487,14 +492,14 @@ class OrderResource extends Resource
 
     public static function calcSumFromOptions(Get $get, Set $set): void
     {
-        [$price, $priceFactor, $discount, $prepayment, $additionalDiscount] = self::setVariablesForSumCalculationFromOptions($get);
+        [$price, $priceFactor, $discount, $prepayment, $additionalDiscount, $isCash] = self::setVariablesForSumCalculationFromOptions($get);
         $peopleNumber = $get('../name_item') == 'Количество человек' ? 1 : $get('../people_number');
         $sum = $price * $priceFactor * $peopleNumber - $discount - $prepayment - $additionalDiscount;
         $netSum = $price * $priceFactor * $peopleNumber;
         $set('../sum', $sum);
         $set('../net_sum', $netSum);
-        $set('../payment.payment_cashless_amount', $sum);
-        $set('../payment.payment_cash_amount', '');
+        $set('../payment.payment_cashless_amount', $isCash ? 0 : $sum);
+        $set('../payment.payment_cash_amount', $isCash ? $sum : 0);
     }
 
     protected static function getTableFilters(): array
