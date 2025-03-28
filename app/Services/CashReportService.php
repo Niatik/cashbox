@@ -198,6 +198,19 @@ class CashReportService
         } else {
             CashReport::where('date', $date)->increment('cashless_expense', $diffCashAmount * 100);
         }
+        $existsOnDate = CashReport::whereDate('date', $date)->exists();
+        if (! $existsOnDate) {
+            CashReport::create([
+                'date' => $date,
+                'morning_cash_balance' => 0.00,
+                'cash_income' => 0.00,
+                'cashless_income' => 0.00,
+                'cash_expense' => 0.00,
+                'cashless_expense' => 0.00,
+                'cash_salary' => 0.00,
+                'cashless_salary' => 0.00,
+            ]);
+        }
     }
 
     public function updateOnSalaryUpdated(Salary $salary): void
@@ -215,7 +228,7 @@ class CashReportService
         }
     }
 
-    public function updateOnExpenseCreated(Expense $expense)
+    public function updateOnExpenseCreated(Expense $expense): void
     {
         $date = $expense->expense_date;
         $cashAmount = $expense->expense_amount;
@@ -226,6 +239,32 @@ class CashReportService
             CashReport::whereDate('date', $date)->increment('cash_expense', $cashAmount * 100);
         } else {
             CashReport::whereDate('date', $date)->increment('cashless_expense', $cashAmount * 100);
+        }
+        $existsOnDate = CashReport::whereDate('date', $date)->exists();
+        if (! $existsOnDate) {
+            $morningCashBalance = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first()?->morning_cash_balance ?? 0.00;
+            CashReport::create([
+                'date' => $date,
+                'morning_cash_balance' => $morningCashBalance,
+                'cash_income' => 0.00,
+                'cashless_income' => 0.00,
+                'cash_expense' => $isCash ? $cashAmount : 0.00,
+                'cashless_expense' => $isCash ? 0.00 : $cashAmount,
+                'cash_salary' => 0.00,
+                'cashless_salary' => 0.00,
+            ]);
+            if (! CashReport::whereDate('date', '>', $date)->exists()) {
+                CashReport::create([
+                    'date' => Carbon::parse($date)->addDay()->format('Y-m-d'),
+                    'morning_cash_balance' => $morningCashBalance - $cashAmount,
+                    'cash_income' => 0.00,
+                    'cashless_income' => 0.00,
+                    'cash_expense' => 0.00,
+                    'cashless_expense' => 0.00,
+                    'cash_salary' => 0.00,
+                    'cashless_salary' => 0.00,
+                ]);
+            }
         }
     }
 }
