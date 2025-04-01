@@ -2,26 +2,29 @@
 
 namespace App\Listeners;
 
-use App\Models\Booking;
+use App\Events\BookingCreated;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class BookingUpdated
+class CreateOrdersWhenBookingCreated
 {
     /**
      * Create the event listener.
      */
-    public function __construct(Booking $booking) {}
+    public function __construct()
+    {
+        //
+    }
 
     /**
      * Handle the event.
      */
-    public function handle(object $event): void
+    public function handle(BookingCreated $event): void
     {
         $booking = $event->booking;
-        Order::where('booking_id', $booking->id)->delete();
-
         $bookingDate = $booking->booking_date;
         $customer = $booking->customer_id;
         $employee = $booking->employee_id;
@@ -35,7 +38,6 @@ class BookingUpdated
             $people_item = $price['people_item'];
             $prepayment = $price['prepayment_price_item'];
             $isCash = $price['is_cash'];
-
             $price = Price::find($price_id)->price;
             $factor = PriceItem::find($price_item_id)->factor;
 

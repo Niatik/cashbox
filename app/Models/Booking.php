@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
-use App\Listeners\BookingCreated;
-use App\Listeners\BookingUpdated;
+use App\Events\BookingCreated;
+use App\Events\BookingUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
