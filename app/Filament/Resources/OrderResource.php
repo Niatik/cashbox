@@ -282,7 +282,11 @@ class OrderResource extends Resource
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                 $sum = $get('../sum');
                 $cashAmount = intval(floatval($state) * 100) / 100;
-                $set('payment_cashless_amount', $sum - $cashAmount);
+                if ($sum - $cashAmount) {
+                    $set('payment_cashless_amount', $sum - $cashAmount);
+                } else {
+                    $set('payment_cashless_amount', '');
+                }
             });
 
     }
@@ -307,7 +311,11 @@ class OrderResource extends Resource
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                 $sum = $get('../sum');
                 $cashlessAmount = $state;
-                $set('payment_cash_amount', $sum - $cashlessAmount);
+                if ($sum - $cashlessAmount) {
+                    $set('payment_cash_amount', $sum - $cashlessAmount);
+                } else {
+                    $set('payment_cash_amount', '');
+                }
             });
     }
 
@@ -498,8 +506,8 @@ class OrderResource extends Resource
         $netSum = $price * $priceFactor * $peopleNumber;
         $set('../sum', $sum);
         $set('../net_sum', $netSum);
-        $set('../payment.payment_cashless_amount', $isCash ? 0 : $sum);
-        $set('../payment.payment_cash_amount', $isCash ? $sum : 0);
+        $set('../payment.payment_cashless_amount', $isCash ? '' : $sum);
+        $set('../payment.payment_cash_amount', $isCash ? $sum : '');
     }
 
     protected static function getTableFilters(): array
