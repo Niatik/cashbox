@@ -216,15 +216,28 @@ class CashReportService
     public function updateOnSalaryUpdated(Salary $salary): void
     {
         $oldCashAmount = $salary->getOriginal('salary_amount');
+        $oldIsCash = $salary->getOriginal('is_cash');
         $date = $salary->salary_date;
         $cashAmount = $salary->salary_amount;
         $isCash = $salary->is_cash;
         $diffCashAmount = $cashAmount - $oldCashAmount;
-        if ($isCash) {
-            CashReport::where('date', $date)->increment('cash_salary', $diffCashAmount * 100);
-            CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $diffCashAmount * 100);
+        if ($oldIsCash && $isCash) {
+            if ($isCash) {
+                CashReport::where('date', $date)->increment('cash_salary', $diffCashAmount * 100);
+                CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $diffCashAmount * 100);
+            } else {
+                CashReport::where('date', $date)->increment('cashless_salary', $diffCashAmount * 100);
+            }
         } else {
-            CashReport::where('date', $date)->increment('cashless_salary', $diffCashAmount * 100);
+            if ($isCash) {
+                CashReport::where('date', $date)->increment('cash_salary', $cashAmount * 100);
+                CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $cashAmount * 100);
+                CashReport::where('date', $date)->decrement('cashless_salary', $oldCashAmount * 100);
+            } else {
+                CashReport::where('date', $date)->decrement('cash_salary', $oldCashAmount * 100);
+                CashReport::where('date', '>', $date)->increment('morning_cash_balance', $oldCashAmount * 100);
+                CashReport::where('date', $date)->increment('cashless_salary', $cashAmount * 100);
+            }
         }
     }
 
