@@ -79,7 +79,7 @@ class CashReportService
             $cashSalary = $this->getCashSalary($strDate);
             $cashlessSalary = $this->getCashlessSalary($strDate);
 
-            CashReport::whereDate('date', $strDate)->delete();
+            CashReport::truncate();
 
             CashReport::create([
                 'date' => $strDate,
