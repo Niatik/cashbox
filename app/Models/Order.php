@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
+use App\Events\OrderCreated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
@@ -61,8 +63,13 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function payment(): HasOne
+    public function payments(): HasMany
     {
-        return $this->hasOne(Payment::class);
+        return $this->hasMany(Payment::class);
     }
+
+    protected $dispatchesEvents = [
+        'created' => OrderCreated::class,
+    ];
+
 }
