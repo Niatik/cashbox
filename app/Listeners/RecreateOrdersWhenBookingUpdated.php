@@ -6,18 +6,13 @@ use App\Events\BookingUpdated;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class RecreateOrdersWhenBookingUpdated
 {
     /**
      * Create the event listener.
      */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct() {}
 
     /**
      * Handle the event.
@@ -25,7 +20,13 @@ class RecreateOrdersWhenBookingUpdated
     public function handle(BookingUpdated $event): void
     {
         $booking = $event->booking;
-        Order::where('booking_id', $booking->id)->delete();
+        $orders = Order::where('booking_id', $booking->id)->get();
+        foreach ($orders as $order) {
+            $order->payments->each(function ($payment) {
+                $payment->delete();
+            });
+            $order->delete();
+        }
 
         $bookingDate = $booking->booking_date;
         $customer = $booking->customer_id;
