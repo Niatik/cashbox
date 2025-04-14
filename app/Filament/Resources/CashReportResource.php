@@ -100,6 +100,7 @@ class CashReportResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(CashReport::where('date', '<=', now()->format('Y-m-d')))
             ->columns([
                 TextColumn::make('date')
                     ->label('Дата')
