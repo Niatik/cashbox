@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class CashReportResource extends Resource
@@ -113,7 +114,9 @@ class CashReportResource extends Resource
                 TextColumn::make('total_income')
                     ->label('Доход')
                     ->numeric(decimalPlaces: 0)
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("cash_income + cashless_income {$direction}");
+                    })
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_income + $record->cashless_income;
                     }),
@@ -121,7 +124,9 @@ class CashReportResource extends Resource
                 TextColumn::make('total_expense')
                     ->label('Расход')
                     ->numeric(decimalPlaces: 0)
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("cash_expense + cashless_expense {$direction}");
+                    })
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_expense + $record->cashless_expense;
                     }),
@@ -129,7 +134,9 @@ class CashReportResource extends Resource
                 TextColumn::make('total_salary')
                     ->label('Зарплата')
                     ->numeric(decimalPlaces: 0)
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("cash_salary + cashless_salary {$direction}");
+                    })
                     ->getStateUsing(function (Model $record) {
                         return $record->cash_salary + $record->cashless_salary;
                     }),
@@ -137,7 +144,9 @@ class CashReportResource extends Resource
                 TextColumn::make('evening_cash_balance')
                     ->label('Остаток наличными')
                     ->numeric(decimalPlaces: 0)
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("morning_cash_balance + cash_income - cash_expense - cash_salary {$direction}");
+                    })
                     ->getStateUsing(function (Model $record) {
                         return $record->morning_cash_balance + $record->cash_income - $record->cash_expense - $record->cash_salary;
                     }),
@@ -145,11 +154,12 @@ class CashReportResource extends Resource
                 TextColumn::make('evening_cashless_balance')
                     ->label('Остаток безналичный')
                     ->numeric(decimalPlaces: 0)
-                    ->sortable()
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("cashless_income - cashless_expense - cashless_salary {$direction}");
+                    })
                     ->getStateUsing(function (Model $record) {
                         return $record->cashless_income - $record->cashless_expense - $record->cashless_salary;
                     }),
-
             ])
             ->defaultSort('date', 'desc')
             ->filters([
@@ -171,8 +181,6 @@ class CashReportResource extends Resource
     {
         return [
             'index' => Pages\ListCashReports::route('/'),
-            // 'create' => Pages\CreateCashReport::route('/create'),
-            // 'edit' => Pages\EditCashReport::route('/{record}/edit'),
             'view' => Pages\ViewCashReport::route('/{record}'),
         ];
     }
