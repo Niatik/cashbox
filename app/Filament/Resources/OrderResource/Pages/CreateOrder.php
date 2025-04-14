@@ -4,6 +4,7 @@ namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
 use App\Models\User;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Resources\Pages\CreateRecord;
@@ -59,17 +60,24 @@ class CreateOrder extends CreateRecord
                 ->description('Внесите оплату за услугу и завершите оформление')
                 ->schema([
                     Section::make()
-                        ->relationship('payment')
                         ->schema([
-                            OrderResource::getPaymentDateFormField()->hidden(),
-                            OrderResource::getPaymentCashAmountFormField(),
-                            OrderResource::getPaymentCashlessAmountFormField(),
-                        ])
-                        ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
-                            $data['payment_date'] = now()->format('Y-m-d');
+                            Repeater::make('payments')
+                                ->label('Список оплат')
+                                ->addActionLabel('Добавить оплату')
+                                ->relationship()
+                                ->schema([
+                                    OrderResource::getPaymentDateFormField()->hidden(),
+                                    OrderResource::getPaymentCashAmountFormField(),
+                                    OrderResource::getPaymentCashlessAmountFormField(),
+                                ])
+                                ->columns(3)
+                                ->defaultItems(0)
+                                ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                                    $data['payment_date'] = now()->format('Y-m-d');
 
-                            return $data;
-                        }),
+                                    return $data;
+                                }),
+                        ]),
                 ]),
         ];
     }

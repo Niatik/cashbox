@@ -9,6 +9,7 @@ use App\Models\PriceItem;
 use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -53,19 +54,25 @@ class OrderResource extends Resource
                 static::getCustomerFormField(),
                 static::getEmployeeFormField(),
                 static::getOptionsFormField(),
-                Section::make('Оплата')
-                    ->relationship('payment')
+                Section::make('Оплаты')
                     ->schema([
-                        OrderResource::getPaymentDateFormField()->hidden(),
-                        OrderResource::getPaymentCashAmountFormField(),
-                        OrderResource::getPaymentCashlessAmountFormField(),
-                    ])
-                    ->columns()
-                    ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
-                        $data['payment_date'] = now()->format('Y-m-d');
+                        Repeater::make('payments')
+                            ->label('Список оплат')
+                            ->addActionLabel('Добавить оплату')
+                            ->relationship()
+                            ->schema([
+                                OrderResource::getPaymentDateFormField()->hidden(),
+                                OrderResource::getPaymentCashAmountFormField(),
+                                OrderResource::getPaymentCashlessAmountFormField(),
+                            ])
+                            ->columns(3)
+                            ->defaultItems(0)
+                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                                $data['payment_date'] = now()->format('Y-m-d');
 
-                        return $data;
-                    }),
+                                return $data;
+                            }),
+                    ]),
             ]);
     }
 
@@ -185,11 +192,12 @@ class OrderResource extends Resource
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 [$price, $priceFactor, $discount, $prepayment, $additionalDiscount] = self::setVariablesForSumCalculation($get);
-                $sum = $price * $priceFactor * $state - $discount - $prepayment - $additionalDiscount;
+                $sum = $price * $priceFactor * $state - $prepayment - $discount - $additionalDiscount;
                 $netSum = $price * $priceFactor * $state;
                 $set('sum', $sum);
                 $set('net_sum', $netSum);
-                $set('payment.payment_cashless_amount', $sum);
+                // TODO: Ввести сумму оплаты в первый элемент Repeater
+                $set('payments.0.payment_cashless_amount', $sum);
 
             })
             ->hidden(fn (Get $get): bool => $get('name_item') == 'Количество человек');
@@ -265,11 +273,12 @@ class OrderResource extends Resource
     public static function getPaymentCashAmountFormField(): TextInput
     {
         return TextInput::make('payment_cash_amount')
+            // TODO: Исправить правило с учетом Repeater
             ->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                     $numValue = intval(floatval($value) * 100) / 100;
                     $cashlessAmount = intval(floatval($get('payment_cashless_amount')) * 100) / 100;
-                    $sum = $get('../sum');
+                    $sum = $get('../../sum');
                     if (($cashlessAmount + $numValue) !== $sum) {
                         $fail('The total amount of payments does not match the order amount');
                     }
@@ -279,8 +288,9 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 1000)
             ->label('Наличные')
+            // TODO: Исправить обновление с учетом Repeater
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
-                $sum = $get('../sum');
+                $sum = $get('../../sum');
                 $cashAmount = intval(floatval($state) * 100) / 100;
                 if ($sum - $cashAmount) {
                     $set('payment_cashless_amount', $sum - $cashAmount);
@@ -294,11 +304,12 @@ class OrderResource extends Resource
     public static function getPaymentCashlessAmountFormField(): TextInput
     {
         return TextInput::make('payment_cashless_amount')
+            // TODO: Исправить правило с учетом Repeater
             ->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                     $numValue = intval(floatval($value) * 100) / 100;
                     $cashAmount = intval(floatval($get('payment_cash_amount')) * 100) / 100;
-                    $sum = $get('../sum');
+                    $sum = $get('../../sum');
                     if (($cashAmount + $numValue) !== $sum) {
                         $fail('The total amount of payments does not match the order amount');
                     }
@@ -308,8 +319,9 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 1000)
             ->label('Безналичные')
+            // TODO: Исправить обновление с учетом Repeater
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
-                $sum = $get('../sum');
+                $sum = $get('../../sum');
                 $cashlessAmount = $state;
                 if ($sum - $cashlessAmount) {
                     $set('payment_cash_amount', $sum - $cashlessAmount);
@@ -494,8 +506,8 @@ class OrderResource extends Resource
         $netSum = $price * $priceFactor * $peopleNumber;
         $set('sum', $sum);
         $set('net_sum', $netSum);
-        $set('payment.payment_cashless_amount', $sum);
-        $set('payment.payment_cash_amount', '');
+        $set('payments.0.payment_cashless_amount', $sum);
+        $set('payments.0.payment_cash_amount', '');
     }
 
     public static function calcSumFromOptions(Get $get, Set $set): void
@@ -506,8 +518,8 @@ class OrderResource extends Resource
         $netSum = $price * $priceFactor * $peopleNumber;
         $set('../sum', $sum);
         $set('../net_sum', $netSum);
-        $set('../payment.payment_cashless_amount', $isCash ? '' : $sum);
-        $set('../payment.payment_cash_amount', $isCash ? $sum : '');
+        $set('../payments.0.payment_cashless_amount', $isCash ? '' : $sum);
+        $set('../payments.0.payment_cash_amount', $isCash ? $sum : '');
     }
 
     protected static function getTableFilters(): array
