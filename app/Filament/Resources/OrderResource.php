@@ -187,7 +187,6 @@ class OrderResource extends Resource
             ->numeric()
             ->label('Количество человек')
             ->minValue(1)
-            ->maxValue(100)
             ->live(debounce: 1000)
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
