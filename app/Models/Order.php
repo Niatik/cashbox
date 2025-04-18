@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Events\OrderCreated;
+use App\Events\OrderDeleting;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,6 +71,7 @@ class Order extends Model
 
     protected $dispatchesEvents = [
         'created' => OrderCreated::class,
+        'deleting' => OrderDeleting::class,
     ];
 
 }
