@@ -58,7 +58,7 @@ class OrderResource extends Resource
                     ->schema([
                         Repeater::make('payments')
                             ->label('Список оплат')
-                            ->addActionLabel('Добавить оплату')
+                            ->addable(false)
                             ->relationship()
                             ->schema([
                                 OrderResource::getPaymentDateFormField()->hidden(),

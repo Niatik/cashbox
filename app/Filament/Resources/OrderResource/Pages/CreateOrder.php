@@ -63,7 +63,7 @@ class CreateOrder extends CreateRecord
                         ->schema([
                             Repeater::make('payments')
                                 ->label('Список оплат')
-                                ->addActionLabel('Добавить оплату')
+                                ->addable(false)
                                 ->relationship()
                                 ->schema([
                                     OrderResource::getPaymentDateFormField()->hidden(),
