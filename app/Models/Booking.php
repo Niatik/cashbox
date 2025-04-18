@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Events\BookingCreated;
+use App\Events\BookingDeleting;
 use App\Events\BookingUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,5 +49,6 @@ class Booking extends Model
     protected $dispatchesEvents = [
         'created' => BookingCreated::class,
         'updated' => BookingUpdated::class,
+        'deleting' => BookingDeleting::class,
     ];
 }
