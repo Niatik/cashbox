@@ -30,8 +30,8 @@ class OrderFactory extends Factory
         $sum = $price->price * $peopleNumber * $priceItem->time_item;
 
         return [
-            'order_date' => now(tz: 'Etc/GMT-5')->format('Y-m-d'), //$this->faker->date,
-            'order_time' => now(tz: 'Etc/GMT-5')->format('H:i:s'), //$this->faker->time,
+            'order_date' => now(tz: 'Etc/GMT-5')->format('Y-m-d'),
+            'order_time' => now(tz: 'Etc/GMT-5')->format('H:i:s'),
             'price_id' => $price->id,
             'price_item_id' => $priceItem->id,
             'social_media_id' => SocialMedia::factory(),

@@ -59,6 +59,8 @@ class CashReportService
 
     public function calculateAndSaveDailyData(): void
     {
+        CashReport::truncate();
+
         $minIncomeDate = Payment::min('payment_date') ?? Carbon::now();
         $maxIncomeDate = Payment::max('payment_date') ?? Carbon::now();
         $minExpenseDate = Expense::min('expense_date') ?? Carbon::now();
@@ -78,8 +80,6 @@ class CashReportService
             $cashlessExpense = $this->getCashlessExpense($strDate);
             $cashSalary = $this->getCashSalary($strDate);
             $cashlessSalary = $this->getCashlessSalary($strDate);
-
-            CashReport::truncate();
 
             CashReport::create([
                 'date' => $strDate,
@@ -109,7 +109,11 @@ class CashReportService
             CashReport::whereDate('date', $date)->increment('cash_income', $cashAmount * 100);
             CashReport::whereDate('date', $date)->increment('cashless_income', $cashlessAmount * 100);
         } else {
-            $morningCashBalance = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first()?->morning_cash_balance ?? 0.00;
+            $lastCashReport = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first();
+            $morningCashBalance = 0.00;
+            if ($lastCashReport) {
+                $morningCashBalance = $lastCashReport->morning_cash_balance + $lastCashReport->cash_income - $lastCashReport->cash_expense - $lastCashReport->cash_salary;
+            }
             CashReport::create([
                 'date' => $date,
                 'morning_cash_balance' => $morningCashBalance,
@@ -255,7 +259,11 @@ class CashReportService
         }
         $existsOnDate = CashReport::whereDate('date', $date)->exists();
         if (! $existsOnDate) {
-            $morningCashBalance = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first()?->morning_cash_balance ?? 0.00;
+            $lastCashReport = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first();
+            $morningCashBalance = 0.00;
+            if ($lastCashReport) {
+                $morningCashBalance = $lastCashReport->morning_cash_balance + $lastCashReport->cash_income - $lastCashReport->cash_expense - $lastCashReport->cash_salary;
+            }
             CashReport::create([
                 'date' => $date,
                 'morning_cash_balance' => $morningCashBalance,
@@ -295,7 +303,11 @@ class CashReportService
         }
         $existsOnDate = CashReport::whereDate('date', $date)->exists();
         if (! $existsOnDate) {
-            $morningCashBalance = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first()?->morning_cash_balance ?? 0.00;
+            $lastCashReport = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first();
+            $morningCashBalance = 0.00;
+            if ($lastCashReport) {
+                $morningCashBalance = $lastCashReport->morning_cash_balance + $lastCashReport->cash_income - $lastCashReport->cash_expense - $lastCashReport->cash_salary;
+            }
             CashReport::create([
                 'date' => $date,
                 'morning_cash_balance' => $morningCashBalance,

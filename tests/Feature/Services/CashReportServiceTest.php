@@ -2,6 +2,7 @@
 
 use App\Models\CashReport;
 use App\Models\Expense;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Salary;
 use App\Services\CashReportService;
@@ -86,13 +87,19 @@ it('correctly updates existing reports when payment is created', function () {
     $cashAmount = 1000;
     $cashlessAmount = 500;
 
-    Payment::factory()->create(
+    $order = Order::withoutEvents(function () {
+        return Order::factory()->create();
+    });
+
+    Payment::create(
         [
+            'order_id' => $order->id,
             'payment_date' => '2025-03-06',
             'payment_cash_amount' => $cashAmount,
             'payment_cashless_amount' => $cashlessAmount,
         ]
     );
+
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-06')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-06')->orderBy('date')->get();
     $afterReports = CashReport::whereDate('date', '>', '2025-03-06')->orderBy('date')->get();
@@ -140,13 +147,19 @@ it('correctly creates report when payment is created on new date', function () {
     $cashAmount = 1000.00;
     $cashlessAmount = 500.00;
 
-    Payment::factory()->create(
+    $order = Order::withoutEvents(function () {
+        return Order::factory()->create();
+    });
+
+    Payment::create(
         [
+            'order_id' => $order->id,
             'payment_date' => '2025-03-09',
             'payment_cash_amount' => $cashAmount,
             'payment_cashless_amount' => $cashlessAmount,
         ]
     );
+
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
     $afterReports = CashReport::whereDate('date', '>', '2025-03-09')->orderBy('date')->get();
@@ -168,7 +181,7 @@ it('correctly creates report when payment is created on new date', function () {
         $item++;
     }
     foreach ($reports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'])
             ->and($report->cash_income)->toBe($cashAmount)
             ->and($report->cashless_income)->toBe($cashlessAmount)
             ->and($report->cash_expense)->toBe(0.00)
@@ -177,7 +190,7 @@ it('correctly creates report when payment is created on new date', function () {
             ->and($report->cashless_salary)->toBe(0.00);
     }
     foreach ($afterReports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $cashAmount)
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'] + $cashAmount)
             ->and($report->cash_income)->toBe(0.00)
             ->and($report->cashless_income)->toBe(0.00)
             ->and($report->cash_expense)->toBe(0.00)
@@ -213,13 +226,19 @@ it('correctly creates report when payment is created on non existing date betwee
     $cashAmount = 1000.00;
     $cashlessAmount = 500.00;
 
-    Payment::factory()->create(
+    $order = Order::withoutEvents(function () {
+        return Order::factory()->create();
+    });
+
+    Payment::create(
         [
+            'order_id' => $order->id,
             'payment_date' => '2025-03-09',
             'payment_cash_amount' => $cashAmount,
             'payment_cashless_amount' => $cashlessAmount,
         ]
     );
+
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
     $afterReports = CashReport::whereDate('date', '>', '2025-03-09')->orderBy('date')->get();
@@ -241,7 +260,7 @@ it('correctly creates report when payment is created on non existing date betwee
         $item++;
     }
     foreach ($reports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'])
             ->and($report->cash_income)->toBe($cashAmount)
             ->and($report->cashless_income)->toBe($cashlessAmount)
             ->and($report->cash_expense)->toBe(0.00)
@@ -265,13 +284,19 @@ it('correctly creates report when payment is created and there are still no repo
     $cashAmount = 1000.00;
     $cashlessAmount = 500.00;
 
-    Payment::factory()->create(
+    $order = Order::withoutEvents(function () {
+        return Order::factory()->create();
+    });
+
+    Payment::create(
         [
+            'order_id' => $order->id,
             'payment_date' => '2025-03-09',
             'payment_cash_amount' => $cashAmount,
             'payment_cashless_amount' => $cashlessAmount,
         ]
     );
+
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
     $afterReports = CashReport::whereDate('date', '>', '2025-03-09')->orderBy('date')->get();
@@ -847,7 +872,7 @@ it('correctly creates report when expense is created on new date', function () {
         $item++;
     }
     foreach ($reports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'])
             ->and($report->cash_income)->toBe(0.00)
             ->and($report->cashless_income)->toBe(0.00)
             ->and($report->cash_expense)->toBe($cashAmount)
@@ -856,7 +881,7 @@ it('correctly creates report when expense is created on new date', function () {
             ->and($report->cashless_salary)->toBe(0.00);
     }
     foreach ($afterReports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] - $cashAmount)
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'] - $cashAmount)
             ->and($report->cash_income)->toBe(0.00)
             ->and($report->cashless_income)->toBe(0.00)
             ->and($report->cash_expense)->toBe(0.00)
@@ -919,7 +944,7 @@ it('correctly creates report when expense is created on non existing date betwee
         $item++;
     }
     foreach ($reports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'])
             ->and($report->cash_income)->toBe(0.00)
             ->and($report->cashless_income)->toBe(0.00)
             ->and($report->cash_expense)->toBe($cashAmount)
@@ -1063,7 +1088,7 @@ it('correctly creates report when salary is created on new date', function () {
         $item++;
     }
     foreach ($reports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'])
             ->and($report->cash_income)->toBe(0.00)
             ->and($report->cashless_income)->toBe(0.00)
             ->and($report->cash_expense)->toBe(0.00)
@@ -1072,7 +1097,7 @@ it('correctly creates report when salary is created on new date', function () {
             ->and($report->cashless_salary)->toBe(0.00);
     }
     foreach ($afterReports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] - $cashAmount)
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'] - $cashAmount)
             ->and($report->cash_income)->toBe(0.00)
             ->and($report->cashless_income)->toBe(0.00)
             ->and($report->cash_expense)->toBe(0.00)
@@ -1135,7 +1160,7 @@ it('correctly creates report when salary is created on non existing date between
         $item++;
     }
     foreach ($reports as $report) {
-        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'])
+        expect($report->morning_cash_balance)->toBe($data[$item - 1]['morning_cash_balance'] + $data[$item - 1]['cash_income'] - $data[$item - 1]['cash_expense'] - $data[$item - 1]['cash_salary'])
             ->and($report->cash_income)->toBe(0.00)
             ->and($report->cashless_income)->toBe(0.00)
             ->and($report->cash_expense)->toBe(0.00)
