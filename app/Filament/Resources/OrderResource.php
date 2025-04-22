@@ -146,7 +146,7 @@ class OrderResource extends Resource
             })
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
-                ->orderBy('name_item')
+                ->orderBy('price_item_id')
                 ->pluck('name_item', 'id'))
             ->live(debounce: 1000)
             ->afterStateHydrated(function (?int $state, Get $get, Set $set) {
