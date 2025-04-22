@@ -77,7 +77,7 @@ class SalaryResource extends Resource
                 Tables\Columns\ToggleColumn::make('is_cash')
                     ->label('Нал'),
             ])
-            ->defaultSort('salary_date')
+            ->defaultSort('salary_date', 'desc')
             ->filters(
                 self::getTableFilters()
             )

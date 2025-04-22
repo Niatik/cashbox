@@ -89,6 +89,7 @@ class OrderResource extends Resource
     {
         return TimePicker::make('order_time')
             ->timezone('Etc/GMT-5')
+            ->format('H:i')
             ->default(now())
             ->label('Время')
             ->required()
@@ -390,7 +391,7 @@ class OrderResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('order_time')
-                    ->date('H:i:s')
+                    ->date('H:i')
                     ->label('Время')
                     ->timezone('Etc/GMT-5')
                     ->searchable()
@@ -417,6 +418,8 @@ class OrderResource extends Resource
                     ->label('Сумма')
                     ->sortable(),
             ])
+            ->paginated(false)
+            ->defaultSort('order_date', 'desc')
             ->filters(
                 self::getTableFilters()
             )
