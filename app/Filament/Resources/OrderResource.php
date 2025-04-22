@@ -58,7 +58,7 @@ class OrderResource extends Resource
                     ->schema([
                         Repeater::make('payments')
                             ->label('Список оплат')
-                            ->addable(false)
+                            ->addActionLabel('Добавить оплату')
                             ->relationship()
                             ->schema([
                                 OrderResource::getPaymentDateFormField()->hidden(),
@@ -273,7 +273,7 @@ class OrderResource extends Resource
     {
         return TextInput::make('payment_cash_amount')
             // TODO: Исправить правило с учетом Repeater
-            ->rules([
+            /*->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                     $numValue = intval(floatval($value) * 100) / 100;
                     $cashlessAmount = intval(floatval($get('payment_cashless_amount')) * 100) / 100;
@@ -282,12 +282,11 @@ class OrderResource extends Resource
                         $fail('The total amount of payments does not match the order amount');
                     }
                 },
-            ])
+            ])*/
             ->default('')
             ->numeric()
             ->live(debounce: 1000)
             ->label('Наличные')
-            // TODO: Исправить обновление с учетом Repeater
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                 $sum = $get('../../sum');
                 $cashAmount = intval(floatval($state) * 100) / 100;
@@ -304,7 +303,7 @@ class OrderResource extends Resource
     {
         return TextInput::make('payment_cashless_amount')
             // TODO: Исправить правило с учетом Repeater
-            ->rules([
+            /*->rules([
                 fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                     $numValue = intval(floatval($value) * 100) / 100;
                     $cashAmount = intval(floatval($get('payment_cash_amount')) * 100) / 100;
@@ -313,7 +312,7 @@ class OrderResource extends Resource
                         $fail('The total amount of payments does not match the order amount');
                     }
                 },
-            ])
+            ])*/
             ->default('')
             ->numeric()
             ->live(debounce: 1000)
@@ -376,7 +375,14 @@ class OrderResource extends Resource
             ->striped()
             ->columns([
                 Tables\Columns\ToggleColumn::make('is_paid')
-                    ->label('Оплачено'),
+                    ->label('Оплачено')
+                    ->afterStateUpdated(function ($record, $state) {
+                        if ($state === true) {
+                            // This code runs when the toggle changes from false to true
+                            // You could redirect to the order details page
+                            return redirect()->route('filament.admin.resources.orders.edit', ['record' => $record->id]);
+                        }
+                    }),
                 Tables\Columns\TextColumn::make('order_date')
                     ->hidden()
                     ->date('d.m.Y')
