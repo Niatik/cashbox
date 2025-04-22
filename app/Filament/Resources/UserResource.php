@@ -26,19 +26,23 @@ class UserResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->label('Имя пользователя')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
+                    ->label('E-mail')
                     ->email()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password')
+                    ->label('Пароль')
                     ->password()
                     ->revealable()
                     ->required(fn (string $context): bool => $context === 'create')
                     ->visible(fn (string $context): bool => $context === 'create')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password_confirmation')
+                    ->label('Подтверждение пароля')
                     ->password()
                     ->revealable()
                     ->same('password')
@@ -70,7 +74,7 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Username')
+                    ->label('Имя пользователя')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')

@@ -246,9 +246,6 @@ class BookingResource extends Resource
                     $peopleNumber = $nameItem == 'Количество человек' ? 1 : intval($bookingPriceItem['people_number']);
                 }
             }
-            /*if (Arr::exists($bookingPriceItem, 'people_number')) {
-                $peopleNumber = $bookingPriceItem['name_item'] == 'Количество человек' ? 1 : intval($bookingPriceItem['people_number']);
-            }*/
             if (Arr::exists($bookingPriceItem, 'prepayment_price_item')) {
                 $prepaymentPriceItem = $bookingPriceItem['prepayment_price_item'] ?? 0;
             }
