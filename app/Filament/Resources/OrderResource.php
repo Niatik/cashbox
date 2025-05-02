@@ -146,7 +146,7 @@ class OrderResource extends Resource
             })
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
-                ->orderBy('price_item_id')
+                ->orderBy('id')
                 ->pluck('name_item', 'id'))
             ->live(debounce: 1000)
             ->afterStateHydrated(function (?int $state, Get $get, Set $set) {
@@ -419,7 +419,7 @@ class OrderResource extends Resource
                     ->sortable(),
             ])
             ->paginated(false)
-            ->defaultSort('order_date', 'desc')
+            ->defaultSort('order_time', 'desc')
             ->filters(
                 self::getTableFilters()
             )
