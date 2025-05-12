@@ -12,6 +12,9 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         Permission::create(['name' => 'view customers']);
         Permission::create(['name' => 'edit customers']);
         Permission::create(['name' => 'delete customers']);
@@ -51,5 +54,40 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'edit expenses']);
         Permission::create(['name' => 'delete expenses']);
         Permission::create(['name' => 'create expenses']);
+
+        Permission::create(['name' => 'view bookings']);
+        Permission::create(['name' => 'edit bookings']);
+        Permission::create(['name' => 'delete bookings']);
+        Permission::create(['name' => 'create bookings']);
+
+        Permission::create(['name' => 'view cash reports']);
+        Permission::create(['name' => 'edit cash reports']);
+        Permission::create(['name' => 'delete cash reports']);
+        Permission::create(['name' => 'create cash reports']);
+
+        Permission::create(['name' => 'view expense types']);
+        Permission::create(['name' => 'edit expense types']);
+        Permission::create(['name' => 'delete expense types']);
+        Permission::create(['name' => 'create expense types']);
+
+        Permission::create(['name' => 'view price items']);
+        Permission::create(['name' => 'edit price items']);
+        Permission::create(['name' => 'delete price items']);
+        Permission::create(['name' => 'create price items']);
+
+        Permission::create(['name' => 'view prices']);
+        Permission::create(['name' => 'edit prices']);
+        Permission::create(['name' => 'delete prices']);
+        Permission::create(['name' => 'create prices']);
+
+        Permission::create(['name' => 'view social media']);
+        Permission::create(['name' => 'edit social media']);
+        Permission::create(['name' => 'delete social media']);
+        Permission::create(['name' => 'create social media']);
+
+        Permission::create(['name' => 'view users']);
+        Permission::create(['name' => 'edit users']);
+        Permission::create(['name' => 'delete users']);
+        Permission::create(['name' => 'create users']);
     }
 }
