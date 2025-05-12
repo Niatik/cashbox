@@ -62,6 +62,11 @@ class RoleSeeder extends Seeder
         $adminRole->givePermissionTo('delete expenses');
         $adminRole->givePermissionTo('create expenses');
 
+        $adminRole->givePermissionTo('view expense types');
+        $adminRole->givePermissionTo('edit expense types');
+        $adminRole->givePermissionTo('delete expense types');
+        $adminRole->givePermissionTo('create expense types');
+
         $adminRole->givePermissionTo('view orders');
         $adminRole->givePermissionTo('edit orders');
         $adminRole->givePermissionTo('delete orders');
