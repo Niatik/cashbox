@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers\RolesRelationManager;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -49,6 +48,11 @@ class UserResource extends Resource
                     ->required(fn (string $context): bool => $context === 'create')
                     ->visible(fn (string $context): bool => $context === 'create')
                     ->maxLength(255),
+                Forms\Components\Select::make('roles')
+                    ->preload()
+                    ->multiple()
+                    ->relationship('roles', 'name')
+                    ->columnSpan('full'),
                 Forms\Components\Fieldset::make('Информация о пользователе')
                     ->key('employee-fieldset')
                     ->relationship('employee')
@@ -89,6 +93,10 @@ class UserResource extends Resource
                     ->label('Телефон')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Роль')
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -107,7 +115,7 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RolesRelationManager::class,
+            //RolesRelationManager::class,
         ];
     }
 
