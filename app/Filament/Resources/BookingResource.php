@@ -277,7 +277,8 @@ class BookingResource extends Resource
                         'customers.name as customer_name',
                         'orders.people_number as people_number',
                         'orders.sum as order_sum',
-                    );
+                    )
+                    ->whereDate('booking_date', '>=', now());
             })
             ->columns([
                 TextColumn::make('booking_date')
@@ -337,10 +338,8 @@ class BookingResource extends Resource
     {
         return [
             Filter::make('selected_date')
-                ->default()
                 ->form([
                     DatePicker::make('select_date')
-                        ->default(now())
                         ->label('Выберите дату'),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {
