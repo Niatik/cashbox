@@ -268,7 +268,7 @@ class CashReportService
             if (! CashReport::whereDate('date', '>', $date)->exists()) {
                 CashReport::create([
                     'date' => Carbon::parse($date)->addDay()->format('Y-m-d'),
-                    'morning_cash_balance' => $morningCashBalance - $cashAmount,
+                    'morning_cash_balance' => $morningCashBalance - ($isCash ? $cashAmount : 0.00),
                     'cash_income' => 0.00,
                     'cashless_income' => 0.00,
                     'cash_expense' => 0.00,
@@ -312,7 +312,7 @@ class CashReportService
             if (! CashReport::whereDate('date', '>', $date)->exists()) {
                 CashReport::create([
                     'date' => Carbon::parse($date)->addDay()->format('Y-m-d'),
-                    'morning_cash_balance' => $morningCashBalance - $cashAmount,
+                    'morning_cash_balance' => $morningCashBalance - ($isCash ? $cashAmount : 0.00),
                     'cash_income' => 0.00,
                     'cashless_income' => 0.00,
                     'cash_expense' => 0.00,
