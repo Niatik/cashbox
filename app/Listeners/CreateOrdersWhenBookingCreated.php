@@ -41,12 +41,14 @@ class CreateOrdersWhenBookingCreated
             $price = Price::find($price_id)->price;
             $factor = PriceItem::find($price_item_id)->factor;
 
-            $people_calc = intval($people_number);
+            // Ensure people_number is a valid integer
+            $people_calc = intval($people_number ?: 1);
             if ($people_calc == 0) {
                 $people_calc = 1;
             }
 
-            $people_save = $people_number;
+            // Ensure people_save is a valid integer
+            $people_save = intval($people_number ?: 1);
             if ($people_item > 1) {
                 $people_save = $people_item;
             }
