@@ -19,6 +19,9 @@
                 </h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                     Обзор доходов, расходов и прибыли за выбранный период
+                    @if(isset($this->data['price_id']) && $this->data['price_id'])
+                        для выбранной услуги
+                    @endif
                 </p>
             </div>
             
@@ -78,6 +81,9 @@
                 </h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                     Анализ заказов по источникам социальных медиа
+                    @if(isset($this->data['price_id']) && $this->data['price_id'])
+                        для выбранной услуги
+                    @endif
                 </p>
             </div>
             

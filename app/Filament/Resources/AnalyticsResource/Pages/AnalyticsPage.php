@@ -7,10 +7,12 @@ use App\Models\Expense;
 use App\Models\ExpenseType;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Price;
 use App\Models\Salary;
 use App\Models\SocialMedia;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -46,7 +48,7 @@ class AnalyticsPage extends Page implements HasForms
     {
         return $form
             ->schema([
-                Section::make('Фильтр по дате')
+                Section::make('Фильтры')
                     ->schema([
                         DatePicker::make('date_from')
                             ->label('С даты')
@@ -59,8 +61,17 @@ class AnalyticsPage extends Page implements HasForms
                             ->default(now()->endOfMonth())
                             ->live()
                             ->afterStateUpdated(fn () => $this->updateData()),
+
+                        Select::make('price_id')
+                            ->label('Услуга')
+                            ->options(Price::all()->pluck('name', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Все услуги')
+                            ->live()
+                            ->afterStateUpdated(fn () => $this->updateData()),
                     ])
-                    ->columns(2)
+                    ->columns(3)
                     ->collapsible(),
             ])
             ->statePath('data');
@@ -77,17 +88,23 @@ class AnalyticsPage extends Page implements HasForms
     {
         $dateFrom = $this->data['date_from'] ?? now()->startOfMonth();
         $dateTo = $this->data['date_to'] ?? now()->endOfMonth();
+        $priceId = $this->data['price_id'] ?? null;
 
-        // Total income from orders (convert from integer to decimal)
-        $totalIncome = Order::whereBetween('order_date', [$dateFrom, $dateTo])
-            ->sum('sum') / 100;
+        // Get orders query with optional price filter
+        $ordersQuery = Order::query();
+        if ($priceId) {
+            $ordersQuery->where('price_id', $priceId);
+        }
+        $orderIds = $ordersQuery->pluck('id');
 
-        // Cash income from payments (filter by payment_date - when payment was actually made)
-        $cashIncome = Payment::whereBetween('payment_date', [$dateFrom, $dateTo])
+        // Cash income from payments (filter by payment_date and price)
+        $cashIncome = Payment::whereIn('order_id', $orderIds)
+            ->whereBetween('payment_date', [$dateFrom, $dateTo])
             ->sum('payment_cash_amount') / 100;
 
-        // Cashless income from payments (filter by payment_date - when payment was actually made)
-        $cashlessIncome = Payment::whereBetween('payment_date', [$dateFrom, $dateTo])
+        // Cashless income from payments (filter by payment_date and price)
+        $cashlessIncome = Payment::whereIn('order_id', $orderIds)
+            ->whereBetween('payment_date', [$dateFrom, $dateTo])
             ->sum('payment_cashless_amount') / 100;
 
         // Total expenses (including salaries) - convert from integer to decimal
@@ -98,6 +115,9 @@ class AnalyticsPage extends Page implements HasForms
             ->sum('salary_amount') / 100;
 
         $totalExpenses = $expenses + $salaryExpenses;
+        
+        // Total income is cash + cashless
+        $totalIncome = $cashIncome + $cashlessIncome;
 
         // Profit calculation
         $profit = $totalIncome - $totalExpenses;
@@ -116,11 +136,16 @@ class AnalyticsPage extends Page implements HasForms
     {
         $dateFrom = $this->data['date_from'] ?? now()->startOfMonth();
         $dateTo = $this->data['date_to'] ?? now()->endOfMonth();
+        $priceId = $this->data['price_id'] ?? null;
 
         return SocialMedia::all()
-            ->map(function ($socialMedia) use ($dateFrom, $dateTo) {
-                // Get orders for this social media (no date filter on orders)
-                $orderIds = Order::where('social_media_id', $socialMedia->id)->pluck('id');
+            ->map(function ($socialMedia) use ($dateFrom, $dateTo, $priceId) {
+                // Get orders for this social media with optional price filter
+                $ordersQuery = Order::where('social_media_id', $socialMedia->id);
+                if ($priceId) {
+                    $ordersQuery->where('price_id', $priceId);
+                }
+                $orderIds = $ordersQuery->pluck('id');
 
                 // Get actual payments for these orders, filtered by payment_date
                 $payments = Payment::whereIn('order_id', $orderIds)
