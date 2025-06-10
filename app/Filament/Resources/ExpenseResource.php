@@ -74,7 +74,7 @@ class ExpenseResource extends Resource
                 Tables\Columns\ToggleColumn::make('is_cash')
                     ->label('Нал'),
             ])
-            ->defaultSort('expense_date')
+            ->defaultSort('expense_date', 'desc')
             ->filters(
                 self::getTableFilters()
             )
