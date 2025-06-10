@@ -6,7 +6,6 @@ use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
-use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -67,8 +66,10 @@ class OrderResource extends Resource
                             ])
                             ->columns(3)
                             ->defaultItems(0)
-                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
-                                $data['payment_date'] = now()->format('Y-m-d');
+                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
+                                // Use the order's date instead of today's date
+                                $orderDate = $livewire->data['order_date'] ?? now()->format('Y-m-d');
+                                $data['payment_date'] = $orderDate;
 
                                 return $data;
                             }),
@@ -192,7 +193,7 @@ class OrderResource extends Resource
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 // Only calculate if we have a valid state and price data
-                if (!$state || !$get('price') || !$get('price_factor')) {
+                if (! $state || ! $get('price') || ! $get('price_factor')) {
                     return;
                 }
 
@@ -271,7 +272,7 @@ class OrderResource extends Resource
     public static function getPaymentDateFormField(): DatePicker
     {
         return DatePicker::make('payment_date')
-            ->default(now())
+            ->default(fn (Get $get) => $get('../../order_date') ?? now())
             ->label('Дата')
             ->required();
     }
