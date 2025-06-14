@@ -6,24 +6,23 @@ use App\Filament\Resources\SocialMediaResource\Pages;
 use App\Models\SocialMedia;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Notifications\Notification;
 
 class SocialMediaResource extends Resource
 {
     protected static ?string $model = SocialMedia::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-megaphone';
-    
+
     protected static ?string $navigationLabel = 'Источники';
-    
+
     protected static ?string $label = 'Источник';
-    
+
     protected static ?string $pluralLabel = 'Источники';
-    
+
     protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
@@ -53,7 +52,7 @@ class SocialMediaResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                    
+
                 Tables\Columns\TextColumn::make('orders_count')
                     ->label('Количество заказов')
                     ->getStateUsing(fn (SocialMedia $record) => $record->orders()->count())
@@ -61,19 +60,19 @@ class SocialMediaResource extends Resource
                     ->badge()
                     ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray')
                     ->formatStateUsing(fn (int $state): string => $state > 0 ? $state : 'Нет заказов'),
-                    
+
                 Tables\Columns\TextColumn::make('status')
                     ->label('Статус')
                     ->getStateUsing(fn (SocialMedia $record) => $record->orders()->count() > 0 ? 'Используется' : 'Можно удалить')
                     ->badge()
                     ->color(fn (string $state): string => $state === 'Используется' ? 'warning' : 'success'),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Создано')
                     ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                    
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Обновлено')
                     ->dateTime('d.m.Y H:i')
@@ -93,14 +92,14 @@ class SocialMediaResource extends Resource
                     ->before(function (Tables\Actions\DeleteAction $action, SocialMedia $record) {
                         // Check if this social media has any orders
                         $ordersCount = $record->orders()->count();
-                        
+
                         if ($ordersCount > 0) {
                             Notification::make()
                                 ->title('Невозможно удалить источник')
                                 ->body("Этот источник используется в {$ordersCount} заказах. Сначала удалите или измените источник в связанных заказах.")
                                 ->danger()
                                 ->send();
-                                
+
                             // Cancel the deletion
                             $action->cancel();
                         }
@@ -115,16 +114,16 @@ class SocialMediaResource extends Resource
                             $recordsWithOrders = collect($records)->filter(function ($record) {
                                 return $record->orders()->count() > 0;
                             });
-                            
+
                             if ($recordsWithOrders->count() > 0) {
                                 $names = $recordsWithOrders->pluck('name')->join(', ');
-                                
+
                                 Notification::make()
                                     ->title('Невозможно удалить источники')
                                     ->body("Источники '{$names}' используются в заказах. Сначала удалите или измените источники в связанных заказах.")
                                     ->danger()
                                     ->send();
-                                    
+
                                 // Cancel the deletion
                                 $action->cancel();
                             }
@@ -152,12 +151,12 @@ class SocialMediaResource extends Resource
             'edit' => Pages\EditSocialMedia::route('/{record}/edit'),
         ];
     }
-    
+
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return 'Источники';
