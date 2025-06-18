@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
+use App\Filament\Resources\OrderResource\Pages\CreateOrder;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
@@ -65,13 +66,17 @@ class OrderResource extends Resource
                                 OrderResource::getPaymentCashlessAmountFormField(),
                             ])
                             ->columns(3)
-                            ->defaultItems(0)
                             ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
                                 // Use the order's date instead of today's date
                                 $orderDate = $livewire->data['order_date'] ?? now()->format('Y-m-d');
                                 $data['payment_date'] = $orderDate;
 
                                 return $data;
+                            })
+                            ->defaultItems(function ($livewire) {
+                                // For create operation: 1 default payment
+                                // For edit operation: 0 payments (preserve existing)
+                                return $livewire instanceof CreateOrder ? 1 : 0;
                             }),
                     ]),
             ]);
@@ -189,7 +194,8 @@ class OrderResource extends Resource
             ->numeric()
             ->label('Количество человек')
             ->minValue(1)
-            ->live(debounce: 1000) // Changed: trigger on blur instead of debounce
+            ->default(1)
+            ->live(onBlur: true) // Trigger on blur to prevent duplicate updates
             ->required()
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 // Only calculate if we have a valid state and price data
@@ -202,8 +208,11 @@ class OrderResource extends Resource
                 $netSum = $price * $priceFactor * $state;
                 $set('sum', $sum);
                 $set('net_sum', $netSum);
-                // TODO: Ввести сумму оплаты в первый элемент Repeater
-                $set('payments.0.payment_cashless_amount', $sum);
+
+                // Only update first payment if this is a new order creation
+                if (! $get('id')) { // No ID means new order
+                    $set('payments.0.payment_cashless_amount', $sum);
+                }
 
             })
             ->hidden(fn (Get $get): bool => $get('name_item') == 'Количество человек')
@@ -430,7 +439,7 @@ class OrderResource extends Resource
     {
         return [
             'index' => Pages\ListOrders::route('/'),
-            'create' => Pages\CreateOrder::route('/create'),
+            'create' => CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
     }
@@ -507,8 +516,11 @@ class OrderResource extends Resource
             $netSum = $price * $priceFactor * $peopleNumber;
             $set('sum', $sum);
             $set('net_sum', $netSum);
-            $set('payments.0.payment_cashless_amount', $sum);
-            $set('payments.0.payment_cash_amount', '');
+            // Only update first payment if this is a new order creation
+            if (! $get('id')) { // No ID means new order
+                $set('payments.0.payment_cashless_amount', $sum);
+                $set('payments.0.payment_cash_amount', '');
+            }
         }
     }
 
@@ -526,8 +538,12 @@ class OrderResource extends Resource
             $netSum = $price * $priceFactor * $peopleNumber;
             $set('../sum', $sum);
             $set('../net_sum', $netSum);
-            $set('../payments.0.payment_cashless_amount', $isCash ? '' : $sum);
-            $set('../payments.0.payment_cash_amount', $isCash ? $sum : '');
+
+            // Only update first payment if this is a new order creation
+            if (! $get('../id')) { // No ID means new order
+                $set('../payments.0.payment_cashless_amount', $isCash ? '' : $sum);
+                $set('../payments.0.payment_cash_amount', $isCash ? $sum : '');
+            }
         }
     }
 
@@ -541,7 +557,7 @@ class OrderResource extends Resource
                         ->default(now())
                         ->label('Выберите дату'),
                 ])
-                ->query(function (Builder $query, array $data, Get $get): Builder {
+                ->query(function (Builder $query, array $data): Builder {
                     return $query
                         ->when(
                             $data['select_date'],
