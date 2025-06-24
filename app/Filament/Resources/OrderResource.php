@@ -7,6 +7,7 @@ use App\Filament\Resources\OrderResource\Pages\CreateOrder;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
+use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -23,6 +24,7 @@ use Filament\Tables;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 class OrderResource extends Resource
@@ -66,6 +68,33 @@ class OrderResource extends Resource
                                 OrderResource::getPaymentCashlessAmountFormField(),
                             ])
                             ->columns(3)
+                            ->rules([
+                                'required',
+                                'array',
+                                'min:1',
+                                fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                    if (! is_array($value)) {
+                                        return;
+                                    }
+
+                                    $netSum = (float) ($get('net_sum') ?? 0);
+                                    $totalPayments = 0;
+
+                                    foreach ($value as $payment) {
+                                        $cash = (float) ($payment['payment_cash_amount'] ?? 0);
+                                        $cashless = (float) ($payment['payment_cashless_amount'] ?? 0);
+                                        $totalPayments += $cash + $cashless;
+                                    }
+
+                                    if (round($totalPayments, 2) !== round($netSum, 2)) {
+                                        $fail('Сумма всех платежей ('.number_format($totalPayments, 2).') должна быть равна сумме заказа ('.number_format($netSum, 2).')');
+                                    }
+                                },
+                            ])
+                            ->validationMessages([
+                                'required' => 'Необходимо добавить хотя бы один платеж',
+                                'min' => 'Необходимо добавить хотя бы один платеж',
+                            ])
                             ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
                                 // Use the order's date instead of today's date
                                 $orderDate = $livewire->data['order_date'] ?? now()->format('Y-m-d');
@@ -292,13 +321,21 @@ class OrderResource extends Resource
         return TextInput::make('payment_cash_amount')
             ->default('')
             ->numeric()
-            ->live(debounce: 1000)
+            ->live(debounce: 500)
             ->label('Наличные')
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                $payments = $get('../../payments');
+                $sumPayments = 0;
+                foreach ($payments as $payment) {
+                    if (Arr::exists($payment, 'id')) {
+                        $sumPayments += $payment['payment_cash_amount'] + $payment['payment_cashless_amount'];
+                    }
+                }
+
                 $sum = $get('../../sum');
                 $cashAmount = intval(floatval($state) * 100) / 100;
-                if ($sum - $cashAmount) {
-                    $set('payment_cashless_amount', $sum - $cashAmount);
+                if ($sum - $sumPayments - $cashAmount) {
+                    $set('payment_cashless_amount', $sum - $sumPayments - $cashAmount);
                 } else {
                     $set('payment_cashless_amount', '');
                 }
@@ -311,14 +348,21 @@ class OrderResource extends Resource
         return TextInput::make('payment_cashless_amount')
             ->default('')
             ->numeric()
-            ->live(debounce: 1000)
+            ->live(debounce: 500)
             ->label('Безналичные')
-            // TODO: Исправить обновление с учетом Repeater
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                $payments = $get('../../payments');
+                $sumPayments = 0;
+                foreach ($payments as $payment) {
+                    if (Arr::exists($payment, 'id')) {
+                        $sumPayments += $payment['payment_cash_amount'] + $payment['payment_cashless_amount'];
+                    }
+                }
+
                 $sum = $get('../../sum');
                 $cashlessAmount = $state;
-                if ($sum - $cashlessAmount) {
-                    $set('payment_cash_amount', $sum - $cashlessAmount);
+                if ($sum - $sumPayments - $cashlessAmount) {
+                    $set('payment_cash_amount', $sum - $sumPayments - $cashlessAmount);
                 } else {
                     $set('payment_cash_amount', '');
                 }
