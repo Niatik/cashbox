@@ -9,6 +9,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Arr;
+use Filament\Resources\Resource;
 
 class CreateOrder extends CreateRecord
 {
@@ -25,8 +26,8 @@ class CreateOrder extends CreateRecord
     {
         $user = User::find(auth()->user()->id);
         $data['employee_id'] = $user->employee->id;
-        $data['order_date'] = now()->format('Y-m-d');
-        $data['order_time'] = now()->format('H:i:s');
+        $data['order_date'] = $data['order_date'] ?? now()->format('Y-m-d');
+        $data['order_time'] = $data['order_time'] ?? now()->format('H:i:s');
         if (! Arr::exists($data, 'people_number')) {
             $data['people_number'] = $data['people_item'];
         }
@@ -40,7 +41,7 @@ class CreateOrder extends CreateRecord
             Step::make('Услуга')
                 ->description('Выберите услугу, время и количество людей')
                 ->schema([
-                    OrderResource::getDateFormField()->hidden(),
+                    OrderResource::getDateFormField(),
                     OrderResource::getTimeFormField()->readOnly(),
                     OrderResource::getPriceFormField(),
                     OrderResource::getPriceItemFormField(),
@@ -72,8 +73,8 @@ class CreateOrder extends CreateRecord
                                 ])
                                 ->columns(3)
                                 ->defaultItems(0)
-                                ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
-                                    $data['payment_date'] = now()->format('Y-m-d');
+                                ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
+                                    $data['payment_date'] = $livewire->data['order_date'] ?? now()->format('Y-m-d');
 
                                     return $data;
                                 }),

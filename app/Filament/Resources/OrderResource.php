@@ -39,7 +39,7 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                static::getDateFormField()->hidden(),
+                static::getDateFormField(),
                 static::getTimeFormField(),
                 static::getPriceFormField(),
                 static::getPriceItemFormField(),
@@ -88,7 +88,8 @@ class OrderResource extends Resource
             ->default(now())
             ->label('Дата')
             ->required()
-            ->readOnly();
+            ->hidden(fn () => ! auth()->user()->hasRole(['admin', 'super-admin']))
+            ->readOnly(fn () => ! auth()->user()->hasRole(['admin', 'super-admin']));
     }
 
     public static function getTimeFormField(): TimePicker
