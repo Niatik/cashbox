@@ -7,6 +7,7 @@ use App\Filament\Resources\OrderResource\Pages\CreateOrder;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
+use App\Models\Payment;
 use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
@@ -323,12 +324,20 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 500)
             ->label('Наличные')
-            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+            ->afterStateHydrated(function (TextInput $component, string $state) {
+                if ($state == '0') $component->state('');
+            })
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set, Payment $record) {
                 $payments = $get('../../payments');
                 $sumPayments = 0;
                 foreach ($payments as $payment) {
                     if (Arr::exists($payment, 'id')) {
-                        $sumPayments += $payment['payment_cash_amount'] + $payment['payment_cashless_amount'];
+                        if ($payment['id'] != $record->id)
+                        {
+                            $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
+                            $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
+                            $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
+                        }
                     }
                 }
 
@@ -350,22 +359,31 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 500)
             ->label('Безналичные')
-            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+            ->afterStateHydrated(function (TextInput $component, string $state) {
+                if ($state == '0') $component->state('');
+            })
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set, Payment $record) {
                 $payments = $get('../../payments');
                 $sumPayments = 0;
                 foreach ($payments as $payment) {
                     if (Arr::exists($payment, 'id')) {
-                        $sumPayments += $payment['payment_cash_amount'] + $payment['payment_cashless_amount'];
+                        if ($payment['id'] != $record->id)
+                        {
+                            $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
+                            $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
+                            $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
+                        }
                     }
                 }
 
                 $sum = $get('../../sum');
-                $cashlessAmount = $state;
+                $cashlessAmount = intval(floatval($state) * 100) / 100;
                 if ($sum - $sumPayments - $cashlessAmount) {
                     $set('payment_cash_amount', $sum - $sumPayments - $cashlessAmount);
                 } else {
                     $set('payment_cash_amount', '');
                 }
+                
             });
     }
 
