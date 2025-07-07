@@ -122,6 +122,11 @@ class CashReportResource extends Resource
                         return $record->cash_income + $record->cashless_income;
                     }),
 
+                TextColumn::make('cashless_income')
+                    ->label('Доход безнал')
+                    ->numeric(decimalPlaces: 0)
+                    ->sortable(),
+
                 TextColumn::make('total_expense')
                     ->label('Расход')
                     ->numeric(decimalPlaces: 0)
