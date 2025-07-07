@@ -72,8 +72,7 @@ class SalaryResource extends Resource
                     ->label('Описание'),
                 Tables\Columns\TextColumn::make('salary_amount')
                     ->label('Сумма расхода')
-                    ->sortable()
-                    ->money('KZT'),
+                    ->sortable(),
                 Tables\Columns\ToggleColumn::make('is_cash')
                     ->label('Нал'),
             ])
