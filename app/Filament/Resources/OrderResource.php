@@ -324,19 +324,24 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 500)
             ->label('Наличные')
-            ->afterStateHydrated(function (TextInput $component, string $state) {
+            ->afterStateHydrated(function (TextInput $component, ?string $state) {
+                $state = $state ?? '';
                 if ($state == '0') $component->state('');
             })
-            ->afterStateUpdated(function (?string $state, Get $get, Set $set, Payment $record) {
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Payment $record) {
                 $payments = $get('../../payments');
                 $sumPayments = 0;
                 foreach ($payments as $payment) {
-                    if (Arr::exists($payment, 'id')) {
-                        if ($payment['id'] != $record->id)
+                    if ($record) 
+                    {
+                        if (Arr::exists($payment, 'id'))
                         {
-                            $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
-                            $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
-                            $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
+                            if ($payment['id'] != $record->id)
+                            {
+                                $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
+                                $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
+                                $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
+                            }
                         }
                     }
                 }
@@ -359,23 +364,29 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 500)
             ->label('Безналичные')
-            ->afterStateHydrated(function (TextInput $component, string $state) {
+            ->afterStateHydrated(function (TextInput $component, ?string $state) {
+                $state = $state ?? '';
                 if ($state == '0') $component->state('');
             })
-            ->afterStateUpdated(function (?string $state, Get $get, Set $set, Payment $record) {
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Payment $record) {
                 $payments = $get('../../payments');
                 $sumPayments = 0;
                 foreach ($payments as $payment) {
-                    if (Arr::exists($payment, 'id')) {
-                        if ($payment['id'] != $record->id)
+                    if ($record)
+                    {
+                        if (Arr::exists($payment, 'id'))
                         {
-                            $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
-                            $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
-                            $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
+                            if ($payment['id'] != $record->id)
+                            {
+                                $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
+                                $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
+                                $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
+                            }
                         }
                     }
                 }
 
+            
                 $sum = $get('../../sum');
                 $cashlessAmount = intval(floatval($state) * 100) / 100;
                 if ($sum - $sumPayments - $cashlessAmount) {
