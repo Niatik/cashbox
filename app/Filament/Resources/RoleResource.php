@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RoleResource\Pages;
 use App\Filament\Resources\RoleResource\RelationManagers;
 use App\Models\Role;
+use App\Models\Permission;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -31,6 +32,13 @@ class RoleResource extends Resource
                     ->label('Роль')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('permissions')
+                    ->label('Разрешения')
+                    ->multiple()
+                    ->relationship('permissions', 'name')
+                    ->options(Permission::all()->pluck('name', 'id'))
+                    ->searchable()
+                    ->preload(),
             ]);
     }
 
