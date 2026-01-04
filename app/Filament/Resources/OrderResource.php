@@ -5,9 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\Pages\CreateOrder;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Price;
 use App\Models\PriceItem;
-use App\Models\Payment;
 use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
@@ -326,18 +326,17 @@ class OrderResource extends Resource
             ->label('Наличные')
             ->afterStateHydrated(function (TextInput $component, ?string $state) {
                 $state = $state ?? '';
-                if ($state == '0') $component->state('');
+                if ($state == '0') {
+                    $component->state('');
+                }
             })
             ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Payment $record) {
                 $payments = $get('../../payments');
                 $sumPayments = 0;
                 foreach ($payments as $payment) {
-                    if ($record) 
-                    {
-                        if (Arr::exists($payment, 'id'))
-                        {
-                            if ($payment['id'] != $record->id)
-                            {
+                    if ($record) {
+                        if (Arr::exists($payment, 'id')) {
+                            if ($payment['id'] != $record->id) {
                                 $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
                                 $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
                                 $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
@@ -366,18 +365,17 @@ class OrderResource extends Resource
             ->label('Безналичные')
             ->afterStateHydrated(function (TextInput $component, ?string $state) {
                 $state = $state ?? '';
-                if ($state == '0') $component->state('');
+                if ($state == '0') {
+                    $component->state('');
+                }
             })
             ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Payment $record) {
                 $payments = $get('../../payments');
                 $sumPayments = 0;
                 foreach ($payments as $payment) {
-                    if ($record)
-                    {
-                        if (Arr::exists($payment, 'id'))
-                        {
-                            if ($payment['id'] != $record->id)
-                            {
+                    if ($record) {
+                        if (Arr::exists($payment, 'id')) {
+                            if ($payment['id'] != $record->id) {
                                 $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
                                 $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
                                 $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
@@ -386,7 +384,6 @@ class OrderResource extends Resource
                     }
                 }
 
-            
                 $sum = $get('../../sum');
                 $cashlessAmount = intval(floatval($state) * 100) / 100;
                 if ($sum - $sumPayments - $cashlessAmount) {
@@ -394,7 +391,7 @@ class OrderResource extends Resource
                 } else {
                     $set('payment_cash_amount', '');
                 }
-                
+
             });
     }
 
@@ -492,14 +489,12 @@ class OrderResource extends Resource
                 self::getTableFilters()
             )
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(),
                 Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ])
+            ->selectable(false)
+            ->actionsPosition(Tables\Enums\ActionsPosition::BeforeColumns);
     }
 
     public static function getRelations(): array
