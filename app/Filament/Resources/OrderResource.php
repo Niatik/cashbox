@@ -73,7 +73,7 @@ class OrderResource extends Resource
                                 'required',
                                 'array',
                                 'min:1',
-                                fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                /*fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                                     if (! is_array($value)) {
                                         return;
                                     }
@@ -90,7 +90,7 @@ class OrderResource extends Resource
                                     if (round($totalPayments, 2) !== round($netSum, 2)) {
                                         $fail('Сумма всех платежей ('.number_format($totalPayments, 2).') должна быть равна сумме заказа ('.number_format($netSum, 2).')');
                                     }
-                                },
+                                },*/
                             ])
                             ->validationMessages([
                                 'required' => 'Необходимо добавить хотя бы один платеж',
@@ -329,31 +329,7 @@ class OrderResource extends Resource
                 if ($state == '0') {
                     $component->state('');
                 }
-            })
-            ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Payment $record) {
-                $payments = $get('../../payments');
-                $sumPayments = 0;
-                foreach ($payments as $payment) {
-                    if ($record) {
-                        if (Arr::exists($payment, 'id')) {
-                            if ($payment['id'] != $record->id) {
-                                $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
-                                $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
-                                $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
-                            }
-                        }
-                    }
-                }
-
-                $sum = $get('../../sum');
-                $cashAmount = intval(floatval($state) * 100) / 100;
-                if ($sum - $sumPayments - $cashAmount) {
-                    $set('payment_cashless_amount', $sum - $sumPayments - $cashAmount);
-                } else {
-                    $set('payment_cashless_amount', '');
-                }
             });
-
     }
 
     public static function getPaymentCashlessAmountFormField(): TextInput
@@ -368,30 +344,6 @@ class OrderResource extends Resource
                 if ($state == '0') {
                     $component->state('');
                 }
-            })
-            ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Payment $record) {
-                $payments = $get('../../payments');
-                $sumPayments = 0;
-                foreach ($payments as $payment) {
-                    if ($record) {
-                        if (Arr::exists($payment, 'id')) {
-                            if ($payment['id'] != $record->id) {
-                                $paymentCashAmount = intval(floatval($payment['payment_cash_amount']) * 100) / 100 ?? 0;
-                                $paymentCashlessAmount = intval(floatval($payment['payment_cashless_amount']) * 100) / 100 ?? 0;
-                                $sumPayments += $paymentCashAmount + $paymentCashlessAmount;
-                            }
-                        }
-                    }
-                }
-
-                $sum = $get('../../sum');
-                $cashlessAmount = intval(floatval($state) * 100) / 100;
-                if ($sum - $sumPayments - $cashlessAmount) {
-                    $set('payment_cash_amount', $sum - $sumPayments - $cashlessAmount);
-                } else {
-                    $set('payment_cash_amount', '');
-                }
-
             });
     }
 
