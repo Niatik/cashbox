@@ -482,6 +482,27 @@ class OrderResource extends Resource
                     ->numeric()
                     ->label('Сумма')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('prepayment')
+                    ->numeric()
+                    ->label('Аванс')
+                    ->sortable()
+                    ->getStateUsing(fn ($record) => $record->options['prepayment'] ?? 0),
+                Tables\Columns\TextColumn::make('payment_cash_sum')
+                    ->numeric()
+                    ->label('Наличные')
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->withSum('payments as payment_cash_sum', 'payment_cash_amount')
+                            ->orderBy('payment_cash_sum', $direction);
+                    })
+                    ->getStateUsing(fn ($record) => $record->payments->sum('payment_cash_amount')),
+                Tables\Columns\TextColumn::make('payment_cashless_sum')
+                    ->numeric()
+                    ->label('Безналичные')
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->withSum('payments as payment_cashless_sum', 'payment_cashless_amount')
+                            ->orderBy('payment_cashless_sum', $direction);
+                    })
+                    ->getStateUsing(fn ($record) => $record->payments->sum('payment_cashless_amount')),
             ])
             ->paginated(false)
             ->defaultSort('order_time', 'desc')
