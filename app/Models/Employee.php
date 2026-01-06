@@ -17,6 +17,7 @@ class Employee extends Model
         'salary',
         'employment_date',
         'user_id',
+        'is_hidden',
     ];
 
     protected $casts = [

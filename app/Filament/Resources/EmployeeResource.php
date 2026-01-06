@@ -57,6 +57,9 @@ class EmployeeResource extends Resource
                             ->required(),
                     ])
                     ->required(),
+                Forms\Components\Toggle::make('is_hidden')
+                    ->label('Скрытый')
+                    ->default(false),
             ]);
     }
 
@@ -84,6 +87,8 @@ class EmployeeResource extends Resource
                     ->label('Дата приема')
                     ->date('d.m.Y')
                     ->sortable(),
+                Tables\Columns\ToggleColumn::make('is_hidden')
+                    ->label('Скрытый'),
             ])
             ->filters([
                 //
