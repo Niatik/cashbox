@@ -32,7 +32,7 @@ class SalaryResource extends Resource
             ->schema([
                 Select::make('employee_id')
                     ->label('Работник')
-                    ->relationship('employee', 'name')
+                    ->relationship('employee', 'name', fn (Builder $query) => $query->where('is_hidden', false))
                     ->preload()
                     ->required(),
                 DatePicker::make('salary_date')
