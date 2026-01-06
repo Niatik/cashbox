@@ -34,7 +34,7 @@ class CreateOrdersWhenBookingCreated
             $bookingTime = $price['booking_time'];
             $price_id = $price['price_id'];
             $price_item_id = $price['price_item_id'];
-            $people_number = $price['people_number'];
+            $people_number = $price['people_number'] ?? null;
             $people_item = $price['people_item'];
             $prepayment = $price['prepayment_price_item'];
             $isCash = $price['is_cash'];
