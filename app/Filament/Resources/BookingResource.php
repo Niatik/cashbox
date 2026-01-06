@@ -80,7 +80,6 @@ class BookingResource extends Resource
         return Forms\Components\Select::make('customer_id')
             ->relationship('customer', 'name')
             ->label('Клиент')
-            ->required()
             ->searchable()
             ->preload()
             ->createOptionForm([
@@ -264,7 +263,7 @@ class BookingResource extends Resource
         return $table
             ->modifyQueryUsing(function (Builder $query) {
                 $query
-                    ->join('customers', 'bookings.customer_id', '=', 'customers.id')
+                    ->leftJoin('customers', 'bookings.customer_id', '=', 'customers.id')
                     ->join('orders', 'bookings.id', '=', 'orders.booking_id')
                     ->join('prices', 'orders.price_id', '=', 'prices.id')
                     ->join('price_items', 'orders.price_item_id', '=', 'price_items.id')
