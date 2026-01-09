@@ -61,7 +61,7 @@ class CreateOrdersWhenBookingCreated
                 'order_time' => $bookingTime,
                 'price_id' => $price_id,
                 'price_item_id' => $price_item_id,
-                'social_media_id' => 1,
+                'social_media_id' => 7,
                 'people_number' => $people_save,
                 'sum' => $sum,
                 'net_sum' => $net_sum,
