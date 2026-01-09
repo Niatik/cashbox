@@ -43,6 +43,7 @@ class BookingResource extends Resource
                 static::getBookingPriceItemFormField(),
                 static::getSumFormField(),
                 static::getPrepaymentFormField(),
+                static::getRemainingFormField(),
                 static::getCustomerFormField(),
                 static::getEmployeeFormField(),
             ])
@@ -74,6 +75,15 @@ class BookingResource extends Resource
             ->default(0)
             ->readOnly();
     }
+
+    public static function getRemainingFormField(): TextInput
+    {
+        return TextInput::make('remaining')
+            ->numeric()
+            ->label('Остаток')
+            ->readOnly();
+    }
+
 
     public static function getCustomerFormField(): Select
     {
@@ -256,6 +266,7 @@ class BookingResource extends Resource
         }
         $set('../../sum', $sum);
         $set('../../prepayment', $prepayment);
+        $set('../../remaining', $sum - $prepayment);
     }
 
     public static function table(Table $table): Table
