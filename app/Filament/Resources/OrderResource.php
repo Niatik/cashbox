@@ -25,7 +25,6 @@ use Filament\Tables;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 class OrderResource extends Resource
@@ -329,7 +328,42 @@ class OrderResource extends Resource
                 if ($state == '0') {
                     $component->state('');
                 }
-            });
+            })
+            ->extraAlpineAttributes(fn (Get $get) => [
+                'x-data' => '{ orderSum: '.($get('../../sum') ?? $get('sum') ?? 0).' }',
+            ])
+            ->extraInputAttributes([
+                'x-on:focus' => "
+                    const target = \$event.target;
+                    if (!target.value || target.value === '' || target.value === '0') {
+                        const sum = parseFloat(orderSum || 0);
+                        let totalPaid = 0;
+
+                        // Найти все поля платежей в текущем repeater, кроме текущего
+                        const repeaterDiv = target.closest('[data-fieldset-type=\"component\"]');
+                        if (repeaterDiv) {
+                            const allRepeaters = document.querySelectorAll('[data-fieldset-type=\"component\"]');
+                            allRepeaters.forEach(repeater => {
+                                const inputs = repeater.querySelectorAll('input[type=\"text\"][wire\\\\:model]');
+                                inputs.forEach(input => {
+                                    if (input !== target) {
+                                        const value = parseFloat(input.value || 0);
+                                        if (!isNaN(value) && value > 0) {
+                                            totalPaid += value;
+                                        }
+                                    }
+                                });
+                            });
+                        }
+
+                        const remaining = Math.max(0, sum - totalPaid);
+                        if (remaining > 0) {
+                            target.value = remaining.toFixed(0);
+                            target.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+                ",
+            ]);
     }
 
     public static function getPaymentCashlessAmountFormField(): TextInput
@@ -344,7 +378,42 @@ class OrderResource extends Resource
                 if ($state == '0') {
                     $component->state('');
                 }
-            });
+            })
+            ->extraAlpineAttributes(fn (Get $get) => [
+                'x-data' => '{ orderSum: '.($get('../../sum') ?? $get('sum') ?? 0).' }',
+            ])
+            ->extraInputAttributes([
+                'x-on:focus' => "
+                    const target = \$event.target;
+                    if (!target.value || target.value === '' || target.value === '0') {
+                        const sum = parseFloat(orderSum || 0);
+                        let totalPaid = 0;
+
+                        // Найти все поля платежей в текущем repeater, кроме текущего
+                        const repeaterDiv = target.closest('[data-fieldset-type=\"component\"]');
+                        if (repeaterDiv) {
+                            const allRepeaters = document.querySelectorAll('[data-fieldset-type=\"component\"]');
+                            allRepeaters.forEach(repeater => {
+                                const inputs = repeater.querySelectorAll('input[type=\"text\"][wire\\\\:model]');
+                                inputs.forEach(input => {
+                                    if (input !== target) {
+                                        const value = parseFloat(input.value || 0);
+                                        if (!isNaN(value) && value > 0) {
+                                            totalPaid += value;
+                                        }
+                                    }
+                                });
+                            });
+                        }
+
+                        const remaining = Math.max(0, sum - totalPaid);
+                        if (remaining > 0) {
+                            target.value = remaining.toFixed(0);
+                            target.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+                ",
+            ]);
     }
 
     public static function getOptionsFormField(): Section
