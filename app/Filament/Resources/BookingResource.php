@@ -133,7 +133,7 @@ class BookingResource extends Resource
     {
         return Select::make('price_id')
             ->options(fn (Get $get): Collection => Price::query()
-                ->orderBy('name')
+                ->orderBy('id')
                 ->pluck('name', 'id'))
 
             ->label('Услуга')
