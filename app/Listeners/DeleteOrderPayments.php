@@ -21,6 +21,5 @@ class DeleteOrderPayments
         foreach ($payments as $payment) {
             $payment->delete();
         }
-        $event->order->booking()->delete();
     }
 }
