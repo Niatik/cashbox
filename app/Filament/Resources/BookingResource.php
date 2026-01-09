@@ -276,8 +276,8 @@ class BookingResource extends Resource
                         'customers.name as customer_name',
                         'orders.people_number as people_number',
                         'orders.sum as order_sum',
-                    )
-                    ->whereDate('booking_date', '>=', now());
+                    );
+                // ->whereDate('booking_date', '>=', now());
             })
             ->columns([
                 TextColumn::make('booking_date')
