@@ -50,6 +50,9 @@ pest()->beforeEach(function () {
     Role::create(['name' => 'super-admin']);
     Role::create(['name' => 'employee']);
     $user = User::factory()->create();
+    Employee::factory()->create([
+        'user_id' => $user->id,
+    ]);
 
     $this->actingAs(
         $user->assignRole('super-admin')
