@@ -21,4 +21,11 @@ class EditBooking extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['remaining'] = $data['sum'] - $data['prepayment'];
+
+        return $data;
+    }
 }
