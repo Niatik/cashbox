@@ -524,6 +524,15 @@ class OrderResource extends Resource
                             ->orderBy('payment_cashless_sum', $direction);
                     })
                     ->getStateUsing(fn ($record) => $record->payments->sum('payment_cashless_amount')),
+                Tables\Columns\TextColumn::make('remaining')
+                    ->numeric()
+                    ->label('Остаток')
+                    ->getStateUsing(function ($record) {
+                        $sum = $record->net_sum;
+                        $totalPaid = $record->payments->sum('payment_cash_amount') + $record->payments->sum('payment_cashless_amount');
+
+                        return max(0, $sum - $totalPaid);
+                    }),
             ])
             ->paginated(false)
             ->defaultSort('order_time', 'desc')
