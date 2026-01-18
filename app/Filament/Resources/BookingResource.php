@@ -88,7 +88,6 @@ class BookingResource extends Resource
             ->readOnly();
     }
 
-
     public static function getCustomerFormField(): TextInput
     {
         return TextInput::make('customer_name')
@@ -110,7 +109,7 @@ class BookingResource extends Resource
 
                 if ($state) {
                     $customer = Customer::query()
-                        ->where('phone', $state)
+                        ->where('phone', 'like', $state.'%')
                         ->first();
                 }
 
