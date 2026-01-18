@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BookingResource\Pages;
 
 use App\Filament\Resources\BookingResource;
+use App\Models\Customer;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
@@ -29,7 +30,22 @@ class EditBooking extends EditRecord
         $customer = $this->record->customer;
 
         $data['customer_name'] = $customer?->name ?? '';
-        $data['customer_phone'] = $this->record->customer_phone ?? $customer?->phone;
+        $data['customer_phone'] = $customer?->phone ?? ''; // Берем телефон только из связи
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (! empty($data['customer_id']) && ! empty($data['customer_phone'])) {
+            Customer::where('id', $data['customer_id'])->update([
+                'phone' => $data['customer_phone'],
+                'name' => $data['customer_name'] ?? null,
+            ]);
+        }
+
+        // Удаляем временные поля, которых нет в БД bookings
+        unset($data['customer_phone'], $data['customer_name']);
 
         return $data;
     }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BookingResource\Pages;
 
 use App\Filament\Resources\BookingResource;
+use App\Models\Customer;
 use App\Models\User;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -21,6 +22,17 @@ class CreateBooking extends CreateRecord
     {
         $user = User::find(auth()->user()->id);
         $data['employee_id'] = $user->employee->id;
+
+        if (empty($data['customer_id']) && ! empty($data['customer_phone'])) {
+            $customer = Customer::firstOrCreate(
+                ['phone' => $data['customer_phone']],
+                ['name' => $data['customer_name'] ?? null]
+            );
+            $data['customer_id'] = $customer->id;
+        }
+
+        // Удаляем временные поля, которых нет в БД bookings
+        unset($data['customer_phone'], $data['customer_name']);
 
         return $data;
     }

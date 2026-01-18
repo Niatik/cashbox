@@ -92,8 +92,6 @@ class BookingResource extends Resource
     {
         return TextInput::make('customer_name')
             ->label('Клиент')
-            ->disabled()
-            ->dehydrated(false)
             ->default('');
     }
 
@@ -118,7 +116,7 @@ class BookingResource extends Resource
                     $set('customer_name', $customer->name);
                 } else {
                     $set('customer_id', null);
-                    $set('customer_name', '');
+                    $set('customer_name', null);
                 }
             });
     }
@@ -308,7 +306,7 @@ class BookingResource extends Resource
                         'orders.order_time',
                         'prices.name as price_name',
                         'price_items.name_item',
-                        DB::raw('coalesce(customers.name, bookings.customer_phone) as customer_name'),
+                        DB::raw('coalesce(customers.name, customers.phone) as customer_name'),
                         'orders.people_number as people_number',
                         'orders.sum as order_sum',
                     );
