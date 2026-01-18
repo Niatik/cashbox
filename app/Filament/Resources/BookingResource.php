@@ -309,7 +309,8 @@ class BookingResource extends Resource
                         DB::raw('coalesce(customers.name, customers.phone) as customer_name'),
                         'orders.people_number as people_number',
                         'orders.sum as order_sum',
-                    );
+                    )
+                    ->orderBy('bookings.booking_date', 'desc');
                 // ->whereDate('booking_date', '>=', now());
             })
             ->columns([
