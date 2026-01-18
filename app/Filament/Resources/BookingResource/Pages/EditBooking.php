@@ -26,6 +26,11 @@ class EditBooking extends EditRecord
     {
         $data['remaining'] = $data['sum'] - $data['prepayment'];
 
+        $customer = $this->record->customer;
+
+        $data['customer_name'] = $customer?->name ?? '';
+        $data['customer_phone'] = $this->record->customer_phone ?? $customer?->phone;
+
         return $data;
     }
 }

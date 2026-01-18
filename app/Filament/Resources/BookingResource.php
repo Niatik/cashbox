@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\BookingResource\Pages;
 use App\Models\Booking;
+use App\Models\Customer;
 use App\Models\Price;
 use App\Models\PriceItem;
 use Filament\Forms;
@@ -24,6 +25,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class BookingResource extends Resource
 {
@@ -44,7 +46,9 @@ class BookingResource extends Resource
                 static::getSumFormField(),
                 static::getPrepaymentFormField(),
                 static::getRemainingFormField(),
+                static::getCustomerPhoneFormField(),
                 static::getCustomerFormField(),
+                static::getCustomerIdFormField(),
                 static::getEmployeeFormField(),
             ])
             ->columns(1);
@@ -85,23 +89,44 @@ class BookingResource extends Resource
     }
 
 
-    public static function getCustomerFormField(): Select
+    public static function getCustomerFormField(): TextInput
     {
-        return Forms\Components\Select::make('customer_id')
-            ->relationship('customer', 'name')
+        return TextInput::make('customer_name')
             ->label('Клиент')
-            ->searchable()
-            ->preload()
-            ->createOptionForm([
-                Forms\Components\TextInput::make('name')
-                    ->label('Ф.И.О.')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('phone')
-                    ->label('Телефон')
-                    ->tel()
-                    ->required(),
-            ]);
+            ->disabled()
+            ->dehydrated(false)
+            ->default('');
+    }
+
+    public static function getCustomerPhoneFormField(): TextInput
+    {
+        return TextInput::make('customer_phone')
+            ->label('Телефон клиента')
+            ->tel()
+            ->maxLength(255)
+            ->live(debounce: 1000)
+            ->afterStateUpdated(function (?string $state, Set $set) {
+                $customer = null;
+
+                if ($state) {
+                    $customer = Customer::query()
+                        ->where('phone', $state)
+                        ->first();
+                }
+
+                if ($customer) {
+                    $set('customer_id', $customer->id);
+                    $set('customer_name', $customer->name);
+                } else {
+                    $set('customer_id', null);
+                    $set('customer_name', '');
+                }
+            });
+    }
+
+    public static function getCustomerIdFormField(): Hidden
+    {
+        return Hidden::make('customer_id');
     }
 
     public static function getEmployeeFormField(): TextInput
@@ -284,7 +309,7 @@ class BookingResource extends Resource
                         'orders.order_time',
                         'prices.name as price_name',
                         'price_items.name_item',
-                        'customers.name as customer_name',
+                        DB::raw('coalesce(customers.name, bookings.customer_phone) as customer_name'),
                         'orders.people_number as people_number',
                         'orders.sum as order_sum',
                     );
