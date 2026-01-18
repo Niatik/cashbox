@@ -23,6 +23,7 @@ class Booking extends Model
         'prepayment',
         'employee_id',
         'customer_id',
+        'customer_phone',
     ];
 
     protected $casts = [
