@@ -156,6 +156,9 @@
                             Всего: {{ number_format(collect($socialMedia)->sum('orders_count')) }} заказов
                         </span>
                         <span class="text-gray-500 dark:text-gray-400">
+                            Общее количество людей: {{ number_format(collect($socialMedia)->sum('total_people')) }}
+                        </span>
+                        <span class="text-gray-500 dark:text-gray-400">
                             Общая выручка: {{ number_format(collect($socialMedia)->sum('total_sum'), 0, '.', ' ') }} ₸
                         </span>
                     </div>
