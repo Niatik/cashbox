@@ -531,9 +531,9 @@ class OrderResource extends Resource
                         $sum = $record->net_sum;
                         $discount = $record->options['discount'] ?? 0;
                         $additionalDiscount = $record->options['additional_discount'] ?? 0;
-                        $totalPaid = $record->payments->sum('payment_cash_amount') + $record->payments->sum('payment_cashless_amount') - $discount - $additionalDiscount;
+                        $totalPaid = $record->payments->sum('payment_cash_amount') + $record->payments->sum('payment_cashless_amount');
 
-                        return max(0, $sum - $totalPaid);
+                        return max(0, $sum - $totalPaid - $discount - $additionalDiscount);
                     }),
             ])
             ->paginated(false)
