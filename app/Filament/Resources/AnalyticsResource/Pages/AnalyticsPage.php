@@ -8,6 +8,7 @@ use App\Models\ExpenseType;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Price;
+use App\Models\PriceItem;
 use App\Models\Salary;
 use App\Models\SocialMedia;
 use Filament\Forms\Components\DatePicker;
@@ -17,6 +18,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Pages\Page;
 
 class AnalyticsPage extends Page implements HasForms
@@ -69,9 +71,47 @@ class AnalyticsPage extends Page implements HasForms
                             ->preload()
                             ->placeholder('Все услуги')
                             ->live()
+                            ->afterStateUpdated(function (Set $set) {
+                                $set('price_item_id', null);
+                                $this->updateData();
+                            }),
+
+                        Select::make('price_item_id')
+                            ->label('Тип времени')
+                            ->options(function (Get $get) {
+                                $priceId = $get('price_id');
+                                if (! $priceId) {
+                                    return [];
+                                }
+
+                                return PriceItem::where('price_id', $priceId)
+                                    ->pluck('name_item', 'id');
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Все типы')
+                            ->live()
+                            ->visible(function (Get $get) {
+                                $priceId = $get('price_id');
+                                if (! $priceId) {
+                                    return false;
+                                }
+
+                                $firstPriceItem = PriceItem::where('price_id', $priceId)
+                                    ->orderBy('id')
+                                    ->first();
+
+                                if (! $firstPriceItem) {
+                                    return false;
+                                }
+
+                                $name = mb_strtolower($firstPriceItem->name_item);
+
+                                return str_contains($name, 'мин') || str_contains($name, 'час');
+                            })
                             ->afterStateUpdated(fn () => $this->updateData()),
                     ])
-                    ->columns(3)
+                    ->columns(4)
                     ->collapsible(),
             ])
             ->statePath('data');
@@ -89,11 +129,15 @@ class AnalyticsPage extends Page implements HasForms
         $dateFrom = $this->data['date_from'] ?? now()->startOfMonth();
         $dateTo = $this->data['date_to'] ?? now()->endOfMonth();
         $priceId = $this->data['price_id'] ?? null;
+        $priceItemId = $this->data['price_item_id'] ?? null;
 
         // Get orders query with optional price filter
         $ordersQuery = Order::query();
         if ($priceId) {
             $ordersQuery->where('price_id', $priceId);
+        }
+        if ($priceItemId) {
+            $ordersQuery->where('price_item_id', $priceItemId);
         }
         $orderIds = $ordersQuery->pluck('id');
 
@@ -115,7 +159,7 @@ class AnalyticsPage extends Page implements HasForms
             ->sum('salary_amount') / 100;
 
         $totalExpenses = $expenses + $salaryExpenses;
-        
+
         // Total income is cash + cashless
         $totalIncome = $cashIncome + $cashlessIncome;
 
@@ -137,13 +181,17 @@ class AnalyticsPage extends Page implements HasForms
         $dateFrom = $this->data['date_from'] ?? now()->startOfMonth();
         $dateTo = $this->data['date_to'] ?? now()->endOfMonth();
         $priceId = $this->data['price_id'] ?? null;
+        $priceItemId = $this->data['price_item_id'] ?? null;
 
         return SocialMedia::all()
-            ->map(function ($socialMedia) use ($dateFrom, $dateTo, $priceId) {
+            ->map(function ($socialMedia) use ($dateFrom, $dateTo, $priceId, $priceItemId) {
                 // Get orders for this social media with optional price filter
                 $ordersQuery = Order::where('social_media_id', $socialMedia->id);
                 if ($priceId) {
                     $ordersQuery->where('price_id', $priceId);
+                }
+                if ($priceItemId) {
+                    $ordersQuery->where('price_item_id', $priceItemId);
                 }
                 $orderIds = $ordersQuery->pluck('id');
 
