@@ -182,6 +182,7 @@ class OrderResource extends Resource
             })
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
+                ->whereNotNull('name_item')
                 ->orderBy('id')
                 ->pluck('name_item', 'id'))
             ->live(debounce: 1000)
@@ -268,7 +269,7 @@ class OrderResource extends Resource
     public static function getCustomerFormField(): Select
     {
         return Select::make('customer_id')
-            ->relationship('customer', 'name')
+            ->relationship('customer', 'name', fn ($query) => $query->whereNotNull('name'))
             ->label('Клиент')
             ->searchable()
             ->preload()
