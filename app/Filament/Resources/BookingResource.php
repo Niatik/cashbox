@@ -210,7 +210,7 @@ class BookingResource extends Resource
             })
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
-                ->orderBy('name_item')
+                ->orderBy('id')
                 ->pluck('name_item', 'id'))
             ->live(debounce: 1000)
             ->afterStateUpdated(function (Select $component, ?int $state, Get $get, Set $set) {
