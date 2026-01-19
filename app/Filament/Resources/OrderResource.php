@@ -529,7 +529,9 @@ class OrderResource extends Resource
                     ->label('Остаток')
                     ->getStateUsing(function ($record) {
                         $sum = $record->net_sum;
-                        $totalPaid = $record->payments->sum('payment_cash_amount') + $record->payments->sum('payment_cashless_amount');
+                        $discount = $record->options['discount'] ?? 0;
+                        $additionalDiscount = $record->options['additional_discount'] ?? 0;
+                        $totalPaid = $record->payments->sum('payment_cash_amount') + $record->payments->sum('payment_cashless_amount') - $discount - $additionalDiscount;
 
                         return max(0, $sum - $totalPaid);
                     }),
