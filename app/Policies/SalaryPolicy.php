@@ -49,7 +49,7 @@ class SalaryPolicy
      */
     public function update(User $user, Salary $salary): bool
     {
-        if ($user->can('update salaries')) {
+        if ($user->can('edit salaries')) {
             return true;
         } else {
             return false;

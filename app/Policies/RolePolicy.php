@@ -31,7 +31,7 @@ class RolePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_role');
+        return $user->can('create roles');
     }
 
     /**
@@ -39,7 +39,7 @@ class RolePolicy
      */
     public function update(User $user, Role $role): bool
     {
-        return $user->can('update_role');
+        return $user->can('edit roles');
     }
 
     /**
@@ -47,7 +47,7 @@ class RolePolicy
      */
     public function delete(User $user, Role $role): bool
     {
-        return $user->can('delete_role');
+        return $user->can('delete roles');
     }
 
     /**
@@ -55,7 +55,7 @@ class RolePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_role');
+        return $user->can('delete roles');
     }
 
     /**
@@ -63,7 +63,7 @@ class RolePolicy
      */
     public function forceDelete(User $user, Role $role): bool
     {
-        return $user->can('force_delete_role');
+        return $user->can('delete roles');
     }
 
     /**
@@ -71,7 +71,7 @@ class RolePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_role');
+        return $user->can('delete roles');
     }
 
     /**
@@ -79,7 +79,7 @@ class RolePolicy
      */
     public function restore(User $user, Role $role): bool
     {
-        return $user->can('restore_role');
+        return $user->can('restore roles');
     }
 
     /**
@@ -87,7 +87,7 @@ class RolePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_role');
+        return $user->can('restore roles');
     }
 
     /**
@@ -95,7 +95,7 @@ class RolePolicy
      */
     public function replicate(User $user, Role $role): bool
     {
-        return $user->can('replicate_role');
+        return $user->can('replicate roles');
     }
 
     /**
@@ -103,6 +103,6 @@ class RolePolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_role');
+        return $user->can('reorder roles');
     }
 }
