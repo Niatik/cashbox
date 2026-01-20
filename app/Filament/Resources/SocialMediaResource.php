@@ -64,6 +64,12 @@ class SocialMediaResource extends Resource
                     ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray')
                     ->formatStateUsing(fn (int $state): string => $state > 0 ? $state : 'Нет заказов'),
 
+                Tables\Columns\TextColumn::make('people_count')
+                    ->label('Люди')
+                    ->getStateUsing(fn (SocialMedia $record) => $record->orders()->where('people_number', '<=', 1000)->sum('people_number'))
+                    ->badge()
+                    ->color(fn (int $state): string => $state > 0 ? 'info' : 'gray'),
+
                 Tables\Columns\TextColumn::make('status')
                     ->label('Статус')
                     ->getStateUsing(fn (SocialMedia $record) => $record->orders()->count() > 0 ? 'Используется' : 'Можно удалить')
