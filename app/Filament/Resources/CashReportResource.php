@@ -88,12 +88,12 @@ class CashReportResource extends Resource
                             ->numeric(decimalPlaces: 0)
                             ->getStateUsing(fn (Model $record) => $record->morning_cash_balance + $record->cash_income - $record->cash_expense - $record->cash_salary
                             ),
-                        Infolists\Components\TextEntry::make('evening_cashless_balance')
+                        /*Infolists\Components\TextEntry::make('evening_cashless_balance')
                             ->label('Остаток безналичный')
                             ->numeric(decimalPlaces: 0)
                             ->getStateUsing(fn (Model $record) => $record->cashless_income - $record->cashless_expense - $record->cashless_salary
-                            ),
-                    ])->columns(2),
+                            ),*/
+                    ]),
             ]);
     }
 
@@ -127,6 +127,16 @@ class CashReportResource extends Resource
                     ->numeric(decimalPlaces: 0)
                     ->sortable(),
 
+                TextColumn::make('evening_cash_balance')
+                    ->label('Остаток наличными')
+                    ->numeric(decimalPlaces: 0)
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("morning_cash_balance + cash_income - cash_expense - cash_salary {$direction}");
+                    })
+                    ->getStateUsing(function (Model $record) {
+                        return $record->morning_cash_balance + $record->cash_income - $record->cash_expense - $record->cash_salary;
+                    }),
+
                 TextColumn::make('total_expense')
                     ->label('Расход')
                     ->numeric(decimalPlaces: 0)
@@ -147,7 +157,7 @@ class CashReportResource extends Resource
                         return $record->cash_salary + $record->cashless_salary;
                     }),
 
-                TextColumn::make('evening_cash_balance')
+                /*TextColumn::make('evening_cash_balance')
                     ->label('Остаток наличными')
                     ->numeric(decimalPlaces: 0)
                     ->sortable(query: function (Builder $query, string $direction): Builder {
@@ -155,9 +165,9 @@ class CashReportResource extends Resource
                     })
                     ->getStateUsing(function (Model $record) {
                         return $record->morning_cash_balance + $record->cash_income - $record->cash_expense - $record->cash_salary;
-                    }),
+                    }),*/
 
-                TextColumn::make('evening_cashless_balance')
+                /*TextColumn::make('evening_cashless_balance')
                     ->label('Остаток безналичный')
                     ->numeric(decimalPlaces: 0)
                     ->sortable(query: function (Builder $query, string $direction): Builder {
@@ -165,7 +175,7 @@ class CashReportResource extends Resource
                     })
                     ->getStateUsing(function (Model $record) {
                         return $record->cashless_income - $record->cashless_expense - $record->cashless_salary;
-                    }),
+                    }),*/
             ])
             ->defaultSort('date', 'desc')
             ->filters([
