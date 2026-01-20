@@ -39,6 +39,9 @@ class PriceResource extends Resource
                     ->numeric()
                     ->maxLength(18)
                     ->required(),
+                Forms\Components\Toggle::make('is_hidden')
+                    ->label('Скрытая')
+                    ->default(false),
             ]);
     }
 
@@ -58,6 +61,9 @@ class PriceResource extends Resource
                 Tables\Columns\TextColumn::make('price')
                     ->label('Цена')
                     ->sortable(),
+                Tables\Columns\ToggleColumn::make('is_hidden')
+                    ->label('Скрытая'),
+
             ])
             ->filters([
                 //

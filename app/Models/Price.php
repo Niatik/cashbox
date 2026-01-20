@@ -15,6 +15,7 @@ class Price extends Model
         'name',
         'description',
         'price',
+        'is_hidden',
     ];
 
     protected $casts = [

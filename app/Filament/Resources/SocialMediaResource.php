@@ -38,6 +38,9 @@ class SocialMediaResource extends Resource
                             ->placeholder('Например: Instagram, WhatsApp, Телефон')
                             ->unique(ignoreRecord: true)
                             ->helperText('Укажите название источника, откуда приходят клиенты'),
+                        Forms\Components\Toggle::make('is_hidden')
+                            ->label('Скрытый')
+                            ->default(false),
                     ])
                     ->columns(1),
             ]);
@@ -67,7 +70,11 @@ class SocialMediaResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => $state === 'Используется' ? 'warning' : 'success'),
 
-                Tables\Columns\TextColumn::make('created_at')
+                Tables\Columns\ToggleColumn::make('is_hidden')
+                    ->label('Скрытый'),
+
+
+                /*Tables\Columns\TextColumn::make('created_at')
                     ->label('Создано')
                     ->dateTime('d.m.Y H:i')
                     ->sortable()
@@ -77,7 +84,7 @@ class SocialMediaResource extends Resource
                     ->label('Обновлено')
                     ->dateTime('d.m.Y H:i')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true),*/
             ])
             ->filters([
                 //

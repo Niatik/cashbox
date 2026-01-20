@@ -12,8 +12,9 @@ class SocialMedia extends Model
 
     protected $fillable = [
         'name',
+        'is_hidden',
     ];
-    
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
