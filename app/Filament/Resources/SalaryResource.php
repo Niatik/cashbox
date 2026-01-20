@@ -10,6 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\Filter;
@@ -105,28 +106,20 @@ class SalaryResource extends Resource
     protected static function getTableFilters(): array
     {
         return [
-            Filter::make('selected_range_dates')
+            Filter::make('selected_date')
                 ->default()
                 ->form([
-                    DatePicker::make('start_date')
-                        ->label('Начальная дата')
-                        ->default(now()->subDays(30)),
-                    DatePicker::make('end_date')
-                        ->label('Конечная дата')
-                        ->default(now()),
+                    DatePicker::make('select_date')
+                        ->default(now())
+                        ->label('Выберите дату'),
                 ])
-                ->query(function (Builder $query, array $data): Builder {
+                ->query(function (Builder $query, array $data, Get $get): Builder {
                     return $query
                         ->when(
-                            $data['start_date'],
-                            fn (Builder $query, $date): Builder => $query->whereDate('salary_date', '>=', $date),
-                        )
-                        ->when(
-                            $data['end_date'],
-                            fn (Builder $query, $date): Builder => $query->whereDate('salary_date', '<=', $date),
+                            $data['select_date'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('salary_date', '=', $date),
                         );
                 }),
         ];
-
     }
 }
