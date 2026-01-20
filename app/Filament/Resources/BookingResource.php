@@ -165,6 +165,7 @@ class BookingResource extends Resource
     {
         return Select::make('price_id')
             ->options(fn (Get $get): Collection => Price::query()
+                ->where('is_hidden', false)
                 ->orderBy('id')
                 ->pluck('name', 'id'))
 

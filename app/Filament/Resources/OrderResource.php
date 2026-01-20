@@ -135,7 +135,7 @@ class OrderResource extends Resource
     public static function getPriceFormField(): Select
     {
         return Select::make('price_id')
-            ->relationship('price', 'name')
+            ->relationship('price', 'name', fn (Builder $query) => $query->where('is_hidden', false))
             ->label('Услуга')
             ->searchable()
             ->preload()
@@ -240,7 +240,7 @@ class OrderResource extends Resource
                 $set('sum', $sum);
                 $set('net_sum', $netSum);
 
-                // Only update first payment if this is a new order creation
+                // Only update the first payment if this is a new order creation
                 if (! $get('id')) { // No ID means new order
                     $set('payments.0.payment_cashless_amount', $sum);
                 }
@@ -253,7 +253,7 @@ class OrderResource extends Resource
     public static function getSocialMediaFormField(): Select
     {
         return Select::make('social_media_id')
-            ->relationship('social_media', 'name')
+            ->relationship('social_media', 'name', fn (Builder $query) => $query->where('is_hidden', false))
             ->label('Откуда')
             ->searchable()
             ->preload()
