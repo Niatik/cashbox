@@ -330,41 +330,18 @@ class OrderResource extends Resource
                     $component->state('');
                 }
             })
-            ->extraAlpineAttributes(fn (Get $get) => [
-                'x-data' => '{ orderSum: '.($get('../../sum') ?? $get('sum') ?? 0).' }',
-            ])
-            ->extraInputAttributes([
-                'x-on:focus' => "
-                    const target = \$event.target;
-                    if (!target.value || target.value === '' || target.value === '0') {
-                        const sum = parseFloat(orderSum || 0);
-                        let totalPaid = 0;
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                // Получаем сумму заказа
+                $sum = floatval($get('../../sum') ?? 0);
+                $cashValue = floatval($state ?? 0);
 
-                        // Найти все поля платежей в текущем repeater, кроме текущего
-                        const repeaterDiv = target.closest('[data-fieldset-type=\"component\"]');
-                        if (repeaterDiv) {
-                            const allRepeaters = document.querySelectorAll('[data-fieldset-type=\"component\"]');
-                            allRepeaters.forEach(repeater => {
-                                const inputs = repeater.querySelectorAll('input[type=\"text\"][wire\\\\:model]');
-                                inputs.forEach(input => {
-                                    if (input !== target) {
-                                        const value = parseFloat(input.value || 0);
-                                        if (!isNaN(value) && value > 0) {
-                                            totalPaid += value;
-                                        }
-                                    }
-                                });
-                            });
-                        }
+                // Получаем все оплаты и считаем сумму других строк
+                $payments = $get('../../payments') ?? [];
+                $currentCashlessValue = floatval($get('payment_cashless_amount') ?? 0);
 
-                        const remaining = Math.max(0, sum - totalPaid);
-                        if (remaining > 0) {
-                            target.value = remaining.toFixed(0);
-                            target.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    }
-                ",
-            ]);
+                $remaining = self::getRemaining($payments, $cashValue, $currentCashlessValue, $sum);
+                $set('payment_cashless_amount', $remaining > 0 ? $remaining : '');
+            });
     }
 
     public static function getPaymentCashlessAmountFormField(): TextInput
@@ -380,41 +357,18 @@ class OrderResource extends Resource
                     $component->state('');
                 }
             })
-            ->extraAlpineAttributes(fn (Get $get) => [
-                'x-data' => '{ orderSum: '.($get('../../sum') ?? $get('sum') ?? 0).' }',
-            ])
-            ->extraInputAttributes([
-                'x-on:focus' => "
-                    const target = \$event.target;
-                    if (!target.value || target.value === '' || target.value === '0') {
-                        const sum = parseFloat(orderSum || 0);
-                        let totalPaid = 0;
+            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                // Получаем сумму заказа
+                $sum = floatval($get('../../sum') ?? 0);
+                $cashlessValue = floatval($state ?? 0);
 
-                        // Найти все поля платежей в текущем repeater, кроме текущего
-                        const repeaterDiv = target.closest('[data-fieldset-type=\"component\"]');
-                        if (repeaterDiv) {
-                            const allRepeaters = document.querySelectorAll('[data-fieldset-type=\"component\"]');
-                            allRepeaters.forEach(repeater => {
-                                const inputs = repeater.querySelectorAll('input[type=\"text\"][wire\\\\:model]');
-                                inputs.forEach(input => {
-                                    if (input !== target) {
-                                        const value = parseFloat(input.value || 0);
-                                        if (!isNaN(value) && value > 0) {
-                                            totalPaid += value;
-                                        }
-                                    }
-                                });
-                            });
-                        }
+                // Получаем все оплаты и считаем сумму других строк
+                $payments = $get('../../payments') ?? [];
+                $currentCashValue = floatval($get('payment_cash_amount') ?? 0);
 
-                        const remaining = Math.max(0, sum - totalPaid);
-                        if (remaining > 0) {
-                            target.value = remaining.toFixed(0);
-                            target.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    }
-                ",
-            ]);
+                $remaining = self::getRemaining($payments, $cashlessValue, $currentCashValue, $sum);
+                $set('payment_cash_amount', $remaining > 0 ? $remaining : '');
+            });
     }
 
     public static function getOptionsFormField(): Section
@@ -688,5 +642,27 @@ class OrderResource extends Resource
                         );
                 }),
         ];
+    }
+
+    /**
+     * @param mixed $payments
+     * @param float $cashValue
+     * @param float $currentCashlessValue
+     * @param float $sum
+     * @return mixed
+     */
+    public static function getRemaining(mixed $payments, float $cashValue, float $currentCashlessValue, float $sum): mixed
+    {
+        $totalOtherPayments = 0;
+        foreach ($payments as $key => $payment) {
+            $paymentCash = floatval($payment['payment_cash_amount'] ?? 0);
+            $paymentCashless = floatval($payment['payment_cashless_amount'] ?? 0);
+            $totalOtherPayments += $paymentCash + $paymentCashless;
+        }
+        // Вычитаем текущую строку из общей суммы
+        $totalOtherPayments -= $cashValue + $currentCashlessValue;
+
+        $remaining = max(0, $sum - $totalOtherPayments - $cashValue);
+        return $remaining;
     }
 }
