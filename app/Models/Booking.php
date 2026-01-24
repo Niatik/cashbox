@@ -26,6 +26,7 @@ class Booking extends Model
     ];
 
     protected $casts = [
+        'booking_date' => 'date',
         'sum' => MoneyCast::class,
         'prepayment' => MoneyCast::class,
         'booking_price_items' => 'array',

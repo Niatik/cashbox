@@ -57,9 +57,9 @@ class BookingResource extends Resource
     public static function getDateFormField(): DatePicker
     {
         return DatePicker::make('booking_date')
-            ->timezone('Etc/GMT-5')
-            ->default(now())
-            ->minDate(now()->timezone('Etc/GMT-5'))
+            ->timezone('Asia/Almaty')
+            ->default(now('Asia/Almaty')->startOfDay())
+            ->minDate(now('Asia/Almaty')->startOfDay())
             ->label('Дата')
             ->required();
     }
@@ -314,8 +314,8 @@ class BookingResource extends Resource
                         'orders.sum as order_sum',
                     )
                     ->orderBy('bookings.booking_date', 'desc')
-                    ->orderBy('orders.order_time');
-                // ->whereDate('booking_date', '>=', now());
+                    ->orderBy('orders.order_time')
+                    ->whereDate('booking_date', '>=', now('Asia/Almaty')->startOfDay());
             })
             ->columns([
                 TextColumn::make('booking_date')
@@ -375,10 +375,10 @@ class BookingResource extends Resource
     {
         return [
             Filter::make('selected_date')
-                ->default()
                 ->form([
                     DatePicker::make('select_date')
-                        ->default(now())
+                        ->timezone('Asia/Almaty')
+                        ->default(now('Asia/Almaty')->startOfDay())
                         ->label('Выберите дату'),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {
