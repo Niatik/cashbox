@@ -332,7 +332,7 @@ class OrderResource extends Resource
             })
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                 // Получаем сумму заказа
-                $sum = floatval($get('../../sum') ?? 0);
+                $sum = floatval($get('../../net_sum') ?? 0);
                 $cashValue = floatval($state ?? 0);
 
                 // Получаем все оплаты и считаем сумму других строк
@@ -359,7 +359,7 @@ class OrderResource extends Resource
             })
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                 // Получаем сумму заказа
-                $sum = floatval($get('../../sum') ?? 0);
+                $sum = floatval($get('../../net_sum') ?? 0);
                 $cashlessValue = floatval($state ?? 0);
 
                 // Получаем все оплаты и считаем сумму других строк
@@ -644,13 +644,6 @@ class OrderResource extends Resource
         ];
     }
 
-    /**
-     * @param mixed $payments
-     * @param float $cashValue
-     * @param float $currentCashlessValue
-     * @param float $sum
-     * @return mixed
-     */
     public static function getRemaining(mixed $payments, float $cashValue, float $currentCashlessValue, float $sum): mixed
     {
         $totalOtherPayments = 0;
@@ -663,6 +656,7 @@ class OrderResource extends Resource
         $totalOtherPayments -= $cashValue + $currentCashlessValue;
 
         $remaining = max(0, $sum - $totalOtherPayments - $cashValue);
+
         return $remaining;
     }
 }
