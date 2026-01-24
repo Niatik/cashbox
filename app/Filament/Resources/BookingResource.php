@@ -57,7 +57,9 @@ class BookingResource extends Resource
     public static function getDateFormField(): DatePicker
     {
         return DatePicker::make('booking_date')
+            ->timezone('Etc/GMT-5')
             ->default(now())
+            ->minDate(now()->timezone('Etc/GMT-5'))
             ->label('Дата')
             ->required();
     }
