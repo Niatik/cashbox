@@ -322,7 +322,7 @@ class BookingResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('order_time')
-                    ->date('H:i:s')
+                    ->date('H:i')
                     ->label('Время')
                     ->timezone('Etc/GMT-5')
                     ->searchable()
