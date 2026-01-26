@@ -157,8 +157,20 @@ class BookingResource extends Resource
                 static::getNameOfPriceItemFormField(),
                 static::getPeopleItemFormField(),
             ])
+            ->default([
+                [
+                    'price_id' => null,
+                    'price_item_id' => null,
+                    'people_number' => null,
+                    'prepayment_price_item' => null,
+                    'is_cash' => null,
+                    'name_of_price_item' => null,
+                    'people_item' => null,
+                ],
+            ])
+            ->minItems(1)
             ->label('Услуги')
-            ->collapsible()
+            ->collapsible(false)
             ->reorderableWithDragAndDrop(false)
             ->columns(3);
     }
