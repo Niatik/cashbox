@@ -324,7 +324,38 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 500)
             ->label('Наличные')
-            ->afterStateHydrated(function (TextInput $component, ?string $state) {
+            ->extraInputAttributes([
+                'x-data' => '{
+                showRemaining() {
+                    const data = $wire.get("data");
+                    const netSum = parseFloat(data.net_sum || 0);
+                    const discount = parseFloat(data.options?.discount || 0);
+                    const additionalDiscount = parseFloat(data.options?.additional_discount || 0);
+                    const payments = Object.values(data.payments || {});
+
+                    // Найти текущий элемент repeater по индексу
+                    const currentKey = $el.closest("[wire\\\\:key]")?.getAttribute("wire:key");
+
+                    // Сумма всех оплат кроме текущей
+                    const otherPaymentsTotal = payments.reduce((sum, payment, index) => {
+                        const paymentKey = Object.keys(data.payments)[index];
+                        if (paymentKey === currentKey) return sum;
+
+                        const cash = parseFloat(payment.payment_cash_amount || 0);
+                        const cashless = parseFloat(payment.payment_cashless_amount || 0);
+                        return sum + cash + cashless;
+                    }, 0);
+
+                    const remaining = netSum - discount - additionalDiscount - otherPaymentsTotal;
+
+                    if (!$el.value || $el.value === "0") {
+                        $el.value = remaining > 0 ? remaining.toFixed(0) : "";
+                        $el.dispatchEvent(new Event("input", { bubbles: true }));
+                    }
+                }
+            }',
+                'x-on:focus' => 'showRemaining()',
+            ])->afterStateHydrated(function (TextInput $component, ?string $state) {
                 $state = $state ?? '';
                 if ($state == '0') {
                     $component->state('');
@@ -351,6 +382,38 @@ class OrderResource extends Resource
             ->numeric()
             ->live(debounce: 500)
             ->label('Безналичные')
+            ->extraInputAttributes([
+                'x-data' => '{
+                showRemaining() {
+                    const data = $wire.get("data");
+                    const netSum = parseFloat(data.net_sum || 0);
+                    const discount = parseFloat(data.options?.discount || 0);
+                    const additionalDiscount = parseFloat(data.options?.additional_discount || 0);
+                    const payments = Object.values(data.payments || {});
+
+                    // Найти текущий элемент repeater по индексу
+                    const currentKey = $el.closest("[wire\\\\:key]")?.getAttribute("wire:key");
+
+                    // Сумма всех оплат кроме текущей
+                    const otherPaymentsTotal = payments.reduce((sum, payment, index) => {
+                        const paymentKey = Object.keys(data.payments)[index];
+                        if (paymentKey === currentKey) return sum;
+
+                        const cash = parseFloat(payment.payment_cash_amount || 0);
+                        const cashless = parseFloat(payment.payment_cashless_amount || 0);
+                        return sum + cash + cashless;
+                    }, 0);
+
+                    const remaining = netSum - discount - additionalDiscount - otherPaymentsTotal;
+
+                    if (!$el.value || $el.value === "0") {
+                        $el.value = remaining > 0 ? remaining.toFixed(0) : "";
+                        $el.dispatchEvent(new Event("input", { bubbles: true }));
+                    }
+                }
+            }',
+                'x-on:focus' => 'showRemaining()',
+            ])
             ->afterStateHydrated(function (TextInput $component, ?string $state) {
                 $state = $state ?? '';
                 if ($state == '0') {
