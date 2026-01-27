@@ -38,6 +38,14 @@ class BookingFactory extends Factory
             'prepayment' => 0,
             'employee_id' => Employee::factory(),
             'customer_id' => Customer::factory(),
+            'is_draft' => false,
         ];
+    }
+
+    public function draft(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_draft' => true,
+        ]);
     }
 }
