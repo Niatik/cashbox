@@ -6,8 +6,6 @@ use App\Events\BookingCreated;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class CreateOrdersWhenBookingCreated
 {
@@ -25,6 +23,11 @@ class CreateOrdersWhenBookingCreated
     public function handle(BookingCreated $event): void
     {
         $booking = $event->booking;
+
+        if ($booking->is_draft) {
+            return;
+        }
+
         $bookingDate = $booking->booking_date;
         $customer = $booking->customer_id;
         $employee = $booking->employee_id;
