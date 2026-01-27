@@ -41,7 +41,6 @@ class BookingResource extends Resource
     {
         return $form
             ->schema([
-                static::getIsDraftFormField(),
                 static::getDateFormField(),
                 static::getBookingPriceItemFormField(),
                 static::getSumFormField(),
@@ -51,6 +50,7 @@ class BookingResource extends Resource
                 static::getCustomerFormField(),
                 static::getCustomerIdFormField(),
                 static::getEmployeeFormField(),
+                static::getIsDraftFormField(),
             ])
             ->columns(1);
     }
