@@ -41,6 +41,7 @@ class BookingResource extends Resource
     {
         return $form
             ->schema([
+                static::getIsDraftFormField(),
                 static::getDateFormField(),
                 static::getBookingPriceItemFormField(),
                 static::getSumFormField(),
@@ -52,6 +53,14 @@ class BookingResource extends Resource
                 static::getEmployeeFormField(),
             ])
             ->columns(1);
+    }
+
+    public static function getIsDraftFormField(): Toggle
+    {
+        return Toggle::make('is_draft')
+            ->label('Черновик')
+            ->default(false)
+            ->helperText('Черновики не создают заказы до публикации');
     }
 
     public static function getDateFormField(): DatePicker
@@ -159,6 +168,7 @@ class BookingResource extends Resource
             ])
             ->default([
                 [
+                    'booking_time' => now()->format('H:i:s'),
                     'price_id' => null,
                     'price_item_id' => null,
                     'people_number' => null,
@@ -312,18 +322,19 @@ class BookingResource extends Resource
             ->modifyQueryUsing(function (Builder $query) {
                 $query
                     ->leftJoin('customers', 'bookings.customer_id', '=', 'customers.id')
-                    ->join('orders', 'bookings.id', '=', 'orders.booking_id')
-                    ->join('prices', 'orders.price_id', '=', 'prices.id')
-                    ->join('price_items', 'orders.price_item_id', '=', 'price_items.id')
+                    ->leftJoin('orders', 'bookings.id', '=', 'orders.booking_id')
+                    ->leftJoin('prices', 'orders.price_id', '=', 'prices.id')
+                    ->leftJoin('price_items', 'orders.price_item_id', '=', 'price_items.id')
                     ->select(
                         'bookings.id',
                         'bookings.booking_date',
+                        'bookings.is_draft',
                         'orders.order_time',
                         'prices.name as price_name',
                         'price_items.name_item',
                         DB::raw('coalesce(customers.name, customers.phone) as customer_name'),
                         'orders.people_number as people_number',
-                        'orders.sum as order_sum',
+                        'bookings.sum as booking_sum',
                     )
                     ->orderBy('bookings.booking_date', 'desc')
                     ->orderBy('orders.order_time')
@@ -358,7 +369,7 @@ class BookingResource extends Resource
                     ->numeric()
                     ->label('Люди')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('order_sum')
+                Tables\Columns\TextColumn::make('booking_sum')
                     ->numeric()
                     ->label('Сумма')
                     ->sortable()

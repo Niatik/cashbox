@@ -4,7 +4,9 @@ namespace App\Filament\Resources\BookingResource\Pages;
 
 use App\Filament\Resources\BookingResource;
 use Filament\Actions\CreateAction;
+use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListBookings extends ListRecords
 {
@@ -30,5 +32,20 @@ class ListBookings extends ListRecords
                 }),
 
         ];
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            'all' => Tab::make('Все')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('bookings.is_draft', false)),
+            'drafts' => Tab::make('Черновики')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('bookings.is_draft', true)),
+        ];
+    }
+
+    public function getDefaultActiveTab(): string|int|null
+    {
+        return 'all';
     }
 }
