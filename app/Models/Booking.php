@@ -23,6 +23,7 @@ class Booking extends Model
         'prepayment',
         'employee_id',
         'customer_id',
+        'is_draft',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Booking extends Model
         'sum' => MoneyCast::class,
         'prepayment' => MoneyCast::class,
         'booking_price_items' => 'array',
+        'is_draft' => 'boolean',
     ];
 
     public function employee(): BelongsTo
