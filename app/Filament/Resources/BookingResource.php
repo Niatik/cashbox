@@ -147,7 +147,9 @@ class BookingResource extends Resource
     {
         return TimePicker::make('booking_time')
             ->timezone('Etc/GMT-5')
-            ->format('H:i')
+            ->native(false)
+            ->displayFormat('H:i')
+            ->seconds(false)
             ->default(now())
             ->label('Время')
             ->required();
@@ -168,7 +170,7 @@ class BookingResource extends Resource
             ])
             ->default([
                 [
-                    'booking_time' => now()->format('H:i:s'),
+                    'booking_time' => now(),
                     'price_id' => null,
                     'price_item_id' => null,
                     'people_number' => null,
