@@ -50,17 +50,8 @@ class BookingResource extends Resource
                 static::getCustomerFormField(),
                 static::getCustomerIdFormField(),
                 static::getEmployeeFormField(),
-                static::getIsDraftFormField(),
             ])
             ->columns(1);
-    }
-
-    public static function getIsDraftFormField(): Toggle
-    {
-        return Toggle::make('is_draft')
-            ->label('Черновик')
-            ->default(false)
-            ->helperText('Черновики не создают заказы до публикации');
     }
 
     public static function getDateFormField(): DatePicker
@@ -340,6 +331,7 @@ class BookingResource extends Resource
                     )
                     ->orderBy('bookings.booking_date', 'desc')
                     ->orderBy('orders.order_time')
+                    ->where('is_draft', false)
                     ->whereDate('booking_date', '>=', now('Asia/Almaty')->startOfDay());
             })
             ->columns([
