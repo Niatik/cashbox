@@ -125,7 +125,9 @@ class OrderResource extends Resource
     {
         return TimePicker::make('order_time')
             ->timezone('Etc/GMT-5')
-            ->format('H:i')
+            ->native(false)
+            ->displayFormat('H:i')
+            ->seconds(false)
             ->default(now())
             ->label('Время')
             ->required()
