@@ -33,6 +33,7 @@ class EditBooking extends EditRecord
             Action::make('saveAsDraft')
                 ->label('Сохранить черновик')
                 ->color('gray')
+                ->extraAttributes(['class' => 'ms-auto'])
                 ->action(function () {
                     $this->shouldSaveAsDraft = true;
                     $this->save();
@@ -66,6 +67,8 @@ class EditBooking extends EditRecord
 
         if ($this->shouldSaveAsDraft) {
             $data['is_draft'] = true;
+        } else {
+            $data['is_draft'] = false;
         }
 
         return $data;
