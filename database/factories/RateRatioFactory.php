@@ -21,6 +21,8 @@ class RateRatioFactory extends Factory
             'rate_id' => Rate::factory(),
             'name' => fake()->words(2, true),
             'ratio' => fake()->randomFloat(2, 0.5, 2.0),
+            'ratio_from' => fake()->word(),
+            'ratio_to' => fake()->word(),
         ];
     }
 }

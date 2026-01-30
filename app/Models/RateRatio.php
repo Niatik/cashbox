@@ -14,6 +14,8 @@ class RateRatio extends Model
         'rate_id',
         'name',
         'ratio',
+        'ratio_from',
+        'ratio_to',
     ];
 
     public function rate(): BelongsTo
