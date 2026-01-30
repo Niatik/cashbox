@@ -34,7 +34,7 @@ it('can create a Employee', function () {
         ->fillForm([
             'name' => $newData->name,
             'phone' => $newData->phone,
-            'salary' => $newData->salary,
+            'job_title_id' => $newData->job_title_id,
             'employment_date' => $newData->employment_date,
             'user_id' => $newData->user_id,
         ])
@@ -44,7 +44,7 @@ it('can create a Employee', function () {
     $this->assertDatabaseHas(Employee::class, [
         'name' => $newData->name,
         'phone' => $newData->phone,
-        'salary' => $newData->salary * 100,
+        'job_title_id' => $newData->job_title_id,
         'employment_date' => $newData->employment_date,
         'user_id' => $newData->user_id,
     ]);
@@ -55,13 +55,14 @@ it('can validate input to create the Employee', function () {
         ->fillForm([
             'name' => null,
             'phone' => null,
-            'salary' => null,
+            'job_title_id' => null,
             'employment_date' => null,
             'user_id' => null,
         ])
         ->call('create')
         ->assertHasFormErrors([
             'name' => 'required',
+            'job_title_id' => 'required',
             'user_id' => 'required',
         ]);
 });
@@ -80,13 +81,13 @@ it('can retrieve data for editing the Employee', function () {
     ])
         ->assertFormFieldExists('name')
         ->assertFormFieldExists('phone')
-        ->assertFormFieldExists('salary')
+        ->assertFormFieldExists('job_title_id')
         ->assertFormFieldExists('employment_date')
         ->assertFormFieldExists('user_id')
         ->assertFormSet([
             'name' => $employee->name,
             'phone' => $employee->phone,
-            'salary' => $employee->salary,
+            'job_title_id' => $employee->job_title_id,
             'employment_date' => $employee->employment_date,
             'user_id' => $employee->user_id,
         ]);
@@ -102,7 +103,7 @@ it('can save edited Employee', function () {
         ->fillForm([
             'name' => $newData->name,
             'phone' => $newData->phone,
-            'salary' => $newData->salary,
+            'job_title_id' => $newData->job_title_id,
             'employment_date' => $newData->employment_date,
             'user_id' => $newData->user_id,
         ])
@@ -112,7 +113,7 @@ it('can save edited Employee', function () {
     expect($employee->refresh())
         ->name->toBe($newData->name)
         ->phone->toBe($newData->phone)
-        ->salary->toBe($newData->salary)
+        ->job_title_id->toBe($newData->job_title_id)
         ->employment_date->toBe($newData->employment_date)
         ->user_id->toBe($newData->user_id);
 });
@@ -126,13 +127,14 @@ it('can validate input to edit the Employee', function () {
         ->fillForm([
             'name' => null,
             'phone' => null,
-            'salary' => null,
+            'job_title_id' => null,
             'employment_date' => null,
             'user_id' => null,
         ])
         ->call('save')
         ->assertHasFormErrors([
             'name' => 'required',
+            'job_title_id' => 'required',
             'user_id' => 'required',
         ]);
 });
@@ -155,7 +157,7 @@ it('can render employee columns', function () {
         ->assertCanRenderTableColumn('name')
         ->assertCanRenderTableColumn('user.name')
         ->assertCanRenderTableColumn('phone')
-        ->assertCanRenderTableColumn('salary')
+        ->assertCanRenderTableColumn('jobTitle.title')
         ->assertCanRenderTableColumn('employment_date');
 });
 
@@ -226,17 +228,6 @@ it('can sort employees by phone', function () {
         ->assertCanSeeTableRecords($employees->sortByDesc('phone'), inOrder: true);
 });
 
-it('can sort employees by salary', function () {
-    Employee::factory()->count(4)->create();
-    $employees = Employee::all();
-
-    livewire(EmployeeResource\Pages\ListEmployees::class)
-        ->sortTable('salary')
-        ->assertCanSeeTableRecords($employees->sortBy('salary'), inOrder: true)
-        ->sortTable('salary', 'desc')
-        ->assertCanSeeTableRecords($employees->sortByDesc('salary'), inOrder: true);
-});
-
 it('can sort employees by employment date', function () {
     Employee::factory()->count(4)->create();
     $employees = Employee::all();
@@ -276,7 +267,7 @@ it('can edit employees from table', function () {
         ->callTableAction(EditAction::class, $employee, data: [
             'name' => $newData->name,
             'phone' => $newData->phone,
-            'salary' => $newData->salary,
+            'job_title_id' => $newData->job_title_id,
             'employment_date' => $newData->employment_date,
             'user_id' => $newData->user_id,
         ])
@@ -285,7 +276,7 @@ it('can edit employees from table', function () {
     expect($employee->refresh())
         ->name->toBe($newData->name)
         ->phone->toBe($newData->phone)
-        ->salary->toBe($newData->salary)
+        ->job_title_id->toBe($newData->job_title_id)
         ->employment_date->toBe($newData->employment_date)
         ->user_id->toBe($newData->user_id);
 });

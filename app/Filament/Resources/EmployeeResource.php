@@ -33,9 +33,11 @@ class EmployeeResource extends Resource
                 Forms\Components\TextInput::make('phone')
                     ->label('Телефон')
                     ->tel(),
-                Forms\Components\TextInput::make('salary')
-                    ->label('Оклад')
-                    ->numeric(),
+                Forms\Components\Select::make('job_title_id')
+                    ->label('Должность')
+                    ->relationship('jobTitle', 'title')
+                    ->preload()
+                    ->required(),
                 Forms\Components\DatePicker::make('employment_date')
                     ->label('Дата приема на работу'),
                 Forms\Components\Select::make('user_id')
@@ -79,9 +81,9 @@ class EmployeeResource extends Resource
                     ->label('Телефон')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('salary')
-                    ->label('Оклад')
-                    ->money('KZT')
+                Tables\Columns\TextColumn::make('jobTitle.title')
+                    ->label('Должность')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('employment_date')
                     ->label('Дата приема')
