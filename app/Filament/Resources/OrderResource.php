@@ -372,7 +372,14 @@ class OrderResource extends Resource
                 $payments = $get('../../payments') ?? [];
                 $currentCashlessValue = floatval($get('payment_cashless_amount') ?? 0);
 
-                $remaining = self::getRemaining($payments, $cashValue, $currentCashlessValue, $sum);
+                $discount = intval(floatval($get('../../options.discount')) * 100) / 100;
+                $prepayment = 0;
+                if (count($payments) == 0) {
+                    $prepayment = intval(floatval($get('../../options.prepayment')) * 100) / 100;
+                }
+                $additionalDiscount = intval(floatval($get('../../options.additional_discount')) * 100) / 100;
+
+                $remaining = self::getRemaining($payments, $cashValue, $currentCashlessValue, $sum, $discount, $prepayment, $additionalDiscount);
                 $set('payment_cashless_amount', $remaining > 0 ? $remaining : '');
             });
     }
@@ -431,7 +438,15 @@ class OrderResource extends Resource
                 $payments = $get('../../payments') ?? [];
                 $currentCashValue = floatval($get('payment_cash_amount') ?? 0);
 
-                $remaining = self::getRemaining($payments, $cashlessValue, $currentCashValue, $sum);
+                $discount = intval(floatval($get('../../options.discount')) * 100) / 100;
+                $prepayment = 0;
+                if (count($payments) == 0) {
+                    $prepayment = intval(floatval($get('../../options.prepayment')) * 100) / 100;
+                }
+                $additionalDiscount = intval(floatval($get('../../options.additional_discount')) * 100) / 100;
+
+
+                $remaining = self::getRemaining($payments, $cashlessValue, $currentCashValue, $sum, $discount, $prepayment, $additionalDiscount);
                 $set('payment_cash_amount', $remaining > 0 ? $remaining : '');
             });
     }
@@ -709,7 +724,7 @@ class OrderResource extends Resource
         ];
     }
 
-    public static function getRemaining(mixed $payments, float $cashValue, float $currentCashlessValue, float $sum): mixed
+    public static function getRemaining(mixed $payments, float $cashValue, float $currentCashlessValue, float $sum, float $discount, float $prepayment, float $additionalDiscount): mixed
     {
         $totalOtherPayments = 0;
         foreach ($payments as $key => $payment) {
@@ -720,8 +735,6 @@ class OrderResource extends Resource
         // Вычитаем текущую строку из общей суммы
         $totalOtherPayments -= $cashValue + $currentCashlessValue;
 
-        $remaining = max(0, $sum - $totalOtherPayments - $cashValue);
-
-        return $remaining;
+        return max(0, $sum - $totalOtherPayments - $cashValue - $discount - $prepayment - $additionalDiscount);
     }
 }
