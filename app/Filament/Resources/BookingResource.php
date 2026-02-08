@@ -138,7 +138,6 @@ class BookingResource extends Resource
     {
         return TimePicker::make('booking_time')
             ->timezone('Etc/GMT-5')
-            ->native(false)
             ->displayFormat('H:i')
             ->seconds(false)
             ->default(now())
