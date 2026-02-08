@@ -62,6 +62,12 @@ class EmployeeResource extends Resource
                 Forms\Components\Toggle::make('is_hidden')
                     ->label('Скрытый')
                     ->default(false),
+                Forms\Components\TextInput::make('fio')
+                    ->label('ФИО')
+                    ->maxLength(255),
+                Forms\Components\Textarea::make('info')
+                    ->label('Информация')
+                    ->rows(3),
             ]);
     }
 

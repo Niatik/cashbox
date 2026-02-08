@@ -18,6 +18,8 @@ class Employee extends Model
         'employment_date',
         'user_id',
         'is_hidden',
+        'fio',
+        'info',
     ];
 
     public function user(): BelongsTo
