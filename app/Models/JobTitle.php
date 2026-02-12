@@ -18,4 +18,9 @@ class JobTitle extends Model
     {
         return $this->hasMany(SalaryRate::class);
     }
+
+    public function rates(): HasMany
+    {
+        return $this->hasMany(Rate::class);
+    }
 }
