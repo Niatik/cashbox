@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\JobTitleResource\Pages;
-use App\Filament\Resources\JobTitleResource\RelationManagers\RatesRelationManager;
 use App\Models\JobTitle;
 use Filament\Forms;
 use Filament\Forms\Form;
