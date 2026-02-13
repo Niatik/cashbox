@@ -12,7 +12,6 @@ class RateRatio extends Model
 
     protected $fillable = [
         'rate_id',
-        'name',
         'ratio',
         'ratio_from',
         'ratio_to',

@@ -26,10 +26,6 @@ class RatesRelationManager extends RelationManager
                     ->label('Коэффициенты')
                     ->relationship()
                     ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Название')
-                            ->required()
-                            ->maxLength(255),
                         Forms\Components\TextInput::make('ratio')
                             ->label('Коэффициент')
                             ->required()
@@ -43,7 +39,7 @@ class RatesRelationManager extends RelationManager
                             ->required()
                             ->maxLength(255),
                     ])
-                    ->columns(4)
+                    ->columns(3)
                     ->columnSpanFull(),
             ]);
     }
