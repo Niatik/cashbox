@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\JobTitleResource\Pages;
+use App\Filament\Resources\JobTitleResource\RelationManagers;
 use App\Models\JobTitle;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -59,6 +60,8 @@ class JobTitleResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RelationManagers\SalaryRatesRelationManager::class,
+            RelationManagers\RatesRelationManager::class,
         ];
     }
 
