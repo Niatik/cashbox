@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BookingResource\Pages;
 
 use App\Filament\Resources\BookingResource;
+use App\Filament\Resources\BookingResource\Widgets\DraftBookingsTableWidget;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
@@ -35,7 +36,7 @@ class ListBookings extends ListRecords
     protected function getFooterWidgets(): array
     {
         return [
-            \App\Filament\Resources\BookingResource\Widgets\DraftBookingsTableWidget::class,
+            DraftBookingsTableWidget::class,
         ];
     }
 
