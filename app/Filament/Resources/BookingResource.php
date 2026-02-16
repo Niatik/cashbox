@@ -160,7 +160,7 @@ class BookingResource extends Resource
             ])
             ->default([
                 [
-                    'booking_time' => now(),
+                    'booking_time' => now()->format('H:i'),
                     'price_id' => null,
                     'price_item_id' => null,
                     'people_number' => null,

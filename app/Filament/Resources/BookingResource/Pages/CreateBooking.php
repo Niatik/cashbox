@@ -71,7 +71,7 @@ class CreateBooking extends CreateRecord
         if ($this->date) {
             $this->form->fill([
                 'booking_date' => $this->date,
-                'booking_time' => now()->format('H:i:s'),
+                'booking_time' => now()->format('H:i'),
                 'employee_id' => $user->employee->id,
             ]);
         }
