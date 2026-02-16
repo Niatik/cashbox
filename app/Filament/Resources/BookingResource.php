@@ -198,6 +198,7 @@ class BookingResource extends Resource
     public static function getNameOfPriceItemFormField(): Hidden
     {
         return Hidden::make('name_item')
+            ->dehydrated(true)
             ->default('');
     }
 
@@ -220,7 +221,7 @@ class BookingResource extends Resource
                     $currentOption = 'Количество человек';
                 }
                 $currentOption = ($currentOption == 'Количество человек') ? 'Количество человек' : 'Время услуги';
-                $set('name_item', $currentOption);
+                //$set('name_item', $currentOption);
                 $set('people_item', $peopleItem);
 
                 return $currentOption;
@@ -231,6 +232,9 @@ class BookingResource extends Resource
                 ->pluck('name_item', 'id'))
             ->live(debounce: 1000)
             ->afterStateUpdated(function (Select $component, ?int $state, Get $get, Set $set) {
+                $priceItemId = $state;
+                $priceItemName = PriceItem::find($priceItemId)?->name_item;
+                $set('name_item', $priceItemName);
                 self::calcSum($get, $set);
             });
     }

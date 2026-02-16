@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class DraftBookingsTableWidget extends BaseWidget
 {
@@ -26,64 +27,54 @@ class DraftBookingsTableWidget extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query($this->getBaseQuery())
+            ->query(Booking::query())
             ->queryStringIdentifier('drafts')
+            ->modifyQueryUsing(function (Builder $query) {
+                $query
+                    ->select([
+                        'bookings.id',
+                        'bookings.booking_date',
+                        'bookings.sum',
+                        DB::raw('jt.booking_time'),
+                        DB::raw('jt.price_id'),
+                        DB::raw('jt.people_number'),
+                        DB::raw('jt.name_item'),
+                        DB::raw('COALESCE(customers.name, customers.phone) as customer_name'),
+                    ])
+                    ->leftJoin('customers', 'bookings.customer_id', '=', 'customers.id')
+                    ->crossJoin(DB::raw("JSON_TABLE(
+                        bookings.booking_price_items,
+                        '\$[*]' COLUMNS (
+                            booking_time VARCHAR(10) PATH '\$.booking_time',
+                            price_id INT PATH '\$.price_id',
+                            people_number INT PATH '\$.people_number',
+                            name_item VARCHAR(255) PATH '\$.name_item'
+                        )
+                    ) AS jt"))
+                    ->where('bookings.is_draft', true)
+                    ->whereDate('bookings.booking_date', '>=', now('Asia/Almaty')->startOfDay())
+                    ->orderBy('bookings.booking_date', 'desc')
+                    ->orderBy(DB::raw('jt.booking_time'));
+            })
             ->columns([
                 TextColumn::make('booking_date')
                     ->date('d.m.Y')
                     ->label('Дата')
                     ->sortable(),
-                TextColumn::make('booking_time_display')
-                    ->label('Время')
-                    ->getStateUsing(function (Booking $record): ?string {
-                        $items = $record->booking_price_items ?? [];
-                        if (empty($items)) {
-                            return null;
-                        }
-                        $times = collect($items)->pluck('booking_time')->filter()->unique()->implode(', ');
-
-                        return $times ?: null;
-                    }),
-                TextColumn::make('price_name_display')
+                TextColumn::make('booking_time')
+                    ->label('Время'),
+                TextColumn::make('price_name')
                     ->label('Услуга')
                     ->limit(22)
-                    ->getStateUsing(function (Booking $record): ?string {
-                        $items = $record->booking_price_items ?? [];
-                        if (empty($items)) {
-                            return null;
-                        }
-                        $priceIds = collect($items)->pluck('price_id')->filter()->unique()->toArray();
-                        if (empty($priceIds)) {
-                            return null;
-                        }
-
-                        return $this->getPriceNames($priceIds);
-                    }),
-                TextColumn::make('customer_display')
+                    ->getStateUsing(fn ($record): ?string => $this->getPriceNames([$record->price_id])),
+                TextColumn::make('customer_name')
                     ->label('Клиент')
-                    ->limit(27)
-                    ->getStateUsing(fn (Booking $record): ?string => $record->customer?->name ?? $record->customer?->phone),
-                TextColumn::make('name_item_display')
-                    ->label('Время')
-                    ->getStateUsing(function (Booking $record): ?string {
-                        $items = $record->booking_price_items ?? [];
-                        if (empty($items)) {
-                            return null;
-                        }
-
-                        return collect($items)->pluck('name_item')->filter()->unique()->implode(', ');
-                    }),
-                TextColumn::make('people_number_display')
-                    ->label('Люди')
+                    ->limit(27),
+                TextColumn::make('name_item')
+                    ->label('Время услуги'),
+                TextColumn::make('people_number')
                     ->numeric()
-                    ->getStateUsing(function (Booking $record): ?int {
-                        $items = $record->booking_price_items ?? [];
-                        if (empty($items)) {
-                            return null;
-                        }
-
-                        return collect($items)->sum('people_number');
-                    }),
+                    ->label('Люди'),
                 TextColumn::make('sum')
                     ->numeric()
                     ->label('Сумма')
@@ -98,15 +89,6 @@ class DraftBookingsTableWidget extends BaseWidget
             ])
             ->emptyStateHeading('Нет черновиков')
             ->emptyStateDescription('Черновики бронирований будут отображаться здесь');
-    }
-
-    protected function getBaseQuery(): Builder
-    {
-        return Booking::query()
-            ->with(['customer'])
-            ->where('is_draft', true)
-            ->whereDate('booking_date', '>=', now('Asia/Almaty')->startOfDay())
-            ->orderBy('booking_date', 'desc');
     }
 
     protected function getPriceNames(array $priceIds): ?string
