@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('expense_work_sessions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('work_session_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('expense_type_id')->constrained()->cascadeOnDelete();
+            $table->string('expense_type');
             $table->integer('amount');
             $table->timestamps();
         });

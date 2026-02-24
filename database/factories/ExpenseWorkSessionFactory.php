@@ -20,7 +20,7 @@ class ExpenseWorkSessionFactory extends Factory
     {
         return [
             'work_session_id' => WorkSession::factory(),
-            'expense_type_id' => ExpenseType::factory(),
+            'expense_type' => fake()->word(),
             'amount' => fake()->numberBetween(100, 10000),
         ];
     }
