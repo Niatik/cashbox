@@ -9,8 +9,8 @@ it('can create an expense work session', function () {
 
     expect($expenseWorkSession)->toBeInstanceOf(ExpenseWorkSession::class)
         ->and($expenseWorkSession->work_session_id)->not->toBeNull()
-        ->and($expenseWorkSession->expense_type_id)->not->toBeNull()
-        ->and($expenseWorkSession->amount)->toBeInt();
+        ->and($expenseWorkSession->expense_type)->not->toBeNull()
+        ->and($expenseWorkSession->amount)->toBeFloat();
 });
 
 it('belongs to a work session', function () {
@@ -22,17 +22,6 @@ it('belongs to a work session', function () {
     expect($expenseWorkSession->workSession)
         ->toBeInstanceOf(WorkSession::class)
         ->and($expenseWorkSession->workSession->id)->toBe($workSession->id);
-});
-
-it('belongs to an expense type', function () {
-    $expenseType = ExpenseType::factory()->create();
-    $expenseWorkSession = ExpenseWorkSession::factory()->create([
-        'expense_type_id' => $expenseType->id,
-    ]);
-
-    expect($expenseWorkSession->expenseType)
-        ->toBeInstanceOf(ExpenseType::class)
-        ->and($expenseWorkSession->expenseType->id)->toBe($expenseType->id);
 });
 
 it('deletes expense work sessions when work session is deleted', function () {
