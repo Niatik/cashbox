@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkSession extends Model
 {
@@ -42,5 +43,10 @@ class WorkSession extends Model
     public function rate(): BelongsTo
     {
         return $this->belongsTo(Rate::class);
+    }
+
+    public function expenseWorkSessions(): HasMany
+    {
+        return $this->hasMany(ExpenseWorkSession::class);
     }
 }
