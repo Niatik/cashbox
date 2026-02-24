@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\JobTitle;
-use App\Models\Rate;
 use App\Models\SalaryRate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,8 +21,9 @@ class SalaryRateFactory extends Factory
     public function definition(): array
     {
         return [
+            'name' => fake()->words(2, true),
+            'salary' => fake()->numberBetween(10000, 100000),
             'job_title_id' => JobTitle::factory(),
-            'rate_id' => Rate::factory(),
         ];
     }
 }

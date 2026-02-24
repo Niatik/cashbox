@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\JobTitle;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,7 @@ class RateFactory extends Factory
     {
         return [
             'name' => fake()->words(2, true),
-            'salary' => fake()->numberBetween(10000, 100000),
+            'job_title_id' => JobTitle::factory(),
         ];
     }
 }
