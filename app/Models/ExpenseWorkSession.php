@@ -14,12 +14,12 @@ class ExpenseWorkSession extends Model
 
     protected $fillable = [
         'work_session_id',
-        'expense_type_id',
+        'expense_type',
         'amount',
     ];
 
     protected $casts = [
-        'expense_amount' => MoneyCast::class,
+        'amount' => MoneyCast::class,
     ];
 
 
