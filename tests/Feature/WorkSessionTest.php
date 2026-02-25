@@ -1,6 +1,9 @@
 <?php
 
 use App\Filament\Resources\WorkSessionResource;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\RateRatio;
 use App\Models\SalaryWorkSession;
 use App\Models\WorkSession;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
@@ -264,4 +267,55 @@ it('displays SalaryWorkSession data in form when one exists', function () {
         'record' => $workSession->getRouteKey(),
     ])
         ->assertFormFieldExists('salaryWorkSessions');
+});
+
+it('calculates income_total as salary plus ratio bonus when no SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create([
+        'date' => now()->format('Y-m-d'),
+        'time' => now()->subHour()->format('H:i:s'),
+    ]);
+
+    // Create payment after session start, bypassing events
+    $order = Order::factory()->create(['options' => ['prepayment' => 0, 'is_cash' => true]]);
+    Payment::withoutEvents(fn () => Payment::create([
+        'order_id' => $order->id,
+        'payment_date' => now()->format('Y-m-d'),
+        'payment_cash_amount' => 50,
+        'payment_cashless_amount' => 30,
+    ]));
+
+    // Create a RateRatio matching the payment sum (8000 cents in DB)
+    RateRatio::create([
+        'rate_id' => $workSession->rate_id,
+        'ratio' => 5.00, // MoneyCast stores as 500 cents
+        'ratio_from' => '0',
+        'ratio_to' => '10000',
+    ]);
+
+    $expectedSalary = $workSession->salaryRate->salary;
+    $expectedRatioBonus = 5.00;
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'salary_work_session.income_total' => $expectedSalary + $expectedRatioBonus,
+        ]);
+});
+
+it('calculates income_total as salary only when no matching ratio exists', function () {
+    $workSession = WorkSession::factory()->create([
+        'date' => now()->format('Y-m-d'),
+        'time' => now()->subHour()->format('H:i:s'),
+    ]);
+
+    // No payments, no rate ratios
+    $expectedSalary = $workSession->salaryRate->salary;
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'salary_work_session.income_total' => $expectedSalary,
+        ]);
 });
