@@ -101,6 +101,8 @@ class EditWorkSession extends EditRecord
                                     ->label('Общий доход')
                                     ->numeric()
                                     ->default(0)
+                                    ->disabled()
+                                    ->dehydrated()
                                     ->live()
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
                                         $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
@@ -134,6 +136,8 @@ class EditWorkSession extends EditRecord
                                     ->label('Общий расход')
                                     ->numeric()
                                     ->default(0)
+                                    ->disabled()
+                                    ->dehydrated()
                                     ->live()
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
                                         $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
@@ -147,6 +151,8 @@ class EditWorkSession extends EditRecord
                                     ->label('Итого зарплата')
                                     ->numeric()
                                     ->default(0)
+                                    ->disabled()
+                                    ->dehydrated()
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
                                         $balance = (float) ($get('balance_salary') ?? 0);
                                         $income = (float) ($get('income_total') ?? 0);
@@ -156,7 +162,13 @@ class EditWorkSession extends EditRecord
                                 Forms\Components\TextInput::make('salary_amount')
                                     ->label('Сумма выплаты')
                                     ->numeric()
-                                    ->default(0),
+                                    ->default(0)
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
+                                        $balance = (float) ($get('balance_salary') ?? 0);
+                                        $income = (float) ($get('income_total') ?? 0);
+                                        $expense = (float) ($get('expense_total') ?? 0);
+                                        $component->state($balance + $income - $expense);
+                                    }),
                                 Forms\Components\Toggle::make('is_cash')
                                     ->label('Наличные')
                                     ->default(true),
@@ -171,19 +183,23 @@ class EditWorkSession extends EditRecord
                                 Forms\Components\TextInput::make('income_total')
                                     ->label('Общий доход')
                                     ->required()
-                                    ->numeric(),
+                                    ->numeric()
+                                    ->disabled(),
                                 Forms\Components\TextInput::make('expense_total')
                                     ->label('Общий расход')
                                     ->required()
-                                    ->numeric(),
+                                    ->numeric()
+                                    ->disabled(),
                                 Forms\Components\TextInput::make('salary_total')
                                     ->label('Итого зарплата')
                                     ->required()
-                                    ->numeric(),
+                                    ->numeric()
+                                    ->disabled(),
                                 Forms\Components\TextInput::make('salary_amount')
                                     ->label('Сумма выплаты')
                                     ->required()
-                                    ->numeric(),
+                                    ->numeric()
+                                    ->disabled(),
                                 Forms\Components\Toggle::make('is_cash')
                                     ->label('Наличные')
                                     ->default(true),
