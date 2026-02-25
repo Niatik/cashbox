@@ -207,6 +207,55 @@ it('does not persist SalaryWorkSession to database before payment action', funct
     expect(SalaryWorkSession::where('work_session_id', $workSession->id)->count())->toBe(0);
 });
 
+it('calculates balance_salary from previous SalaryWorkSessions', function () {
+    // Create two work sessions with earlier dates that have salary records
+    $olderSession1 = WorkSession::factory()->create(['date' => '2025-01-01']);
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $olderSession1->id,
+        'income_total' => 1000,
+        'expense_total' => 200,
+        'salary_amount' => 300,
+    ]);
+
+    $olderSession2 = WorkSession::factory()->create(['date' => '2025-01-02']);
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $olderSession2->id,
+        'income_total' => 500,
+        'expense_total' => 100,
+        'salary_amount' => 150,
+    ]);
+
+    // Current session with a later date
+    $currentSession = WorkSession::factory()->create(['date' => '2025-01-03']);
+
+    // Expected balance: (1000 - 200 - 300) + (500 - 100 - 150) = 500 + 250 = 750
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $currentSession->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'salary_work_session.balance_salary' => 750.0,
+        ]);
+});
+
+it('does not include same date SalaryWorkSessions in balance_salary', function () {
+    $sameDateSession = WorkSession::factory()->create(['date' => '2025-01-01']);
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $sameDateSession->id,
+        'income_total' => 1000,
+        'expense_total' => 200,
+        'salary_amount' => 300,
+    ]);
+
+    $currentSession = WorkSession::factory()->create(['date' => '2025-01-01']);
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $currentSession->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'salary_work_session.balance_salary' => 0.0,
+        ]);
+});
+
 it('displays SalaryWorkSession data in form when one exists', function () {
     $workSession = WorkSession::factory()->create();
     SalaryWorkSession::factory()->create(['work_session_id' => $workSession->id]);
