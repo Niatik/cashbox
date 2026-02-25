@@ -72,6 +72,19 @@ class EditWorkSession extends EditRecord
                         Forms\Components\Group::make()
                             ->statePath('salary_work_session')
                             ->schema([
+                                Forms\Components\TextInput::make('balance_salary')
+                                    ->label('Баланс')
+                                    ->numeric()
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
+                                        $balance = SalaryWorkSession::query()
+                                            ->whereHas('workSession', fn ($q) => $q->where('date', '<', $this->record->date))
+                                            ->get()
+                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
+
+                                        $component->state($balance);
+                                    })
+                                    ->disabled()
+                                    ->dehydrated(false),
                                 Forms\Components\TextInput::make('income_total')
                                     ->label('Общий доход')
                                     ->numeric()
