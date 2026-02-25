@@ -350,6 +350,40 @@ it('does not recalculate expense_total when SalaryWorkSession already exists', f
     expect((float) $formState['salaryWorkSessions'][$repeaterKey]['expense_total'])->toBe(999.0);
 });
 
+it('calculates salary_total as balance plus income minus expense when no SalaryWorkSession exists', function () {
+    // Create previous session with salary data to generate balance
+    $previousSession = WorkSession::factory()->create(['date' => '2024-12-01']);
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $previousSession->id,
+        'income_total' => 500,
+        'expense_total' => 100,
+        'salary_amount' => 200,
+    ]);
+
+    $workSession = WorkSession::factory()->create([
+        'date' => '2025-01-01',
+        'time' => '08:00:00',
+    ]);
+
+    ExpenseWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'expense_type' => 'Еда',
+        'amount' => 50.00,
+    ]);
+
+    $component = livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ]);
+
+    $formState = $component->get('data');
+    $balance = (float) $formState['salary_work_session']['balance_salary'];
+    $income = (float) $formState['salary_work_session']['income_total'];
+    $expense = (float) $formState['salary_work_session']['expense_total'];
+    $salaryTotal = (float) $formState['salary_work_session']['salary_total'];
+
+    expect($salaryTotal)->toBe($balance + $income - $expense);
+});
+
 it('calculates income_total as salary only when no matching ratio exists', function () {
     $workSession = WorkSession::factory()->create([
         'date' => now()->format('Y-m-d'),
