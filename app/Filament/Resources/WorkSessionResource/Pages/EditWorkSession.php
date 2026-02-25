@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\WorkSessionResource\Pages;
 
 use App\Filament\Resources\WorkSessionResource;
+use App\Models\Payment;
+use App\Models\RateRatio;
 use App\Models\SalaryWorkSession;
 use Filament\Actions;
 use Filament\Forms;
@@ -88,7 +90,32 @@ class EditWorkSession extends EditRecord
                                 Forms\Components\TextInput::make('income_total')
                                     ->label('Общий доход')
                                     ->numeric()
-                                    ->default(0),
+                                    ->default(0)
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
+                                        $session = $this->record;
+                                        $sessionStart = $session->date->format('Y-m-d').' '.$session->time;
+
+                                        $paymentSumCents = Payment::query()
+                                            ->where('created_at', '>=', $sessionStart)
+                                            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
+
+                                        $salary = $session->salaryRate?->salary ?? 0;
+
+                                        $ratioBonus = 0;
+                                        if ($session->rate_id) {
+                                            $matchingRatio = RateRatio::query()
+                                                ->where('rate_id', $session->rate_id)
+                                                ->whereRaw('CAST(ratio_from AS UNSIGNED) <= ?', [$paymentSumCents])
+                                                ->whereRaw('CAST(ratio_to AS UNSIGNED) >= ?', [$paymentSumCents])
+                                                ->first();
+
+                                            if ($matchingRatio) {
+                                                $ratioBonus = $matchingRatio->ratio;
+                                            }
+                                        }
+
+                                        $component->state($salary + $ratioBonus);
+                                    }),
                                 Forms\Components\TextInput::make('expense_total')
                                     ->label('Общий расход')
                                     ->numeric()
