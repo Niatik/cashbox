@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\WorkSessionResource;
+use App\Models\ExpenseWorkSession;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\RateRatio;
@@ -301,6 +302,52 @@ it('calculates income_total as salary plus ratio bonus when no SalaryWorkSession
         ->assertFormSet([
             'salary_work_session.income_total' => $expectedSalary + $expectedRatioBonus,
         ]);
+});
+
+it('calculates expense_total as sum of expenseWorkSessions amounts when no SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create();
+
+    ExpenseWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'expense_type' => 'Еда',
+        'amount' => 150.00,
+    ]);
+    ExpenseWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'expense_type' => 'Транспорт',
+        'amount' => 250.00,
+    ]);
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'salary_work_session.expense_total' => 400.0,
+        ]);
+});
+
+it('does not recalculate expense_total when SalaryWorkSession already exists', function () {
+    $workSession = WorkSession::factory()->create();
+
+    ExpenseWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'expense_type' => 'Еда',
+        'amount' => 150.00,
+    ]);
+
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'expense_total' => 999.00,
+    ]);
+
+    $component = livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ]);
+
+    $formState = $component->get('data');
+    $repeaterKey = array_key_first($formState['salaryWorkSessions']);
+
+    expect((float) $formState['salaryWorkSessions'][$repeaterKey]['expense_total'])->toBe(999.0);
 });
 
 it('calculates income_total as salary only when no matching ratio exists', function () {
