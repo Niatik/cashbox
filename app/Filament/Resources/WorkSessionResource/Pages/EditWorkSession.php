@@ -40,6 +40,7 @@ class EditWorkSession extends EditRecord
                                     $items = $get('expenseWorkSessions') ?? [];
                                     $total = collect($items)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
                                     $set('salary_work_session.expense_total', $total);
+                                    $set('salary_work_session.salary_total', (float) ($get('salary_work_session.balance_salary') ?? 0) + (float) ($get('salary_work_session.income_total') ?? 0) - $total);
                                 }
                             })
                             ->schema([
@@ -100,6 +101,10 @@ class EditWorkSession extends EditRecord
                                     ->label('Общий доход')
                                     ->numeric()
                                     ->default(0)
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
+                                    })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $session = $this->record;
                                         $sessionStart = $session->date->format('Y-m-d').' '.$session->time;
@@ -129,6 +134,10 @@ class EditWorkSession extends EditRecord
                                     ->label('Общий расход')
                                     ->numeric()
                                     ->default(0)
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
+                                    })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $items = $this->record->expenseWorkSessions ?? collect();
                                         $total = $items->sum(fn ($item) => (float) ($item->amount ?? 0));
@@ -137,7 +146,13 @@ class EditWorkSession extends EditRecord
                                 Forms\Components\TextInput::make('salary_total')
                                     ->label('Итого зарплата')
                                     ->numeric()
-                                    ->default(0),
+                                    ->default(0)
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
+                                        $balance = (float) ($get('balance_salary') ?? 0);
+                                        $income = (float) ($get('income_total') ?? 0);
+                                        $expense = (float) ($get('expense_total') ?? 0);
+                                        $component->state($balance + $income - $expense);
+                                    }),
                                 Forms\Components\TextInput::make('salary_amount')
                                     ->label('Сумма выплаты')
                                     ->numeric()
