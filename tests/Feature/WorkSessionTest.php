@@ -384,6 +384,42 @@ it('calculates salary_total as balance plus income minus expense when no SalaryW
     expect($salaryTotal)->toBe($balance + $income - $expense);
 });
 
+it('has editable fields and save button when no SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create();
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormFieldIsEnabled('employee_id')
+        ->assertFormFieldIsEnabled('time')
+        ->assertFormFieldIsEnabled('salary_rate_id')
+        ->assertFormFieldIsEnabled('rate_id')
+        ->assertActionExists('save')
+        ->assertActionExists('cancel');
+});
+
+it('has disabled fields and back button when SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create();
+    SalaryWorkSession::factory()->create(['work_session_id' => $workSession->id]);
+
+    $component = livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormFieldIsDisabled('employee_id')
+        ->assertFormFieldIsDisabled('time')
+        ->assertFormFieldIsDisabled('salary_rate_id')
+        ->assertFormFieldIsDisabled('rate_id')
+        ->assertActionExists('back');
+
+    $formActionNames = collect($component->instance()->getCachedFormActions())
+        ->map(fn ($action) => $action->getName())
+        ->all();
+
+    expect($formActionNames)->toContain('back')
+        ->not->toContain('save')
+        ->not->toContain('cancel');
+});
+
 it('calculates income_total as salary only when no matching ratio exists', function () {
     $workSession = WorkSession::factory()->create([
         'date' => now()->format('Y-m-d'),
