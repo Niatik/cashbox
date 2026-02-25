@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\WorkSessionResource;
+use App\Models\SalaryWorkSession;
 use App\Models\WorkSession;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -137,4 +138,81 @@ it('can bulk delete WorkSessions', function () {
     foreach ($workSessions as $workSession) {
         $this->assertModelMissing($workSession);
     }
+});
+
+it('can render edit page with salary section when no SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create();
+
+    $this->get(WorkSessionResource::getUrl('edit', [
+        'record' => $workSession,
+    ]))->assertSuccessful();
+
+    expect($workSession->salaryWorkSessions()->count())->toBe(0);
+});
+
+it('shows salary form fields when no SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create();
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormFieldExists('salary_work_session.income_total')
+        ->assertFormFieldExists('salary_work_session.expense_total')
+        ->assertFormFieldExists('salary_work_session.salary_total')
+        ->assertFormFieldExists('salary_work_session.salary_amount')
+        ->assertFormFieldExists('salary_work_session.is_cash');
+});
+
+it('creates SalaryWorkSession with form data when salary_payment action is called', function () {
+    $workSession = WorkSession::factory()->create();
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->fillForm([
+            'salary_work_session.income_total' => 100,
+            'salary_work_session.expense_total' => 50,
+            'salary_work_session.salary_total' => 50,
+            'salary_work_session.salary_amount' => 50,
+            'salary_work_session.is_cash' => true,
+        ])
+        ->mountFormComponentAction('zarplata-smeny', 'salary_payment')
+        ->callMountedFormComponentAction();
+
+    $this->assertDatabaseHas(SalaryWorkSession::class, [
+        'work_session_id' => $workSession->id,
+    ]);
+
+    $salary = SalaryWorkSession::where('work_session_id', $workSession->id)->first();
+    expect($salary->income_total)->toBe(100.0)
+        ->and($salary->expense_total)->toBe(50.0)
+        ->and($salary->salary_total)->toBe(50.0)
+        ->and($salary->salary_amount)->toBe(50.0)
+        ->and($salary->is_cash)->toBeTrue();
+});
+
+it('does not persist SalaryWorkSession to database before payment action', function () {
+    $workSession = WorkSession::factory()->create();
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->fillForm([
+            'salary_work_session.income_total' => 100,
+            'salary_work_session.salary_amount' => 100,
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(SalaryWorkSession::where('work_session_id', $workSession->id)->count())->toBe(0);
+});
+
+it('displays SalaryWorkSession data in form when one exists', function () {
+    $workSession = WorkSession::factory()->create();
+    SalaryWorkSession::factory()->create(['work_session_id' => $workSession->id]);
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormFieldExists('salaryWorkSessions');
 });
