@@ -29,11 +29,28 @@ class EditWorkSession extends EditRecord
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        if ($this->record->salaryWorkSessions()->exists()) {
+            return [
+                Actions\Action::make('back')
+                    ->label('Вернуться к списку')
+                    ->url($this->getResource()::getUrl('index'))
+                    ->color('gray'),
+            ];
+        }
+
+        return parent::getFormActions();
+    }
+
     public function form(Form $form): Form
     {
         return parent::form($form)
             ->schema([
-                ...parent::form($form)->getComponents(withHidden: true),
+                ...collect(parent::form($form)->getComponents(withHidden: true))
+                    ->map(fn (Forms\Components\Component $component) => $component
+                        ->disabled(fn (): bool => $this->record->salaryWorkSessions()->exists()))
+                    ->all(),
                 Forms\Components\Section::make('Расходы смены')
                     ->schema([
                         Forms\Components\Repeater::make('expenseWorkSessions')
