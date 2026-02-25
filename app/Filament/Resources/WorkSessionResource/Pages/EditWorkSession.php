@@ -34,6 +34,14 @@ class EditWorkSession extends EditRecord
                         Forms\Components\Repeater::make('expenseWorkSessions')
                             ->label('')
                             ->relationship()
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                if ($this->record->salaryWorkSessions()->count() === 0) {
+                                    $items = $get('expenseWorkSessions') ?? [];
+                                    $total = collect($items)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+                                    $set('salary_work_session.expense_total', $total);
+                                }
+                            })
                             ->schema([
                                 Forms\Components\TextInput::make('expense_type')
                                     ->label('Тип расхода')
@@ -42,7 +50,8 @@ class EditWorkSession extends EditRecord
                                 Forms\Components\TextInput::make('amount')
                                     ->label('Сумма')
                                     ->required()
-                                    ->numeric(),
+                                    ->numeric()
+                                    ->live(),
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
@@ -119,7 +128,12 @@ class EditWorkSession extends EditRecord
                                 Forms\Components\TextInput::make('expense_total')
                                     ->label('Общий расход')
                                     ->numeric()
-                                    ->default(0),
+                                    ->default(0)
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
+                                        $items = $this->record->expenseWorkSessions ?? collect();
+                                        $total = $items->sum(fn ($item) => (float) ($item->amount ?? 0));
+                                        $component->state($total);
+                                    }),
                                 Forms\Components\TextInput::make('salary_total')
                                     ->label('Итого зарплата')
                                     ->numeric()
