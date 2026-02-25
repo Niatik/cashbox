@@ -9,6 +9,11 @@ class CreateWorkSession extends CreateRecord
 {
     protected static string $resource = WorkSessionResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function getFormActions(): array
     {
         return [

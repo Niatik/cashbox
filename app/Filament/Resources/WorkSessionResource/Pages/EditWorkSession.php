@@ -17,6 +17,11 @@ class EditWorkSession extends EditRecord
 {
     protected static string $resource = WorkSessionResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -180,6 +185,19 @@ class EditWorkSession extends EditRecord
                             ->label('')
                             ->relationship()
                             ->schema([
+                                Forms\Components\TextInput::make('balance_salary')
+                                    ->label('Баланс')
+                                    ->numeric()
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
+                                        $balance = SalaryWorkSession::query()
+                                            ->whereHas('workSession', fn ($q) => $q->where('date', '<', $this->record->date))
+                                            ->get()
+                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
+
+                                        $component->state($balance);
+                                    })
+                                    ->disabled()
+                                    ->dehydrated(false),
                                 Forms\Components\TextInput::make('income_total')
                                     ->label('Общий доход')
                                     ->required()
