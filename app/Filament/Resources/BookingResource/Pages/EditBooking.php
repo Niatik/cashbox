@@ -55,11 +55,15 @@ class EditBooking extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        if (! empty($data['customer_id']) && ! empty($data['customer_phone'])) {
-            Customer::where('id', $data['customer_id'])->update([
-                'phone' => $data['customer_phone'],
-                'name' => $data['customer_name'] ?? null,
-            ]);
+        if (! empty($data['customer_phone'])) {
+            $customer = Customer::updateOrCreate(
+                [
+                    'phone' => $data['customer_phone'],
+                ], [
+                    'name' => $data['customer_name'] ?? null,
+                ]
+            );
+            $data['customer_id'] = $customer->id;
         }
 
         // Удаляем временные поля, которых нет в БД bookings
