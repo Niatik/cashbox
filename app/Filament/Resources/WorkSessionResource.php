@@ -35,8 +35,11 @@ class WorkSessionResource extends Resource
                     ->disabled()
                     ->dehydrated(),
                 Forms\Components\TimePicker::make('time')
-                    ->label('Время')
+                    ->timezone('Etc/GMT-5')
+                    ->displayFormat('H:i')
+                    ->seconds(false)
                     ->default(now())
+                    ->label('Время')
                     ->required(),
                 Forms\Components\Select::make('salary_rate_id')
                     ->label('Оклад')

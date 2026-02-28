@@ -134,7 +134,7 @@ class EditWorkSession extends EditRecord
                                         $sessionStart = $session->date->format('Y-m-d').' '.$session->time;
 
                                         $paymentSumCents = Payment::query()
-                                            ->where('created_at', '>=', $sessionStart)
+                                            ->where('payment_time', '>=', $sessionStart)
                                             ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
 
                                         $salary = $session->salaryRate?->salary ?? 0;
