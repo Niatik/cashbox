@@ -17,14 +17,26 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'payment_date',
+        'payment_time',
         'payment_cash_amount',
         'payment_cashless_amount',
     ];
 
     protected $casts = [
+        'payment_date' => 'date',
+        'payment_time' => 'datetime:H:i:s',
         'payment_cash_amount' => MoneyCast::class,
         'payment_cashless_amount' => MoneyCast::class,
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Payment $payment) {
+            if (empty($payment->payment_time)) {
+                $payment->payment_time = now()->format('H:i:s');
+            }
+        });
+    }
 
     public function order(): BelongsTo
     {

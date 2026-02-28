@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Price;
 use App\Models\PriceItem;
-use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -64,6 +63,7 @@ class OrderResource extends Resource
                             ->relationship()
                             ->schema([
                                 OrderResource::getPaymentDateFormField()->hidden(),
+                                OrderResource::getPaymentTimeFormField()->hidden(),
                                 OrderResource::getPaymentCashAmountFormField(),
                                 OrderResource::getPaymentCashlessAmountFormField(),
                             ])
@@ -72,24 +72,6 @@ class OrderResource extends Resource
                                 'required',
                                 'array',
                                 'min:1',
-                                /*fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                                    if (! is_array($value)) {
-                                        return;
-                                    }
-
-                                    $netSum = (float) ($get('net_sum') ?? 0);
-                                    $totalPayments = 0;
-
-                                    foreach ($value as $payment) {
-                                        $cash = (float) ($payment['payment_cash_amount'] ?? 0);
-                                        $cashless = (float) ($payment['payment_cashless_amount'] ?? 0);
-                                        $totalPayments += $cash + $cashless;
-                                    }
-
-                                    if (round($totalPayments, 2) !== round($netSum, 2)) {
-                                        $fail('Сумма всех платежей ('.number_format($totalPayments, 2).') должна быть равна сумме заказа ('.number_format($netSum, 2).')');
-                                    }
-                                },*/
                             ])
                             ->validationMessages([
                                 'required' => 'Необходимо добавить хотя бы один платеж',
@@ -319,6 +301,12 @@ class OrderResource extends Resource
             ->required();
     }
 
+    public static function getPaymentTimeFormField(): Hidden
+    {
+        return Hidden::make('payment_time')
+            ->default(now()->timezone('Etc/GMT-5')->format('H:i:s'));
+    }
+
     public static function getPaymentCashAmountFormField(): TextInput
     {
         return TextInput::make('payment_cash_amount')
@@ -444,7 +432,6 @@ class OrderResource extends Resource
                     $prepayment = intval(floatval($get('../../options.prepayment')) * 100) / 100;
                 }
                 $additionalDiscount = intval(floatval($get('../../options.additional_discount')) * 100) / 100;
-
 
                 $remaining = self::getRemaining($payments, $cashlessValue, $currentCashValue, $sum, $discount, $prepayment, $additionalDiscount);
                 $set('payment_cash_amount', $remaining > 0 ? $remaining : '');

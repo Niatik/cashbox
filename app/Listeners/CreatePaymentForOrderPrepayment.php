@@ -25,6 +25,7 @@ class CreatePaymentForOrderPrepayment
                 'payment_cash_amount' => $isCash ? $amount : 0,
                 'payment_cashless_amount' => $isCash ? 0 : $amount,
                 'payment_date' => now(),
+                'payment_time' => now()->format('H:i:s'),
             ]);
         }
     }
