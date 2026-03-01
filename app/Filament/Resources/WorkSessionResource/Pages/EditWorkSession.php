@@ -156,8 +156,8 @@ class EditWorkSession extends EditRecord
                                             Log::debug($session->rate_id);
                                             $matchingRatio = RateRatio::query()
                                                 ->where('rate_id', $session->rate_id)
-                                                ->where('ratio_to', '>=', $paymentSum)
-                                                ->where('ratio_from', '<=', $paymentSum)
+                                                ->where('ratio_to', '>=', $paymentSum / 100)
+                                                ->where('ratio_from', '<=', $paymentSum / 100)
                                                 ->first();
                                             Log::debug($matchingRatio);
 
