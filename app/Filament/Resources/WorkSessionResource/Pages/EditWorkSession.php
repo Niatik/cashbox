@@ -158,8 +158,9 @@ class EditWorkSession extends EditRecord
                                                 ->where('rate_id', $session->rate_id)
                                                 ->whereRaw('CAST(ratio_to AS UNSIGNED) >= ?', [$paymentSum])
                                                 ->whereRaw('CAST(ratio_from AS UNSIGNED) <= ?', [$paymentSum])
-                                                ->latest();
-                                            Log::debug($matchingRatio->ratio);
+                                                ->orderBy('ratio_to', 'desc')
+                                                ->first();
+                                            Log::debug($matchingRatio);
 
                                             if ($matchingRatio) {
                                                 $ratioBonus = $matchingRatio->ratio;
