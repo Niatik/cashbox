@@ -131,9 +131,11 @@ class EditWorkSession extends EditRecord
                                     })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $session = $this->record;
-                                        $sessionStart = $session->date->format('Y-m-d').' '.$session->time;
+                                        // $sessionStart = $session->date->format('Y-m-d').$session->time;
+                                        $sessionStart = $session->time;
 
-                                        $paymentSumCents = Payment::query()
+                                        $paymentSum = Payment::query()
+                                            ->where('payment_date', $session->date)
                                             ->where('payment_time', '>=', $sessionStart)
                                             ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
 
@@ -143,8 +145,8 @@ class EditWorkSession extends EditRecord
                                         if ($session->rate_id) {
                                             $matchingRatio = RateRatio::query()
                                                 ->where('rate_id', $session->rate_id)
-                                                ->whereRaw('CAST(ratio_from AS UNSIGNED) <= ?', [$paymentSumCents])
-                                                ->whereRaw('CAST(ratio_to AS UNSIGNED) >= ?', [$paymentSumCents])
+                                                ->whereRaw('CAST(ratio_from AS UNSIGNED) <= ?', [$paymentSum])
+                                                ->whereRaw('CAST(ratio_to AS UNSIGNED) >= ?', [$paymentSum])
                                                 ->first();
 
                                             if ($matchingRatio) {
