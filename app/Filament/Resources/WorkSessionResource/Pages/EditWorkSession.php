@@ -131,6 +131,8 @@ class EditWorkSession extends EditRecord
                                         $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
                                     })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
+                                        Log::debug('afterStateHydrated');
+                                        Log::debug($this->record);
                                         $session = $this->record;
                                         // $sessionStart = $session->date->format('Y-m-d').$session->time;
                                         $sessionStart = $session->time;
@@ -151,6 +153,7 @@ class EditWorkSession extends EditRecord
 
                                         $ratioBonus = 0;
                                         if ($session->rate_id) {
+                                            Log::debug($session);
                                             $matchingRatio = RateRatio::query()
                                                 ->where('rate_id', $session->rate_id)
                                                 ->whereRaw('CAST(ratio_to AS UNSIGNED) <= ?', [$paymentSum])
