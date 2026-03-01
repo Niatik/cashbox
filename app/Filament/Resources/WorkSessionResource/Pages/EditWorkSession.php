@@ -12,6 +12,7 @@ use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Alignment;
+use Illuminate\Support\Facades\Log;
 
 class EditWorkSession extends EditRecord
 {
@@ -133,13 +134,20 @@ class EditWorkSession extends EditRecord
                                         $session = $this->record;
                                         // $sessionStart = $session->date->format('Y-m-d').$session->time;
                                         $sessionStart = $session->time;
+                                        Log::debug($session->date);
+                                        Log::debug($sessionStart);
 
                                         $paymentSum = Payment::query()
                                             ->where('payment_date', $session->date)
                                             ->where('payment_time', '>=', $sessionStart)
-                                            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
+                                            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'))->dd();
+                                        Log::debug($session->date);
+                                        Log::debug($sessionStart);
+                                        Log::debug($paymentSum);
 
                                         $salary = $session->salaryRate?->salary ?? 0;
+
+                                        Log::debug($salary);
 
                                         $ratioBonus = 0;
                                         if ($session->rate_id) {
@@ -153,6 +161,7 @@ class EditWorkSession extends EditRecord
                                                 $ratioBonus = $matchingRatio->ratio;
                                             }
                                         }
+                                        Log::debug($ratioBonus);
 
                                         $component->state($salary + $ratioBonus);
                                     }),
