@@ -140,7 +140,7 @@ class EditWorkSession extends EditRecord
                                         $paymentSum = Payment::query()
                                             ->where('payment_date', $session->date)
                                             ->where('payment_time', '>=', $sessionStart)
-                                            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'))->dd();
+                                            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
                                         Log::debug($session->date);
                                         Log::debug($sessionStart);
                                         Log::debug($paymentSum);
