@@ -33,11 +33,11 @@ class RatesRelationManager extends RelationManager
                         Forms\Components\TextInput::make('ratio_from')
                             ->label('От')
                             ->required()
-                            ->maxLength(255),
+                            ->numeric(),
                         Forms\Components\TextInput::make('ratio_to')
                             ->label('До')
                             ->required()
-                            ->maxLength(255),
+                            ->numeric(),
                     ])
                     ->columns(3)
                     ->columnSpanFull(),
