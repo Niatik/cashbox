@@ -158,8 +158,7 @@ class EditWorkSession extends EditRecord
                                                 ->where('rate_id', $session->rate_id)
                                                 ->where('ratio_to', '>=', $paymentSum)
                                                 ->where('ratio_from', '<=', $paymentSum)
-                                                ->orderBy('ratio_to', 'desc')->ddRawSql();
-                                                //->first();
+                                                ->first();
                                             Log::debug($matchingRatio);
 
                                             if ($matchingRatio) {
