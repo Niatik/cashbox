@@ -156,9 +156,10 @@ class EditWorkSession extends EditRecord
                                             Log::debug($session->rate_id);
                                             $matchingRatio = RateRatio::query()
                                                 ->where('rate_id', $session->rate_id)
-                                                ->whereRaw('CAST(ratio_to AS UNSIGNED) >= ?', [$paymentSum])
-                                                ->whereRaw('CAST(ratio_from AS UNSIGNED) <= ?', [$paymentSum])
-                                                ->orderBy('ratio_to', 'desc')->toSql();
+                                                ->where('ratio_to', '>=', $paymentSum)
+                                                ->where('ratio_from', '<=', $paymentSum)
+                                                ->orderBy('ratio_to', 'desc')->ddRawSql();
+                                                //->first();
                                             Log::debug($matchingRatio);
 
                                             if ($matchingRatio) {
