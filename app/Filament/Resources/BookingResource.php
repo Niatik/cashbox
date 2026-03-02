@@ -140,7 +140,7 @@ class BookingResource extends Resource
             ->timezone('Etc/GMT-5')
             ->displayFormat('H:i')
             ->seconds(false)
-            ->default(now())
+            ->default(now()->timezone('Etc/GMT-5'))
             ->label('Время')
             ->required();
     }
