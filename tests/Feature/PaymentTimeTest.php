@@ -1,34 +1,25 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Models\Order;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class PaymentTimeTest extends TestCase
-{
-    use RefreshDatabase;
+it('automatically saves payment time on creation', function () {
+    $order = Order::factory()->create([
+        'options' => [
+            'prepayment' => 0,
+            'is_cash' => true,
+        ],
+    ]);
 
-    public function test_payment_time_is_automatically_saved_on_creation(): void
-    {
-        $order = Order::factory()->create([
-            'options' => [
-                'prepayment' => 0,
-                'is_cash' => true,
-            ],
-        ]);
+    $payment = $order->payments()->create([
+        'payment_date' => now(),
+        'payment_cash_amount' => 1000,
+        'payment_cashless_amount' => 0,
+    ]);
 
-        $payment = $order->payments()->create([
-            'payment_date' => now(),
-            'payment_cash_amount' => 1000,
-            'payment_cashless_amount' => 0,
-        ]);
+    expect($payment->payment_time)->not->toBeNull();
 
-        $this->assertNotNull($payment->payment_time);
-        $this->assertDatabaseHas('payments', [
-            'id' => $payment->id,
-            'payment_time' => $payment->payment_time->format('H:i:s'),
-        ]);
-    }
-}
+    $this->assertDatabaseHas('payments', [
+        'id' => $payment->id,
+        'payment_time' => $payment->payment_time->format('H:i:s'),
+    ]);
+});
