@@ -1,0 +1,21 @@
+{
+    "agents": [
+        "junie",
+        "claude_code",
+        "codex",
+        "copilot",
+        "opencode",
+        "gemini"
+    ],
+    "guidelines": true,
+    "herd_mcp": true,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "packages": [
+        "filament/filament"
+    ],
+    "sail": false,
+    "skills": [
+        "pest-testing"
+    ]
+}

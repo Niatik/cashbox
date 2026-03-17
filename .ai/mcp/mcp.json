@@ -6,6 +6,15 @@
         "/Users/nikitadragunov/Herd/cashbox/artisan",
         "boost:mcp"
       ]
+    },
+    "herd": {
+      "command": "/Users/nikitadragunov/Library/Application Support/Herd/bin/php83",
+      "args": [
+        "/Applications/Herd.app/Contents/Resources/herd-mcp.phar"
+      ],
+      "env": {
+        "SITE_PATH": "/Users/nikitadragunov/Herd/cashbox"
+      }
     }
   }
 }

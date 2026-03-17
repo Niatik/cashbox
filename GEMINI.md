@@ -1,127 +1,25 @@
-# CLAUDE.md
+<laravel-boost-guidelines>
+=== foundation rules ===
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# Laravel Boost Guidelines
 
-## Project Overview
+The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.
 
-This is a Laravel 11 cashbox management system with a Filament 3 admin panel for service booking, payment tracking, and financial reporting. The system manages bookings, orders, payments, expenses, salaries, and generates cash reports.
+## Foundational Context
 
-**Tech Stack:**
-- Laravel 11 (PHP 8.2+)
-- Filament 3 (admin panel)
-- Pest 3 (testing framework)
-- Laravel Pint (code formatting)
-- SQLite (development database)
-- Spatie Laravel Permission (role-based access control)
+This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-## Development Commands
-
-### Core Commands
-- `php artisan serve` - Start the development server (though Laravel Herd auto-serves at https://cashbox.test)
-- `php artisan migrate` - Run database migrations
-- `php artisan db:seed` - Seed the database with initial data
-- `php artisan tinker` - Interactive PHP console
-
-### Testing
-- `php artisan test` - Run all tests using Pest
-- `php artisan test tests/Feature/BookingTest.php` - Run specific test file
-- `php artisan test --filter=test_name` - Run specific test by name
-- `vendor/bin/pint --dirty` - Format code (run before finalizing changes)
-
-### Frontend
-- `npm run dev` - Start Vite development server
-- `npm run build` - Build assets for production
-
-### Filament Commands
-- `php artisan make:filament-resource ModelName --generate` - Create new Filament resource with form/table
-- `php artisan make:filament-page PageName` - Create new Filament page
-- `php artisan filament:upgrade` - Upgrade Filament components
-
-## Architecture
-
-### Core Business Logic
-The system revolves around a booking-to-order-to-payment workflow:
-
-1. **Bookings** (`app/Models/Booking.php`) - Customer service reservations with dates, times, and prepayments
-2. **Orders** (`app/Models/Order.php`) - Individual service items generated from bookings
-3. **Payments** (`app/Models/Payment.php`) - Payment records for orders (cash/cashless)
-4. **Expenses** (`app/Models/Expense.php`) - Business expenses (cash/cashless)
-5. **Salaries** (`app/Models/Salary.php`) - Employee salaries (cash/cashless)
-6. **Cash Reports** (`app/Models/CashReport.php`) - Daily financial summaries
-
-### Event-Driven Architecture
-The system uses Laravel model events dispatched directly from models via `$dispatchesEvents` property. Events auto-discover their listeners (no EventServiceProvider needed in Laravel 11).
-
-**Key Event Flow:**
-- `BookingCreated` → `CreateOrdersWhenBookingCreated` - Auto-generates orders from booking price items
-- `BookingUpdated` → `RecreateOrdersWhenBookingUpdated` - Recreates orders when booking changes
-- `BookingDeleting` → `DeleteBookingOrders` - Cleans up related orders
-- `OrderCreated` → `CreatePaymentForOrderPrepayment` - Creates prepayment record if booking had prepayment
-- `OrderDeleting` → `DeleteOrderPayments` - Cleans up related payments
-- `PaymentCreated/Updated/Deleted` → `CalculateBalanceOnPayment*` - Updates cash reports
-- `ExpenseCreated/Updated/Deleted` → `CalculateBalanceOnExpense*` - Updates cash reports
-- `SalaryCreated/Updated/Deleted` → `CalculateBalanceOnSalary*` - Updates cash reports
-
-**Critical Pattern:** Models dispatch events using `$dispatchesEvents` property. Listeners are auto-discovered from `app/Listeners/` by Laravel's event discovery. When modifying booking/order/payment logic, ensure you understand which events will fire.
-
-### Filament Admin Panel
-- **Resources** (`app/Filament/Resources/`) - Admin CRUD interfaces for all models
-- **Pages** (`app/Filament/Resources/*/Pages/`) - Custom create/edit/list pages
-- **Role-based permissions** using Filament Shield with super-admin and employee roles
-- **Important:** Use `->relationship()` method on form components when populating selects/checkboxes from relationships
-
-### Services
-- `app/Services/CashReportService.php` - Handles cash flow calculations and daily cash report regeneration. Contains methods like `calculateAndSaveDailyData()` to rebuild all cash reports from scratch.
-
-### Database Design
-- Uses SQLite for development (`database/database.sqlite`)
-- Money amounts stored as integers (cents) in database, converted via `MoneyCast`
-- Models use `casts()` method (Laravel 11 pattern) rather than `$casts` property
-- Role-based access control using Spatie Laravel Permission
-
-## Testing Setup
-
-Tests use Pest 3 with automatic database refresh. Setup in `tests/Pest.php`:
-- Auto-creates `super-admin` and `employee` roles before each test
-- Creates authenticated super-admin user for all tests
-- Uses `RefreshDatabase` trait
-
-**Writing Tests:**
-- Use `php artisan make:test --pest TestName` for feature tests
-- Add `--unit` flag for unit tests
-- All tests must test happy paths, failure paths, and edge cases
-- Use model factories (never create models directly in tests)
-- For Filament tests, use `livewire(ResourceClass::class)` assertions
-
-## Key Patterns
-
-### Money Handling
-All monetary values use `MoneyCast` to convert between database integers (cents) and application floats (dollars). The cast multiplies by 100 when storing and divides by 100 when retrieving. Always use this cast for any money-related fields.
-
-### Role-Based Access
-- Super-admins have full access (defined via `Gate::before()` in `AppServiceProvider`)
-- Employees have limited access based on permissions
-- All Filament resources should implement appropriate policies
-
-### Event-Driven Side Effects
-**Critical:** The system relies heavily on model events for maintaining data consistency. When:
-- Creating/updating bookings → Orders are auto-generated/recreated
-- Creating/updating/deleting payments/expenses/salaries → Cash reports are auto-updated
-- Deleting bookings/orders → Related records are cascade-deleted via listeners
-
-Never bypass these events by using raw queries or mass updates without firing events.
-
-### Filament Forms
-Forms use Filament's reactive system with `Get` and `Set` closures:
-- Use `->live()` on fields that should trigger reactive updates
-- Use `afterStateUpdated()` with `Set` to update other form fields
-- Complex forms in `BookingResource` and `OrderResource` demonstrate this pattern
-
-### Laravel 11 Structure
-- No `app/Http/Middleware/` - middleware registered in `bootstrap/app.php`
-- No `app/Console/Kernel.php` - commands auto-register from `app/Console/Commands/`
-- Service providers in `bootstrap/providers.php`
-- Events auto-discover listeners (no manual registration needed)
+- php - 8.3.30
+- filament/filament (FILAMENT) - v3
+- laravel/framework (LARAVEL) - v11
+- laravel/prompts (PROMPTS) - v0
+- livewire/livewire (LIVEWIRE) - v3
+- laravel/boost (BOOST) - v2
+- laravel/mcp (MCP) - v0
+- laravel/pint (PINT) - v1
+- laravel/sail (SAIL) - v1
+- pestphp/pest (PEST) - v3
+- phpunit/phpunit (PHPUNIT) - v11
 
 ## Skills Activation
 
@@ -129,9 +27,28 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - `pest-testing` — Tests applications using the Pest 3 PHP framework. Activates when writing tests, creating unit or feature tests, adding assertions, testing Livewire components, architecture testing, debugging test failures, working with datasets or mocking; or when the user mentions test, spec, TDD, expects, assertion, coverage, or needs to verify functionality works.
 
+## Conventions
+
+- You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
+- Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
+- Check for existing components to reuse before writing a new one.
+
+## Verification Scripts
+
+- Do not create verification scripts or tinker when tests cover that functionality and prove they work. Unit and feature tests are more important.
+
+## Application Structure & Architecture
+
+- Stick to existing directory structure; don't create new base folders without approval.
+- Do not change the application's dependencies without approval.
+
 ## Frontend Bundling
 
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+
+## Documentation Files
+
+- You must only create documentation files if explicitly requested by the user.
 
 ## Replies
 
@@ -281,6 +198,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - When creating models for tests, use the factories for the models. Check if the factory has custom states that can be used before manually setting up the model.
 - Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
+- When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
 
 ## Vite Error
 
@@ -307,6 +225,10 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - When modifying a column, the migration must include all of the attributes that were previously defined on the column. Otherwise, they will be dropped and lost.
 - Laravel 11 allows limiting eagerly loaded records natively, without external packages: `$query->latest()->limit(10);`.
 
+### Models
+
+- Casts can and likely should be set in a `casts()` method on a model rather than the `$casts` property. Follow existing conventions from other models.
+
 ## New Artisan Commands
 
 - List Artisan commands using Boost's MCP tool, if available. New commands available in Laravel 11:
@@ -325,6 +247,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ## Pest
 
+- This project uses Pest for testing. Create tests: `php artisan make:test --pest {name}`.
 - Run tests: `php artisan test --compact` or filter: `php artisan test --compact --filter=testName`.
 - Do NOT delete tests without approval.
 - CRITICAL: ALWAYS use `search-docs` tool for version-specific Pest documentation and updated code examples.
@@ -427,3 +350,4 @@ Forms\Components\Select::make('user_id')
 - Added `php artisan filament:optimize` command for production optimization.
 - Requires implementing `FilamentUser` contract for production access control.
 
+</laravel-boost-guidelines>
