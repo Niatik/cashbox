@@ -2,10 +2,11 @@
 
 use App\Models\Price;
 use App\Models\PriceItem;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 
 it('has the price items', function () {
-    //Arrange
+    // Arrange
     $price = Price::factory()
         ->has(
             PriceItem::factory()
@@ -13,18 +14,18 @@ it('has the price items', function () {
                 ->state(new Sequence(
                     fn (Sequence $sequence) => [
                         'name_item' => 'test'.$sequence->index * 10,
-                        'time_item' => $sequence->index * 10,
+                        'factor' => $sequence->index * 10,
                     ],
                 ))
         )
         ->create();
 
-    //Act
+    // Act
     $priceItems = $price->priceItems;
 
-    //Assert
+    // Assert
     expect($priceItems)
-        ->toBeInstanceOf(Illuminate\Database\Eloquent\Collection::class)
+        ->toBeInstanceOf(Collection::class)
         ->toHaveCount(5)
         ->each->toBeInstanceOf(PriceItem::class);
 });
