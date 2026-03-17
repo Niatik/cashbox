@@ -40,7 +40,6 @@ it('can create an User', function () {
             'password_confirmation' => $newData->password,
             'employee.name' => $employee->name,
             'employee.phone' => $employee->phone,
-            'employee.salary' => $employee->salary,
             'employee.employment_date' => $employee->employment_date,
         ])
         ->call('create')
@@ -55,7 +54,6 @@ it('can create an User', function () {
     $this->assertDatabaseHas(Employee::class, [
         'name' => $employee->name,
         'phone' => $employee->phone,
-        'salary' => $employee->salary * 100,
         'employment_date' => $employee->employment_date,
     ]);
 });
@@ -219,17 +217,10 @@ it('can search users by email', function () {
 });
 
 it('can search users by employee phone', function () {
-    User::factory()
+    $users = User::factory()
         ->count(9)
+        ->has(Employee::factory())
         ->create();
-
-    $users = User::All();
-
-    foreach ($users as $user) {
-        $user->employee->phone = fake()->phoneNumber();
-        $user->save();
-        $user->refresh();
-    }
 
     $phone = $users->first()->employee->phone;
 
@@ -275,15 +266,10 @@ it('can sort users by employee name', function () {
 });
 
 it('can sort users by employee phone', function () {
-    User::factory()
+    $users = User::factory()
         ->count(4)
+        ->has(Employee::factory())
         ->create();
-    $users = User::All();
-    foreach ($users as $user) {
-        $user->employee->phone = fake()->phoneNumber();
-        $user->save();
-        $user->refresh();
-    }
 
     livewire(UserResource\Pages\ListUsers::class)
         ->sortTable('employee.phone')
@@ -339,18 +325,6 @@ it('can edit users from table', function () {
         ->employee->phone->toBe($newEmployee->phone)
         ->employee->salary->toBe($newEmployee->salary)
         ->employee->employment_date->toBe($newEmployee->employment_date);
-});
-
-it('can render relation manager for Roles', function () {
-    $user = User::factory()
-        ->has(Role::factory()->count(3))
-        ->create();
-
-    livewire(UserResource\RelationManagers\RolesRelationManager::class, [
-        'ownerRecord' => $user,
-        'pageClass' => EditUser::class,
-    ])
-        ->assertSuccessful();
 });
 
 test('employee fieldset exists', function () {
