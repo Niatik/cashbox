@@ -31,7 +31,7 @@ class EditBooking extends EditRecord
         return [
             ...parent::getFormActions(),
             Action::make('saveAsDraft')
-                ->label('Сохранить черновик')
+                ->label(__('messages.save_draft'))
                 ->color('gray')
                 ->extraAttributes(['class' => 'ms-auto'])
                 ->action(function () {
@@ -48,7 +48,7 @@ class EditBooking extends EditRecord
         $customer = $this->record->customer;
 
         $data['customer_name'] = $customer?->name ?? '';
-        $data['customer_phone'] = $customer?->phone ?? ''; // Берем телефон только из связи
+        $data['customer_phone'] = $customer?->phone ?? '';
 
         return $data;
     }
@@ -66,7 +66,6 @@ class EditBooking extends EditRecord
             $data['customer_id'] = $customer->id;
         }
 
-        // Удаляем временные поля, которых нет в БД bookings
         unset($data['customer_phone'], $data['customer_name']);
 
         if ($this->shouldSaveAsDraft) {

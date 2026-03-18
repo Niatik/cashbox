@@ -56,4 +56,42 @@ return [
 
     // Generic
     'for_selected_service' => 'for the selected service',
+
+    // Page titles
+    'customer_sources' => 'Customer Sources',
+    'create_source' => 'Create Source',
+    'edit_source' => 'Edit Source',
+    'daily_report' => 'Daily Report',
+
+    // Page actions
+    'create_source_button' => 'Create Source',
+    'create_job_title_button' => 'Create Job Title',
+    'delete_job_title' => 'Delete Job Title',
+    'create_service_button' => 'Create Service',
+    'delete_service' => 'Delete Service',
+    'save_draft' => 'Save Draft',
+    'back_to_list' => 'Back to List',
+    'start' => 'Start',
+    'payout' => 'Payout',
+
+    // Page notifications
+    'source_created' => 'Source successfully created',
+    'source_updated' => 'Source successfully updated',
+
+    // Order wizard steps
+    'wizard_service' => 'Service',
+    'wizard_service_description' => 'Select service, time and number of people',
+    'wizard_payment' => 'Payment',
+    'wizard_payment_description' => 'Enter payment for the service and complete the order',
+
+    // Work session fields
+    'session_expenses' => 'Session Expenses',
+    'session_expense_type' => 'Expense Type',
+    'session_salary' => 'Session Salary',
+    'balance' => 'Balance',
+    'total_income' => 'Total Income',
+    'total_expense' => 'Total Expense',
+    'salary_total' => 'Total Salary',
+    'payout_amount' => 'Payout Amount',
+    'cash_payment' => 'Cash',
 ];

@@ -13,7 +13,7 @@ class ListJobTitles extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('Создать должность'),
+            Actions\CreateAction::make()->label(__('messages.create_job_title_button')),
         ];
     }
 }

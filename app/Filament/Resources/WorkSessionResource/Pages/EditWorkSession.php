@@ -35,7 +35,7 @@ class EditWorkSession extends EditRecord
         if ($this->record->salaryWorkSessions()->exists()) {
             return [
                 Actions\Action::make('back')
-                    ->label('Вернуться к списку')
+                    ->label(__('messages.back_to_list'))
                     ->url($this->getResource()::getUrl('index'))
                     ->color('gray'),
             ];
@@ -52,7 +52,7 @@ class EditWorkSession extends EditRecord
                     ->map(fn (Forms\Components\Component $component) => $component
                         ->disabled(fn (): bool => $this->record->salaryWorkSessions()->exists()))
                     ->all(),
-                Forms\Components\Section::make('Расходы смены')
+                Forms\Components\Section::make(__('messages.session_expenses'))
                     ->schema([
                         Forms\Components\Repeater::make('expenseWorkSessions')
                             ->label('')
@@ -68,11 +68,11 @@ class EditWorkSession extends EditRecord
                             })
                             ->schema([
                                 Forms\Components\TextInput::make('expense_type')
-                                    ->label('Тип расхода')
+                                    ->label(__('messages.session_expense_type'))
                                     ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('amount')
-                                    ->label('Сумма')
+                                    ->label(__('fields.amount'))
                                     ->required()
                                     ->numeric()
                                     ->live(),
@@ -80,11 +80,11 @@ class EditWorkSession extends EditRecord
                             ->columns(2)
                             ->columnSpanFull(),
                     ]),
-                Forms\Components\Section::make('Зарплата смены')
+                Forms\Components\Section::make(__('messages.session_salary'))
                     ->footerActionsAlignment(Alignment::Right)
                     ->footerActions([
                         Action::make('salary_payment')
-                            ->label('Выплата')
+                            ->label(__('messages.payout'))
                             ->icon('heroicon-o-banknotes')
                             ->requiresConfirmation()
                             ->action(function (Forms\Get $get) {
@@ -108,7 +108,7 @@ class EditWorkSession extends EditRecord
                             ->statePath('salary_work_session')
                             ->schema([
                                 Forms\Components\TextInput::make('balance_salary')
-                                    ->label('Баланс')
+                                    ->label(__('messages.balance'))
                                     ->numeric()
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $balance = SalaryWorkSession::query()
@@ -121,7 +121,7 @@ class EditWorkSession extends EditRecord
                                     ->disabled()
                                     ->dehydrated(false),
                                 Forms\Components\TextInput::make('income_total')
-                                    ->label('Общий доход')
+                                    ->label(__('messages.total_income'))
                                     ->numeric()
                                     ->default(0)
                                     ->disabled()
@@ -170,7 +170,7 @@ class EditWorkSession extends EditRecord
                                         $component->state($salary + $ratioBonus);
                                     }),
                                 Forms\Components\TextInput::make('expense_total')
-                                    ->label('Общий расход')
+                                    ->label(__('messages.total_expense'))
                                     ->numeric()
                                     ->default(0)
                                     ->disabled()
@@ -185,7 +185,7 @@ class EditWorkSession extends EditRecord
                                         $component->state($total);
                                     }),
                                 Forms\Components\TextInput::make('salary_total')
-                                    ->label('Итого зарплата')
+                                    ->label(__('messages.salary_total'))
                                     ->numeric()
                                     ->default(0)
                                     ->disabled()
@@ -197,7 +197,7 @@ class EditWorkSession extends EditRecord
                                         $component->state($balance + $income - $expense);
                                     }),
                                 Forms\Components\TextInput::make('salary_amount')
-                                    ->label('Сумма выплаты')
+                                    ->label(__('messages.payout_amount'))
                                     ->numeric()
                                     ->default(0)
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
@@ -207,7 +207,7 @@ class EditWorkSession extends EditRecord
                                         $component->state($balance + $income - $expense);
                                     }),
                                 Forms\Components\Toggle::make('is_cash')
-                                    ->label('Наличные')
+                                    ->label(__('messages.cash_payment'))
                                     ->default(true),
                             ])
                             ->columns(2)
@@ -218,7 +218,7 @@ class EditWorkSession extends EditRecord
                             ->relationship()
                             ->schema([
                                 Forms\Components\TextInput::make('balance_salary')
-                                    ->label('Баланс')
+                                    ->label(__('messages.balance'))
                                     ->numeric()
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $balance = SalaryWorkSession::query()
@@ -231,27 +231,27 @@ class EditWorkSession extends EditRecord
                                     ->disabled()
                                     ->dehydrated(false),
                                 Forms\Components\TextInput::make('income_total')
-                                    ->label('Общий доход')
+                                    ->label(__('messages.total_income'))
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
                                 Forms\Components\TextInput::make('expense_total')
-                                    ->label('Общий расход')
+                                    ->label(__('messages.total_expense'))
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
                                 Forms\Components\TextInput::make('salary_total')
-                                    ->label('Итого зарплата')
+                                    ->label(__('messages.salary_total'))
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
                                 Forms\Components\TextInput::make('salary_amount')
-                                    ->label('Сумма выплаты')
+                                    ->label(__('messages.payout_amount'))
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
                                 Forms\Components\Toggle::make('is_cash')
-                                    ->label('Наличные')
+                                    ->label(__('messages.cash_payment'))
                                     ->default(true),
                             ])
                             ->columns(2)

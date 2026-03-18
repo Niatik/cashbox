@@ -56,4 +56,42 @@ return [
 
     // Generic
     'for_selected_service' => 'для выбранной услуги',
+
+    // Page titles
+    'customer_sources' => 'Источники клиентов',
+    'create_source' => 'Создать источник',
+    'edit_source' => 'Редактировать источник',
+    'daily_report' => 'Отчет за день',
+
+    // Page actions
+    'create_source_button' => 'Создать источник',
+    'create_job_title_button' => 'Создать должность',
+    'delete_job_title' => 'Удалить должность',
+    'create_service_button' => 'Создать услугу',
+    'delete_service' => 'Удалить услугу',
+    'save_draft' => 'Сохранить черновик',
+    'back_to_list' => 'Вернуться к списку',
+    'start' => 'Старт',
+    'payout' => 'Выплата',
+
+    // Page notifications
+    'source_created' => 'Источник успешно создан',
+    'source_updated' => 'Источник успешно обновлен',
+
+    // Order wizard steps
+    'wizard_service' => 'Услуга',
+    'wizard_service_description' => 'Выберите услугу, время и количество людей',
+    'wizard_payment' => 'Оплата',
+    'wizard_payment_description' => 'Внесите оплату за услугу и завершите оформление',
+
+    // Work session fields
+    'session_expenses' => 'Расходы смены',
+    'session_expense_type' => 'Тип расхода',
+    'session_salary' => 'Зарплата смены',
+    'balance' => 'Баланс',
+    'total_income' => 'Общий доход',
+    'total_expense' => 'Общий расход',
+    'salary_total' => 'Итого зарплата',
+    'payout_amount' => 'Сумма выплаты',
+    'cash_payment' => 'Наличные',
 ];

@@ -9,7 +9,6 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Arr;
-use Filament\Resources\Resource;
 
 class CreateOrder extends CreateRecord
 {
@@ -38,8 +37,8 @@ class CreateOrder extends CreateRecord
     protected function getSteps(): array
     {
         return [
-            Step::make('Услуга')
-                ->description('Выберите услугу, время и количество людей')
+            Step::make(__('messages.wizard_service'))
+                ->description(__('messages.wizard_service_description'))
                 ->schema([
                     OrderResource::getDateFormField(),
                     OrderResource::getTimeFormField()->readOnly(),
@@ -57,13 +56,13 @@ class CreateOrder extends CreateRecord
                     OrderResource::getEmployeeFormField(),
                     OrderResource::getOptionsFormField(),
                 ]),
-            Step::make('Оплата')
-                ->description('Внесите оплату за услугу и завершите оформление')
+            Step::make(__('messages.wizard_payment'))
+                ->description(__('messages.wizard_payment_description'))
                 ->schema([
                     Section::make()
                         ->schema([
                             Repeater::make('payments')
-                                ->label('Список оплат')
+                                ->label(__('fields.payments_list'))
                                 ->addable(false)
                                 ->relationship()
                                 ->schema([

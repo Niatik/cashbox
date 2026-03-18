@@ -24,7 +24,7 @@ class CreateBooking extends CreateRecord
         return [
             ...parent::getFormActions(),
             Action::make('saveAsDraft')
-                ->label('Сохранить черновик')
+                ->label(__('messages.save_draft'))
                 ->color('gray')
                 ->extraAttributes(['class' => 'ms-auto'])
                 ->action(function () {
@@ -49,7 +49,6 @@ class CreateBooking extends CreateRecord
             $data['customer_id'] = $customer->id;
         }
 
-        // Удаляем временные поля, которых нет в БД bookings
         unset($data['customer_phone'], $data['customer_name']);
 
         if ($this->shouldSaveAsDraft) {

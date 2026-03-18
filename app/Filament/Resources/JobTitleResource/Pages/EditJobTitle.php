@@ -13,7 +13,7 @@ class EditJobTitle extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()->label('Удалить должность'),
+            Actions\DeleteAction::make()->label(__('messages.delete_job_title')),
         ];
     }
 

@@ -13,7 +13,7 @@ class ListPrices extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('Создать услугу'),
+            Actions\CreateAction::make()->label(__('messages.create_service_button')),
         ];
     }
 }

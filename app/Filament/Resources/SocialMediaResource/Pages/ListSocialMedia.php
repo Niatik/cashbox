@@ -9,20 +9,18 @@ use Filament\Resources\Pages\ListRecords;
 class ListSocialMedia extends ListRecords
 {
     protected static string $resource = SocialMediaResource::class;
-    
-    protected static ?string $title = 'Источники клиентов';
 
     protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make()
-                ->label('Создать источник')
+                ->label(__('messages.create_source_button'))
                 ->icon('heroicon-m-plus'),
         ];
     }
-    
+
     public function getTitle(): string
     {
-        return 'Источники клиентов';
+        return __('messages.customer_sources');
     }
 }

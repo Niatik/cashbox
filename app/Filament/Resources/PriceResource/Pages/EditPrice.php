@@ -13,7 +13,7 @@ class EditPrice extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()->label('Удалить услугу'),
+            Actions\DeleteAction::make()->label(__('messages.delete_service')),
         ];
     }
 

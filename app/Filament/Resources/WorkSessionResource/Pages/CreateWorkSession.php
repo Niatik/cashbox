@@ -17,8 +17,8 @@ class CreateWorkSession extends CreateRecord
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction()->label('Старт'),
-            $this->getCancelFormAction()->label('Отмена'),
+            $this->getCreateFormAction()->label(__('messages.start')),
+            $this->getCancelFormAction()->label(__('messages.cancel')),
         ];
     }
 }
