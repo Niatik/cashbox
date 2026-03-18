@@ -5,7 +5,6 @@ use App\Models\Employee;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-
 use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
@@ -19,7 +18,7 @@ it('can list employees', function () {
 
     $employees = Employee::all();
 
-        livewire(EmployeeResource\Pages\ListEmployees::class)
+    livewire(EmployeeResource\Pages\ListEmployees::class)
         ->assertCanSeeTableRecords($employees);
 });
 
@@ -147,7 +146,7 @@ it('can delete the Employee', function () {
     ])
         ->callAction(DeleteAction::class);
 
-    $this->assertModelMissing($employee);
+    $this->assertSoftDeleted($employee);
 });
 
 it('can render employee columns', function () {
@@ -246,7 +245,7 @@ it('can bulk delete employees from table', function () {
         ->callTableBulkAction(DeleteBulkAction::class, $employees);
 
     foreach ($employees as $employee) {
-        $this->assertModelMissing($employee);
+        $this->assertSoftDeleted($employee);
     }
 });
 
@@ -256,7 +255,7 @@ it('can delete employees from table', function () {
     livewire(EmployeeResource\Pages\ListEmployees::class)
         ->callTableAction(TableDeleteAction::class, $employee);
 
-    $this->assertModelMissing($employee);
+    $this->assertSoftDeleted($employee);
 });
 
 it('can edit employees from table', function () {
