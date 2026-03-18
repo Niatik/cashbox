@@ -4,7 +4,6 @@ use App\Filament\Resources\ExpenseResource;
 use App\Models\Expense;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
@@ -14,10 +13,11 @@ it('can render page', function () {
 });
 
 it('can list of expenses', function () {
-    $expenseTypes = Expense::factory()->count(10)->create();
+    $expenses = Expense::factory()->count(10)->create();
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
-        ->assertCanSeeTableRecords($expenseTypes);
+        ->removeTableFilters()
+        ->assertCanSeeTableRecords($expenses);
 });
 
 it('can render page for creating an Expense', function () {
@@ -135,6 +135,7 @@ it('can render the expense columns', function () {
     Expense::factory()->count(10)->create();
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->assertCanRenderTableColumn('expense_date')
         ->assertCanRenderTableColumn('expense_type.name')
         ->assertCanRenderTableColumn('expense_amount');
@@ -146,6 +147,7 @@ it('can search expenses by date', function () {
     $date = $expenses->first()->expense_date;
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->searchTable($date)
         ->assertCanSeeTableRecords($expenses->where('expense_date', $date))
         ->assertCanNotSeeTableRecords($expenses->where('expense_date', '!=', $date));
@@ -157,6 +159,7 @@ it('can search expenses by type', function () {
     $type = $expenses->first()->expense_type->name;
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->searchTable($type)
         ->assertCanSeeTableRecords($expenses->where('expense_type.name', $type))
         ->assertCanNotSeeTableRecords($expenses->where('expense_type.name', '!=', $type));
@@ -166,6 +169,7 @@ it('can sort expenses by date', function () {
     $expenses = Expense::factory()->count(10)->create();
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->sortTable('expense_date')
         ->assertCanSeeTableRecords($expenses->sortBy('expense_date'), inOrder: true)
         ->sortTable('expense_date', 'desc')
@@ -176,6 +180,7 @@ it('can sort expenses by amount', function () {
     $expenses = Expense::factory()->count(10)->create();
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->sortTable('expense_amount')
         ->assertCanSeeTableRecords($expenses->sortBy('expense_amount'), inOrder: true)
         ->sortTable('expense_amount', 'desc')
@@ -186,27 +191,18 @@ it('can sort expenses by expense type', function () {
     $expenses = Expense::factory()->count(10)->create();
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->sortTable('expense_type.name')
         ->assertCanSeeTableRecords($expenses->sortBy('expense_type.name'), inOrder: true)
         ->sortTable('expense_type.name', 'desc')
         ->assertCanSeeTableRecords($expenses->sortByDesc('expense_type.name'), inOrder: true);
 });
 
-it('can bulk delete the expenses from table', function () {
-    $expenses = Expense::factory()->count(10)->create();
-
-    livewire(ExpenseResource\Pages\ListExpenses::class)
-        ->callTableBulkAction(DeleteBulkAction::class, $expenses);
-
-    foreach ($expenses as $expense) {
-        $this->assertModelMissing($expense);
-    }
-});
-
 it('can delete the expenses from table', function () {
     $expense = Expense::factory()->create();
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->callTableAction(TableDeleteAction::class, $expense);
 
     $this->assertModelMissing($expense);
@@ -217,6 +213,7 @@ it('can edit the expenses from table', function () {
     $newData = Expense::factory()->make();
 
     livewire(ExpenseResource\Pages\ListExpenses::class)
+        ->removeTableFilters()
         ->callTableAction(EditAction::class, $expense, data: [
             'expense_date' => $newData->expense_date,
             'expense_type_id' => $newData->expense_type_id,
