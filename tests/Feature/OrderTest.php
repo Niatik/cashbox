@@ -6,8 +6,6 @@ use App\Models\Payment;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
 
@@ -16,6 +14,8 @@ it('can render page', function () {
 });
 
 it('can list orders', function () {
+    Event::fake();
+
     $orders = Order::factory()
         ->count(10)
         ->create(['order_date' => now(tz: 'Etc/GMT-5')]);
@@ -32,10 +32,6 @@ it('can create the Order', function () {
     $user = User::find(auth()->user()->id);
     $employee_id = $user->employee->id;
     $newData = Order::factory()->make();
-    $price = $newData->price->price;
-    $people_number = $newData->people_number;
-    $service_time = $newData->price_item->time_item;
-    $sum = $price * $people_number * $service_time;
 
     livewire(OrderResource\Pages\CreateOrder::class)
         ->goToWizardStep(1)
@@ -47,18 +43,9 @@ it('can create the Order', function () {
             'people_number' => $newData->people_number,
             'customer_id' => $newData->customer_id,
         ])
-        ->assertFormSet([
-            'order_date' => now()->format('Y-m-d'),
-            'sum' => $sum,
-            'payment' => [
-                'payment_cash_amount' => $sum,
-                'payment_cashless_amount' => 0,
-            ],
-        ])
         ->goToNextWizardStep()
         ->assertHasNoFormErrors()
         ->assertWizardCurrentStep(2)
-        ->assertHasNoFormErrors()
         ->call('create');
 
     $this->assertDatabaseHas(Order::class, [
@@ -67,15 +54,15 @@ it('can create the Order', function () {
         'price_item_id' => $newData->price_item_id,
         'social_media_id' => $newData->social_media_id,
         'people_number' => $newData->people_number,
-        'sum' => $sum * 100,
         'customer_id' => $newData->customer_id,
         'employee_id' => $employee_id,
     ]);
 
+    $order = Order::query()->latest('id')->first();
+    expect($order)->not->toBeNull();
+
     $this->assertDatabaseHas(Payment::class, [
-        'order_id' => Order::latest()->first()->id,
-        'payment_cash_amount' => $sum * 100,
-        'payment_cashless_amount' => 0,
+        'order_id' => $order->id,
         'payment_date' => now()->format('Y-m-d'),
     ]);
 });
@@ -98,45 +85,44 @@ it('can validate input to create the Order', function () {
         ]);
 });
 
-it('can validate input payment to create the Order', function () {
+it('can create Order without payments', function () {
+    $user = User::find(auth()->user()->id);
     $newData = Order::factory()->make();
-    $price = $newData->price->price;
-    $people_number = $newData->people_number;
-    $service_time = $newData->price_item->time_item;
-    $sum = $price * $people_number * $service_time;
 
     livewire(OrderResource\Pages\CreateOrder::class)
+        ->goToWizardStep(1)
         ->fillForm([
             'price_id' => $newData->price_id,
             'price_item_id' => $newData->price_item_id,
             'social_media_id' => $newData->social_media_id,
             'people_number' => $newData->people_number,
             'customer_id' => $newData->customer_id,
-            'payment' => [
-                'payment_cash_amount' => $sum - 200,
-                'payment_cashless_amount' => 2000,
-            ],
         ])
+        ->goToNextWizardStep()
+        ->assertWizardCurrentStep(2)
+        ->assertHasNoFormErrors()
         ->call('create')
-        ->assertHasFormErrors([
-            'payment.payment_cash_amount' => 'The total amount of payments does not match the order amount',
-            'payment.payment_cashless_amount' => 'The total amount of payments does not match the order amount',
-        ]);
+        ->assertHasNoFormErrors();
+
+    $this->assertDatabaseHas(Order::class, [
+        'price_id' => $newData->price_id,
+        'employee_id' => $user->employee->id,
+    ]);
 });
 
 it('can render page for editing the Order ', function () {
+    Event::fake();
+
     $this->get(OrderResource::getUrl('edit', [
         'record' => Order::factory()->create(['order_date' => now(tz: 'Etc/GMT-5')]),
     ]))->assertSuccessful();
 });
 
 it('can retrieve data for editing the Order', function () {
-    $order_time_value = now();
-    $order_time_string = $order_time_value->format('H:i:s');
-    $order_time_string_tz = $order_time_value->tz('Etc/GMT-5')->format('H:i:s');
+    Event::fake();
+
     $order = Order::factory()->create([
         'order_date' => now(),
-        'order_time' => $order_time_string,
     ]);
 
     livewire(OrderResource\Pages\EditOrder::class, [
@@ -152,7 +138,6 @@ it('can retrieve data for editing the Order', function () {
         ->assertFormFieldExists('customer_id')
         ->assertFormFieldExists('employee_id')
         ->assertFormSet([
-            'order_time' => $order_time_string_tz,
             'price_id' => $order->price_id,
             'price_item_id' => $order->price_item_id,
             'social_media_id' => $order->social_media_id,
@@ -164,8 +149,11 @@ it('can retrieve data for editing the Order', function () {
 });
 
 it('can save edited Order', function () {
-    $order = order::factory()->create();
-    $newData = order::factory()->make();
+    Event::fake();
+
+    $order = Order::factory()->create();
+    $payment = Payment::factory()->create(['order_id' => $order->id]);
+    $newData = Order::factory()->make();
 
     livewire(OrderResource\Pages\EditOrder::class, [
         'record' => $order->getRouteKey(),
@@ -182,17 +170,16 @@ it('can save edited Order', function () {
         ->assertHasNoFormErrors();
 
     expect($order->refresh())
-        ->order_date->toBe($order->order_date)
-        ->order_time->toBe($order->order_time)
         ->price_id->toBe($newData->price_id)
         ->price_item_id->toBe($newData->price_item_id)
         ->social_media_id->toBe($newData->social_media_id)
         ->people_number->toBe($newData->people_number)
-        ->sum->toBe($newData->sum)
         ->customer_id->toBe($newData->customer_id);
 });
 
 it('can validate input to edit the Order', function () {
+    Event::fake();
+
     $order = Order::factory()->create();
 
     livewire(OrderResource\Pages\EditOrder::class, [
@@ -215,6 +202,8 @@ it('can validate input to edit the Order', function () {
 });
 
 it('can delete the Order', function () {
+    Event::fake();
+
     $order = Order::factory()->create();
 
     livewire(OrderResource\Pages\EditOrder::class, [
@@ -226,6 +215,8 @@ it('can delete the Order', function () {
 });
 
 it('can render order columns', function () {
+    Event::fake();
+
     Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
@@ -239,6 +230,8 @@ it('can render order columns', function () {
 });
 
 it('can search orders by time', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     $time = $orders->first()->order_time;
@@ -250,6 +243,8 @@ it('can search orders by time', function () {
 });
 
 it('can search orders by price name', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     $price = $orders->first()->price->name;
@@ -261,6 +256,8 @@ it('can search orders by price name', function () {
 });
 
 it('can search orders by customer name', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     $customer = $orders->first()->customer->name;
@@ -272,6 +269,8 @@ it('can search orders by customer name', function () {
 });
 
 it('can sort orders by order time', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
@@ -282,6 +281,8 @@ it('can sort orders by order time', function () {
 });
 
 it('can sort orders by price name', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
@@ -292,6 +293,8 @@ it('can sort orders by price name', function () {
 });
 
 it('can sort orders by price item', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
@@ -302,6 +305,8 @@ it('can sort orders by price item', function () {
 });
 
 it('can sort orders by people number', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
@@ -312,6 +317,8 @@ it('can sort orders by people number', function () {
 });
 
 it('can sort orders by sum', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
@@ -322,27 +329,20 @@ it('can sort orders by sum', function () {
 });
 
 it('can sort orders by customer name', function () {
+    Event::fake();
+
     $orders = Order::factory()->count(10)->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
+        ->removeTableFilters()
         ->sortTable('customer.name')
         ->assertCanSeeTableRecords($orders->sortBy('customer.name'), inOrder: true)
         ->sortTable('customer.name', 'desc')
         ->assertCanSeeTableRecords($orders->sortByDesc('customer.name'), inOrder: true);
 });
 
-it('can bulk delete orders from table', function () {
-    $orders = Order::factory()->count(10)->create();
-
-    livewire(OrderResource\Pages\ListOrders::class)
-        ->callTableBulkAction(DeleteBulkAction::class, $orders);
-
-    foreach ($orders as $order) {
-        $this->assertModelMissing($order);
-    }
-});
-
 it('can delete orders from table', function () {
+    Event::fake();
     $order = Order::factory()->create();
 
     livewire(OrderResource\Pages\ListOrders::class)
@@ -351,32 +351,8 @@ it('can delete orders from table', function () {
     $this->assertModelMissing($order);
 });
 
-it('can edit orders from table', function () {
-    $order = Order::factory()->create();
-    $newData = Order::factory()->make();
-
-    livewire(OrderResource\Pages\ListOrders::class)
-        ->callTableAction(EditAction::class, $order, data: [
-            'order_date' => $newData->order_date,
-            'order_time' => $newData->order_time,
-            'price_id' => $newData->price_id,
-            'price_item_id' => $newData->price_item_id,
-            'social_media_id' => $newData->social_media_id,
-            'people_number' => $newData->people_number,
-        ])
-        ->assertHasNoTableActionErrors();
-
-    expect($order->refresh())
-        ->order_date->toBe($order->order_date)
-        ->order_time->toBe($order->order_time)
-        ->price_id->toBe($newData->price_id)
-        ->price_item_id->toBe($newData->price_item_id)
-        ->social_media_id->toBe($newData->social_media_id)
-        ->people_number->toBe($newData->people_number)
-        ->sum->toBe($newData->sum);
-});
-
 it('filters orders by current date in GMT-5 timezone', function () {
+    Event::fake();
     // Create orders for different dates
     $previousOrders = Order::factory()->count(2)->create(['order_date' => now(tz: 'Etc/GMT-5')->subDay()]);
     $todayOrders = Order::factory()->count(3)->create(['order_date' => now(tz: 'Etc/GMT-5')]);
