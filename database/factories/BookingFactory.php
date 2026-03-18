@@ -24,14 +24,16 @@ class BookingFactory extends Factory
 
         return [
             'booking_date' => now(tz: 'Etc/GMT-5'),
-            'booking_time' => now(tz: 'Etc/GMT-5'),
             'booking_price_items' => [
                 [
+                    'booking_time' => now(tz: 'Etc/GMT-5')->format('H:i:s'),
                     'price_id' => $bookingPriceItem->price->id,
                     'price_item_id' => $bookingPriceItem->id,
                     'people_number' => 1,
                     'name_item' => $bookingPriceItem->name_item,
+                    'prepayment_price_item' => 0,
                     'people_item' => 2,
+                    'is_cash' => false,
                 ],
             ],
             'sum' => 0,
