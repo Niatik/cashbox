@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SalaryResource\Pages;
 use App\Models\Salary;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -23,33 +22,39 @@ class SalaryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = 'Зарплата';
+    public static function getModelLabel(): string
+    {
+        return __('resources.salary.label');
+    }
 
-    protected static ?string $pluralLabel = 'Зарплата';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.salary.plural');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Select::make('employee_id')
-                    ->label('Работник')
+                    ->label(__('fields.worker'))
                     ->relationship('employee', 'name', fn (Builder $query) => $query->where('is_hidden', false))
                     ->preload()
                     ->required(),
                 DatePicker::make('salary_date')
-                    ->label('Дата')
+                    ->label(__('fields.date'))
                     ->default(now())
                     ->required()
                     ->maxDate(now()),
                 TextInput::make('description')
-                    ->label('Описание расхода'),
+                    ->label(__('fields.expense_description')),
 
                 TextInput::make('salary_amount')
-                    ->label('Сумма')
+                    ->label(__('fields.amount'))
                     ->required()
                     ->numeric(),
                 Toggle::make('is_cash')
-                    ->label('Наличные')
+                    ->label(__('fields.is_cash'))
                     ->required()
                     ->default(true),
 
@@ -61,29 +66,29 @@ class SalaryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('salary_date')
-                    ->label('Дата')
+                    ->label(__('columns.date'))
                     ->date('d.m.Y')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('employee.name')
-                    ->label('Работник')
+                    ->label(__('columns.worker'))
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->label('Описание'),
+                    ->label(__('columns.description')),
                 Tables\Columns\TextColumn::make('salary_amount')
-                    ->label('Сумма расхода')
+                    ->label(__('columns.salary_amount'))
                     ->sortable(),
                 Tables\Columns\ToggleColumn::make('is_cash')
-                    ->label('Нал'),
+                    ->label(__('columns.is_cash')),
             ])
             ->defaultSort('salary_date', 'desc')
             ->filters(
                 self::getTableFilters()
             )
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
             ]);
     }
 
@@ -111,7 +116,7 @@ class SalaryResource extends Resource
                 ->form([
                     DatePicker::make('select_date')
                         ->default(now())
-                        ->label('Выберите дату'),
+                        ->label(__('messages.select_date')),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {
                     return $query

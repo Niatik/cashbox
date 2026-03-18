@@ -11,29 +11,23 @@ class AnalyticsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationLabel = 'Аналитика';
-
-    protected static ?string $label = 'Аналитика';
-
-    protected static ?string $pluralLabel = 'Аналитика';
-
     protected static ?string $slug = 'analytics';
 
     protected static ?int $navigationSort = 1;
 
     public static function getNavigationLabel(): string
     {
-        return 'Аналитика';
+        return __('resources.analytics.navigation');
     }
 
     public static function getModelLabel(): string
     {
-        return 'Аналитика';
+        return __('resources.analytics.label');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Аналитика';
+        return __('resources.analytics.plural');
     }
 
     public static function getPages(): array

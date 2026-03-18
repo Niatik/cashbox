@@ -16,57 +16,66 @@ class EmployeeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.employee.label');
+    }
 
-    protected static ?string $pluralLabel = 'Сотрудники';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.employee.plural');
+    }
 
-    protected static ?string $navigationGroup = 'Справочники';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources.nav_groups.references');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Ф.И.О.')
+                    ->label(__('fields.full_name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone')
-                    ->label('Телефон')
+                    ->label(__('fields.phone'))
                     ->tel(),
                 Forms\Components\Select::make('job_title_id')
-                    ->label('Должность')
+                    ->label(__('fields.job_title'))
                     ->relationship('jobTitle', 'title')
                     ->preload()
                     ->required(),
                 Forms\Components\DatePicker::make('employment_date')
-                    ->label('Дата приема на работу'),
+                    ->label(__('fields.employment_date')),
                 Forms\Components\Select::make('user_id')
-                    ->label('Пользователь')
+                    ->label(__('fields.linked_user'))
                     ->relationship('user', 'name')
                     ->preload()
                     ->createOptionForm([
                         Forms\Components\TextInput::make('name')
-                            ->label('Имя пользователя')
+                            ->label(__('fields.username'))
                             ->maxLength(255)
                             ->required(),
                         Forms\Components\TextInput::make('email')
-                            ->label('Email')
+                            ->label(__('fields.email'))
                             ->email()
                             ->required(),
                         Forms\Components\TextInput::make('password')
-                            ->label('Пароль')
+                            ->label(__('fields.password'))
                             ->password()
                             ->required(),
                     ])
                     ->required(),
                 Forms\Components\Toggle::make('is_hidden')
-                    ->label('Скрытый')
+                    ->label(__('fields.hidden'))
                     ->default(false),
                 Forms\Components\TextInput::make('fio')
-                    ->label('ФИО')
+                    ->label(__('fields.fio'))
                     ->maxLength(255),
                 Forms\Components\Textarea::make('info')
-                    ->label('Информация')
+                    ->label(__('fields.info'))
                     ->rows(3),
             ]);
     }
@@ -76,34 +85,34 @@ class EmployeeResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Ф.И.О.')
+                    ->label(__('columns.full_name'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Пользователь')
+                    ->label(__('columns.linked_user'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Телефон')
+                    ->label(__('columns.phone'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('jobTitle.title')
-                    ->label('Должность')
+                    ->label(__('columns.job_title'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('employment_date')
-                    ->label('Дата приема')
+                    ->label(__('columns.hire_date'))
                     ->date('d.m.Y')
                     ->sortable(),
                 Tables\Columns\ToggleColumn::make('is_hidden')
-                    ->label('Скрытый'),
+                    ->label(__('columns.hidden')),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

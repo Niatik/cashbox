@@ -17,30 +17,39 @@ class PriceResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.price.label');
+    }
 
-    protected static ?string $pluralLabel = 'Прайс';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.price.plural');
+    }
 
-    protected static ?string $navigationGroup = 'Справочники';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources.nav_groups.references');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Название услуги')
+                    ->label(__('fields.service_name'))
                     ->maxLength(255)
                     ->required(),
                 Forms\Components\TextInput::make('description')
-                    ->label('Описание')
+                    ->label(__('fields.description'))
                     ->maxLength(255),
                 Forms\Components\TextInput::make('price')
-                    ->label('Цена')
+                    ->label(__('fields.price'))
                     ->numeric()
                     ->maxLength(18)
                     ->required(),
                 Forms\Components\Toggle::make('is_hidden')
-                    ->label('Скрытая')
+                    ->label(__('fields.hidden'))
                     ->default(false),
             ]);
     }
@@ -50,31 +59,31 @@ class PriceResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Услуга')
+                    ->label(__('columns.service'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->label('Описание')
+                    ->label(__('columns.description'))
                     ->limit(25)
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->label('Цена')
+                    ->label(__('columns.price'))
                     ->sortable(),
                 Tables\Columns\ToggleColumn::make('is_hidden')
-                    ->label('Скрытая'),
+                    ->label(__('columns.hidden')),
 
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()->label('Удалить'),
+                    Tables\Actions\DeleteBulkAction::make()->label(__('messages.delete')),
                 ]),
             ]);
     }

@@ -17,7 +17,10 @@ class DraftBookingsTableWidget extends BaseWidget
 {
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $heading = 'Черновики бронирований';
+    public function getHeading(): ?string
+    {
+        return __('resources.draft_bookings.heading');
+    }
 
     /**
      * Cache for price names to avoid repeated queries.
@@ -59,25 +62,25 @@ class DraftBookingsTableWidget extends BaseWidget
             ->columns([
                 TextColumn::make('booking_date')
                     ->date('d.m.Y')
-                    ->label('Дата')
+                    ->label(__('columns.date'))
                     ->sortable(),
                 TextColumn::make('booking_time')
-                    ->label('Время'),
+                    ->label(__('columns.time')),
                 TextColumn::make('price_name')
-                    ->label('Услуга')
+                    ->label(__('columns.service'))
                     ->limit(22)
                     ->getStateUsing(fn ($record): ?string => $this->getPriceNames([$record->price_id])),
                 TextColumn::make('customer_name')
-                    ->label('Клиент')
+                    ->label(__('columns.customer'))
                     ->limit(27),
                 TextColumn::make('name_item')
-                    ->label('Время услуги'),
+                    ->label(__('columns.service_time')),
                 TextColumn::make('people_number')
                     ->numeric()
-                    ->label('Люди'),
+                    ->label(__('columns.people')),
                 TextColumn::make('sum')
                     ->numeric()
-                    ->label('Сумма')
+                    ->label(__('columns.sum'))
                     ->formatStateUsing(fn ($state): string => $state ? (string) $state : '0'),
             ])
             ->recordUrl(fn (Booking $record): string => BookingResource::getUrl('edit', ['record' => $record]))
@@ -87,8 +90,8 @@ class DraftBookingsTableWidget extends BaseWidget
                     ->url(fn (Booking $record): string => BookingResource::getUrl('edit', ['record' => $record])),
                 Tables\Actions\DeleteAction::make()->hiddenLabel(),
             ])
-            ->emptyStateHeading('Нет черновиков')
-            ->emptyStateDescription('Черновики бронирований будут отображаться здесь');
+            ->emptyStateHeading(__('messages.no_drafts'))
+            ->emptyStateDescription(__('messages.no_drafts_description'));
     }
 
     protected function getPriceNames(array $priceIds): ?string

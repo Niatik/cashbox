@@ -12,30 +12,33 @@ class RatesRelationManager extends RelationManager
 {
     protected static string $relationship = 'rates';
 
-    protected static ?string $title = 'Тарифы';
+    public static function getTitle($ownerRecord, $pageClass): string
+    {
+        return __('resources.relation_managers.rates');
+    }
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Название')
+                    ->label(__('fields.name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Repeater::make('rateRatios')
-                    ->label('Коэффициенты')
+                    ->label(__('fields.ratios'))
                     ->relationship()
                     ->schema([
                         Forms\Components\TextInput::make('ratio')
-                            ->label('Коэффициент')
+                            ->label(__('fields.ratio'))
                             ->required()
                             ->numeric(),
                         Forms\Components\TextInput::make('ratio_from')
-                            ->label('От')
+                            ->label(__('fields.from'))
                             ->required()
                             ->numeric(),
                         Forms\Components\TextInput::make('ratio_to')
-                            ->label('До')
+                            ->label(__('fields.to'))
                             ->required()
                             ->numeric(),
                     ])
@@ -50,7 +53,7 @@ class RatesRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Название')
+                    ->label(__('columns.name'))
                     ->searchable()
                     ->sortable(),
             ])
@@ -59,7 +62,7 @@ class RatesRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->modalHeading('Создание тарифа'),
+                    ->modalHeading(__('messages.create_rate')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

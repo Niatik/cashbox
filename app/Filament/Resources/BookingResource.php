@@ -33,9 +33,15 @@ class BookingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.booking.label');
+    }
 
-    protected static ?string $pluralLabel = 'Бронирования';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.booking.plural');
+    }
 
     public static function form(Form $form): Form
     {
@@ -60,7 +66,7 @@ class BookingResource extends Resource
             ->timezone('Asia/Almaty')
             ->default(now('Asia/Almaty')->startOfDay())
             ->minDate(now('Asia/Almaty')->startOfDay())
-            ->label('Дата')
+            ->label(__('fields.date'))
             ->required();
     }
 
@@ -68,7 +74,7 @@ class BookingResource extends Resource
     {
         return TextInput::make('sum')
             ->numeric()
-            ->label('Сумма')
+            ->label(__('fields.sum'))
             ->default(0)
             ->readOnly();
     }
@@ -77,7 +83,7 @@ class BookingResource extends Resource
     {
         return TextInput::make('prepayment')
             ->numeric()
-            ->label('Предоплата')
+            ->label(__('fields.prepayment'))
             ->default(0)
             ->readOnly();
     }
@@ -86,21 +92,21 @@ class BookingResource extends Resource
     {
         return TextInput::make('remaining')
             ->numeric()
-            ->label('Остаток')
+            ->label(__('fields.remaining'))
             ->readOnly();
     }
 
     public static function getCustomerFormField(): TextInput
     {
         return TextInput::make('customer_name')
-            ->label('Клиент')
+            ->label(__('fields.customer'))
             ->default('');
     }
 
     public static function getCustomerPhoneFormField(): TextInput
     {
         return TextInput::make('customer_phone')
-            ->label('Телефон клиента')
+            ->label(__('fields.customer_phone'))
             ->tel()
             ->maxLength(255)
             ->live(debounce: 1000)
@@ -141,7 +147,7 @@ class BookingResource extends Resource
             ->displayFormat('H:i')
             ->seconds(false)
             ->default(now()->timezone('Etc/GMT-5'))
-            ->label('Время')
+            ->label(__('fields.time'))
             ->required();
     }
 
@@ -171,7 +177,7 @@ class BookingResource extends Resource
                 ],
             ])
             ->minItems(1)
-            ->label('Услуги')
+            ->label(__('fields.services'))
             ->collapsible(false)
             ->reorderableWithDragAndDrop(false)
             ->columns(3);
@@ -185,7 +191,7 @@ class BookingResource extends Resource
                 ->orderBy('id')
                 ->pluck('name', 'id'))
 
-            ->label('Услуга')
+            ->label(__('fields.service'))
             ->searchable()
             ->preload()
             ->live(debounce: 1000)
@@ -202,7 +208,7 @@ class BookingResource extends Resource
             ->default('');
     }
 
-    public static function getPeopleItemFormField(): HIdden
+    public static function getPeopleItemFormField(): Hidden
     {
         return Hidden::make('people_item')
             ->default(1);
@@ -213,15 +219,15 @@ class BookingResource extends Resource
         return Select::make('price_item_id')
             ->required()
             ->label(function (Select $component, Set $set): string {
-                $currentOption = $component->getOptionLabel() ?? 'Время услуги';
+                $currentOption = $component->getOptionLabel() ?? __('fields.service_time');
                 $peopleItem = 1;
 
                 if (str_contains($currentOption, 'человек')) {
                     $peopleItem = intval(last(explode('/', $currentOption)));
-                    $currentOption = 'Количество человек';
+                    $currentOption = __('fields.people_count');
                 }
-                $currentOption = ($currentOption == 'Количество человек') ? 'Количество человек' : 'Время услуги';
-                //$set('name_item', $currentOption);
+                $currentOption = (str_contains($currentOption, 'человек') || $currentOption == __('fields.people_count')) ? __('fields.people_count') : __('fields.service_time');
+                // $set('name_item', $currentOption);
                 $set('people_item', $peopleItem);
 
                 return $currentOption;
@@ -244,21 +250,21 @@ class BookingResource extends Resource
         return TextInput::make('people_number')
             ->numeric()
             ->default('')
-            ->label('Количество человек')
+            ->label(__('fields.people_count'))
             ->minValue(1)
             ->maxValue(100)
             ->live(debounce: 1000)
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 self::calcSum($get, $set);
             })
-            ->hidden(fn (Get $get): bool => $get('name_item') == 'Количество человек');
+            ->hidden(fn (Get $get): bool => str_contains($get('name_item') ?? '', 'человек'));
     }
 
     public static function getPrepaymentPriceItemFormField(): TextInput
     {
         return TextInput::make('prepayment_price_item')
             ->numeric()
-            ->label('Предоплата')
+            ->label(__('fields.prepayment'))
             ->live(debounce: 1000)
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
                 self::calcSum($get, $set);
@@ -268,7 +274,7 @@ class BookingResource extends Resource
     public static function getIsCashFormField(): Toggle
     {
         return Toggle::make('is_cash')
-            ->label('Наличные')
+            ->label(__('fields.is_cash'))
             ->default(false);
     }
 
@@ -340,35 +346,35 @@ class BookingResource extends Resource
             ->columns([
                 TextColumn::make('booking_date')
                     ->date('d.m.Y')
-                    ->label('Дата')
+                    ->label(__('columns.date'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('order_time')
                     ->date('H:i')
-                    ->label('Время')
+                    ->label(__('columns.time'))
                     ->timezone('Etc/GMT-5')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('price_name')
-                    ->label('Услуга')
+                    ->label(__('columns.service'))
                     ->limit(22)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer_name')
-                    ->label('Клиент')
+                    ->label(__('columns.customer'))
                     ->limit(27)
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('name_item')
-                    ->label('Время')
+                TextColumn::make('name_item')
+                    ->label(__('columns.time'))
                     ->sortable(),
-                Tables\Columns\TextColumn::make('people_number')
+                TextColumn::make('people_number')
                     ->numeric()
-                    ->label('Люди')
+                    ->label(__('columns.people'))
                     ->sortable(),
-                Tables\Columns\TextColumn::make('booking_sum')
+                TextColumn::make('booking_sum')
                     ->numeric()
-                    ->label('Сумма')
+                    ->label(__('columns.sum'))
                     ->sortable()
                     ->formatStateUsing(fn (int $state): string => $state / 100),
             ])
@@ -377,8 +383,8 @@ class BookingResource extends Resource
                 self::getTableFilters()
             )
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(),
             ]);
     }
 
@@ -399,7 +405,7 @@ class BookingResource extends Resource
                     DatePicker::make('select_date')
                         ->timezone('Asia/Almaty')
                         ->default(now('Asia/Almaty')->startOfDay())
-                        ->label('Выберите дату'),
+                        ->label(__('messages.select_date')),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {
                     return $query

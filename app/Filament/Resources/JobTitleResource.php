@@ -17,18 +17,27 @@ class JobTitleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.job_title.label');
+    }
 
-    protected static ?string $pluralLabel = 'Должности';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.job_title.plural');
+    }
 
-    protected static ?string $navigationGroup = 'Справочники';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources.nav_groups.references');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('title')
-                    ->label('Название')
+                    ->label(__('fields.title'))
                     ->maxLength(255)
                     ->required(),
             ]);
@@ -39,7 +48,7 @@ class JobTitleResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Название')
+                    ->label(__('columns.title'))
                     ->searchable()
                     ->sortable(),
             ])
@@ -47,12 +56,12 @@ class JobTitleResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()->label('Удалить'),
+                    Tables\Actions\DeleteBulkAction::make()->label(__('messages.delete')),
                 ]),
             ]);
     }

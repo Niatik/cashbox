@@ -13,14 +13,18 @@ use Filament\Tables\Table;
 class PriceItemsRelationManager extends RelationManager
 {
     protected static string $relationship = 'priceItems';
-    protected static ?string $title = 'Коэффициенты';
+
+    public static function getTitle($ownerRecord, $pageClass): string
+    {
+        return __('resources.relation_managers.price_items');
+    }
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name_item')
-                    ->label('Описание')
+                    ->label(__('fields.description'))
                     ->required()
                     ->maxLength(255)
                     ->live(onBlur: true)
@@ -35,7 +39,7 @@ class PriceItemsRelationManager extends RelationManager
                         }
                     }),
                 Forms\Components\TextInput::make('factor')
-                    ->label('Коэффициент')
+                    ->label(__('fields.factor'))
                     ->required()
                     ->numeric(),
 
@@ -49,11 +53,11 @@ class PriceItemsRelationManager extends RelationManager
             ->recordTitleAttribute('name_item')
             ->columns([
                 Tables\Columns\TextColumn::make('name_item')
-                    ->label('Описание')
+                    ->label(__('columns.description'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('factor')
-                    ->label('Коэффициент')
+                    ->label(__('fields.factor'))
                     ->searchable()
                     ->sortable(),
             ])
@@ -62,7 +66,7 @@ class PriceItemsRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->modalHeading('Создание коэффициента'),
+                    ->modalHeading(__('messages.create_factor')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -22,32 +22,38 @@ class ExpenseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.expense.label');
+    }
 
-    protected static ?string $pluralLabel = 'Расходы';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.expense.plural');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Select::make('expense_type_id')
-                    ->label('Тип расхода')
+                    ->label(__('fields.expense_type'))
                     ->relationship('expense_type', 'name')
                     ->preload()
                     ->required(),
                 DatePicker::make('expense_date')
-                    ->label('Дата раcхода')
+                    ->label(__('fields.expense_date'))
                     ->default(now())
                     ->required()
                     ->maxDate(now()),
                 TextInput::make('description')
-                    ->label('Описание расхода'),
+                    ->label(__('fields.expense_description')),
                 TextInput::make('expense_amount')
-                    ->label('Сумма расхода')
+                    ->label(__('fields.expense_amount'))
                     ->required()
                     ->numeric(),
                 Toggle::make('is_cash')
-                    ->label('Наличные')
+                    ->label(__('fields.is_cash'))
                     ->default(true),
             ]);
     }
@@ -57,22 +63,22 @@ class ExpenseResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('expense_date')
-                    ->label('Дата раcхода')
+                    ->label(__('columns.expense_date'))
                     ->date('d.m.Y')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('expense_type.name')
-                    ->label('Тип расхода')
+                    ->label(__('columns.expense_type'))
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->label('Описание'),
+                    ->label(__('columns.description')),
                 Tables\Columns\TextColumn::make('expense_amount')
-                    ->label('Сумма расхода')
+                    ->label(__('columns.expense_amount'))
                     ->sortable()
                     ->numeric(0),
                 Tables\Columns\ToggleColumn::make('is_cash')
-                    ->label('Нал'),
+                    ->label(__('columns.is_cash')),
             ])
             ->defaultSort('expense_date', 'desc')
             ->filters(
@@ -109,7 +115,7 @@ class ExpenseResource extends Resource
                 ->form([
                     DatePicker::make('select_date')
                         ->default(now())
-                        ->label('Выберите дату'),
+                        ->label(__('messages.select_date')),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {
                     return $query
@@ -120,5 +126,4 @@ class ExpenseResource extends Resource
                 }),
         ];
     }
-
 }

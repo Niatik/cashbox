@@ -4,8 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RoleResource\Pages;
 use App\Filament\Resources\RoleResource\RelationManagers;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,22 +18,31 @@ class RoleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.role.label');
+    }
 
-    protected static ?string $pluralLabel = 'Роли';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.role.plural');
+    }
 
-    protected static ?string $navigationGroup = 'Администрирование';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources.nav_groups.administration');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Роль')
+                    ->label(__('fields.role'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('permissions')
-                    ->label('Разрешения')
+                    ->label(__('fields.permissions'))
                     ->multiple()
                     ->relationship('permissions', 'name')
                     ->options(Permission::all()->pluck('name', 'id'))
@@ -47,7 +56,7 @@ class RoleResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Роль')
+                    ->label(__('columns.role'))
                     ->searchable()
                     ->sortable(),
             ])
@@ -55,8 +64,8 @@ class RoleResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
 
             ])
             ->bulkActions([

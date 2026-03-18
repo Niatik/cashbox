@@ -32,9 +32,15 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.order.label');
+    }
 
-    protected static ?string $pluralLabel = 'Услуги';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.order.plural');
+    }
 
     public static function form(Form $form): Form
     {
@@ -55,11 +61,11 @@ class OrderResource extends Resource
                 static::getCustomerFormField(),
                 static::getEmployeeFormField(),
                 static::getOptionsFormField(),
-                Section::make('Оплаты')
+                Section::make(__('messages.payments_section'))
                     ->schema([
                         Repeater::make('payments')
-                            ->label('Список оплат')
-                            ->addActionLabel('Добавить оплату')
+                            ->label(__('fields.payments_list'))
+                            ->addActionLabel(__('fields.add_payment'))
                             ->relationship()
                             ->schema([
                                 OrderResource::getPaymentDateFormField()->hidden(),
@@ -74,8 +80,8 @@ class OrderResource extends Resource
                                 'min:1',
                             ])
                             ->validationMessages([
-                                'required' => 'Необходимо добавить хотя бы один платеж',
-                                'min' => 'Необходимо добавить хотя бы один платеж',
+                                'required' => __('messages.payment_required'),
+                                'min' => __('messages.payment_min'),
                             ])
                             ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
                                 // Use the order's date instead of today's date
@@ -97,7 +103,7 @@ class OrderResource extends Resource
     {
         return DatePicker::make('order_date')
             ->default(now())
-            ->label('Дата')
+            ->label(__('fields.date'))
             ->required()
             ->hidden(fn () => ! auth()->user()->hasRole(['admin', 'super-admin']))
             ->readOnly(fn () => ! auth()->user()->hasRole(['admin', 'super-admin']));
@@ -111,7 +117,7 @@ class OrderResource extends Resource
             ->displayFormat('H:i')
             ->seconds(false)
             ->default(now())
-            ->label('Время')
+            ->label(__('fields.time'))
             ->required()
             ->readOnly();
     }
@@ -120,20 +126,20 @@ class OrderResource extends Resource
     {
         return Select::make('price_id')
             ->relationship('price', 'name', fn (Builder $query) => $query->where('is_hidden', false))
-            ->label('Услуга')
+            ->label(__('fields.service'))
             ->searchable()
             ->preload()
             ->live(debounce: 1000)
             ->createOptionForm([
                 TextInput::make('name')
-                    ->label('Название услуги')
+                    ->label(__('fields.service_name'))
                     ->maxLength(255)
                     ->required(),
                 TextInput::make('description')
-                    ->label('Описание')
+                    ->label(__('fields.description'))
                     ->maxLength(255),
                 TextInput::make('price')
-                    ->label('Цена на одного человека')
+                    ->label(__('fields.price_per_person'))
                     ->maxLength(18)
                     ->required(),
             ])
@@ -152,17 +158,17 @@ class OrderResource extends Resource
         return Select::make('price_item_id')
             ->required()
             ->label(function (Select $component, Set $set): string {
-                $currentOption = $component->getOptionLabel() ?? 'Время услуги';
+                $currentOption = $component->getOptionLabel() ?? __('fields.service_time');
                 $peopleItem = 1;
 
                 if (str_contains($currentOption, 'человек')) {
                     $peopleItem = intval(last(explode('/', $currentOption)));
-                    $currentOption = 'Количество человек';
+                    $currentOption = __('fields.people_count');
                 }
                 $set('name_item', $currentOption);
                 $set('people_item', $peopleItem);
 
-                return $currentOption == 'Количество человек' ? 'Количество человек' : 'Время услуги';
+                return (str_contains($currentOption, 'человек') || $currentOption == __('fields.people_count')) ? __('fields.people_count') : __('fields.service_time');
             })
             ->options(fn (Get $get): Collection => PriceItem::query()
                 ->where('price_id', $get('price_id'))
@@ -207,7 +213,7 @@ class OrderResource extends Resource
     {
         return TextInput::make('people_number')
             ->numeric()
-            ->label('Количество человек')
+            ->label(__('fields.people_count'))
             ->minValue(1)
             ->default(1)
             ->live(onBlur: true) // Trigger on blur to prevent duplicate updates
@@ -230,7 +236,7 @@ class OrderResource extends Resource
                 }
 
             })
-            ->hidden(fn (Get $get): bool => $get('name_item') == 'Количество человек')
+            ->hidden(fn (Get $get): bool => str_contains($get('name_item') ?? '', 'человек'))
             ->dehydrated(); // Ensure the value is always saved, even when hidden
     }
 
@@ -238,13 +244,13 @@ class OrderResource extends Resource
     {
         return Select::make('social_media_id')
             ->relationship('social_media', 'name', fn (Builder $query) => $query->where('is_hidden', false))
-            ->label('Откуда')
+            ->label(__('fields.source'))
             ->searchable()
             ->preload()
             ->required()
             ->createOptionForm([
                 TextInput::make('name')
-                    ->label('Название')
+                    ->label(__('fields.name'))
                     ->maxLength(255)
                     ->required(),
             ]);
@@ -254,16 +260,16 @@ class OrderResource extends Resource
     {
         return Select::make('customer_id')
             ->relationship('customer', 'name', fn ($query) => $query->whereNotNull('name'))
-            ->label('Клиент')
+            ->label(__('fields.customer'))
             ->searchable()
             ->preload()
             ->createOptionForm([
                 TextInput::make('name')
-                    ->label('Ф.И.О.')
+                    ->label(__('fields.full_name'))
                     ->required()
                     ->maxLength(255),
                 TextInput::make('phone')
-                    ->label('Телефон')
+                    ->label(__('fields.phone'))
                     ->tel()
                     ->required(),
             ]);
@@ -273,7 +279,7 @@ class OrderResource extends Resource
     {
         return TextInput::make('sum')
             ->numeric()
-            ->label('Сумма к оплате')
+            ->label(__('fields.sum_to_pay'))
             ->default(0)
             ->readOnly();
     }
@@ -282,7 +288,7 @@ class OrderResource extends Resource
     {
         return TextInput::make('net_sum')
             ->numeric()
-            ->label('Сумма')
+            ->label(__('fields.net_sum'))
             ->default(0)
             ->readOnly();
     }
@@ -297,7 +303,7 @@ class OrderResource extends Resource
     {
         return DatePicker::make('payment_date')
             ->default(fn (Get $get) => $get('../../order_date') ?? now())
-            ->label('Дата')
+            ->label(__('fields.date'))
             ->required();
     }
 
@@ -313,7 +319,7 @@ class OrderResource extends Resource
             ->default('')
             ->numeric()
             ->live(debounce: 500)
-            ->label('Наличные')
+            ->label(__('fields.cash_amount'))
             ->extraInputAttributes([
                 'x-data' => '{
                 showRemaining() {
@@ -323,10 +329,8 @@ class OrderResource extends Resource
                     const additionalDiscount = parseFloat(data.options?.additional_discount || 0);
                     const payments = Object.values(data.payments || {});
 
-                    // Найти текущий элемент repeater по индексу
                     const currentKey = $el.closest("[wire\\\\:key]")?.getAttribute("wire:key");
 
-                    // Сумма всех оплат кроме текущей
                     const otherPaymentsTotal = payments.reduce((sum, payment, index) => {
                         const paymentKey = Object.keys(data.payments)[index];
                         if (paymentKey === currentKey) return sum;
@@ -352,11 +356,9 @@ class OrderResource extends Resource
                 }
             })
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
-                // Получаем сумму заказа
                 $sum = floatval($get('../../net_sum') ?? 0);
                 $cashValue = floatval($state ?? 0);
 
-                // Получаем все оплаты и считаем сумму других строк
                 $payments = $get('../../payments') ?? [];
                 $currentCashlessValue = floatval($get('payment_cashless_amount') ?? 0);
 
@@ -378,7 +380,7 @@ class OrderResource extends Resource
             ->default('')
             ->numeric()
             ->live(debounce: 500)
-            ->label('Безналичные')
+            ->label(__('fields.cashless_amount'))
             ->extraInputAttributes([
                 'x-data' => '{
                 showRemaining() {
@@ -388,10 +390,8 @@ class OrderResource extends Resource
                     const additionalDiscount = parseFloat(data.options?.additional_discount || 0);
                     const payments = Object.values(data.payments || {});
 
-                    // Найти текущий элемент repeater по индексу
                     const currentKey = $el.closest("[wire\\\\:key]")?.getAttribute("wire:key");
 
-                    // Сумма всех оплат кроме текущей
                     const otherPaymentsTotal = payments.reduce((sum, payment, index) => {
                         const paymentKey = Object.keys(data.payments)[index];
                         if (paymentKey === currentKey) return sum;
@@ -418,11 +418,9 @@ class OrderResource extends Resource
                 }
             })
             ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
-                // Получаем сумму заказа
                 $sum = floatval($get('../../net_sum') ?? 0);
                 $cashlessValue = floatval($state ?? 0);
 
-                // Получаем все оплаты и считаем сумму других строк
                 $payments = $get('../../payments') ?? [];
                 $currentCashValue = floatval($get('payment_cash_amount') ?? 0);
 
@@ -444,35 +442,35 @@ class OrderResource extends Resource
             ->statePath('options')
             ->schema([
                 TextInput::make('discount')
-                    ->label('Скидка')
+                    ->label(__('fields.discount'))
                     ->numeric()
                     ->live(debounce: 1000)
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 TextInput::make('prepayment')
-                    ->label('Аванс')
+                    ->label(__('fields.advance'))
                     ->numeric()
                     ->live(debounce: 1000)
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 Toggle::make('is_cash')
-                    ->label('Наличные')
+                    ->label(__('fields.is_cash'))
                     ->default(false)
                     ->live(debounce: 1000)
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 TextInput::make('additional_discount')
-                    ->label('Дополнительная скидка')
+                    ->label(__('fields.additional_discount'))
                     ->numeric()
                     ->live(debounce: 1000)
                     ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                         self::calcSumFromOptions($get, $set);
                     }),
                 TextInput::make('additional_discount_description')
-                    ->label('Причина дополнительной скидки')
+                    ->label(__('fields.additional_discount_reason'))
                     ->hidden(fn (Get $get): bool => ! $get('additional_discount'))
                     ->required(fn (Get $get): bool => filled($get('additional_discount'))),
             ]);
@@ -484,55 +482,53 @@ class OrderResource extends Resource
             ->striped()
             ->columns([
                 Tables\Columns\ToggleColumn::make('is_paid')
-                    ->label('Оплачено')
+                    ->label(__('columns.paid'))
                     ->afterStateUpdated(function ($record, $state) {
                         if ($state === true) {
-                            // This code runs when the toggle changes from false to true
-                            // You could redirect to the order details page
                             return redirect()->route('filament.admin.resources.orders.edit', ['record' => $record->id]);
                         }
                     }),
                 Tables\Columns\TextColumn::make('order_date')
                     ->hidden()
                     ->date('d.m.Y')
-                    ->label('Дата')
+                    ->label(__('columns.date'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('order_time')
                     ->date('H:i')
-                    ->label('Время')
+                    ->label(__('columns.time'))
                     ->timezone('Etc/GMT-5')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price.name')
-                    ->label('Услуга')
+                    ->label(__('columns.service'))
                     ->limit(22)
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('customer.name')
-                    ->label('Клиент')
+                    ->label(__('columns.customer'))
                     ->limit(27)
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price_item.name_item')
-                    ->label('Время')
+                    ->label(__('columns.time'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('people_number')
                     ->numeric()
-                    ->label('Люди')
+                    ->label(__('columns.people'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sum')
                     ->numeric()
-                    ->label('Сумма')
+                    ->label(__('columns.sum'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('prepayment')
                     ->numeric()
-                    ->label('Аванс')
+                    ->label(__('columns.advance'))
                     ->sortable()
                     ->getStateUsing(fn ($record) => $record->options['prepayment'] ?? 0),
                 Tables\Columns\TextColumn::make('payment_cash_sum')
                     ->numeric()
-                    ->label('Наличные')
+                    ->label(__('columns.cash'))
                     ->sortable(query: function (Builder $query, string $direction): Builder {
                         return $query->withSum('payments as payment_cash_sum', 'payment_cash_amount')
                             ->orderBy('payment_cash_sum', $direction);
@@ -540,7 +536,7 @@ class OrderResource extends Resource
                     ->getStateUsing(fn ($record) => $record->payments->sum('payment_cash_amount')),
                 Tables\Columns\TextColumn::make('payment_cashless_sum')
                     ->numeric()
-                    ->label('Безналичные')
+                    ->label(__('columns.cashless'))
                     ->sortable(query: function (Builder $query, string $direction): Builder {
                         return $query->withSum('payments as payment_cashless_sum', 'payment_cashless_amount')
                             ->orderBy('payment_cashless_sum', $direction);
@@ -548,7 +544,7 @@ class OrderResource extends Resource
                     ->getStateUsing(fn ($record) => $record->payments->sum('payment_cashless_amount')),
                 Tables\Columns\TextColumn::make('remaining')
                     ->numeric()
-                    ->label('Остаток')
+                    ->label(__('columns.remaining'))
                     ->getStateUsing(function ($record) {
                         $sum = $record->net_sum;
                         $discount = $record->options['discount'] ?? 0;
@@ -564,7 +560,7 @@ class OrderResource extends Resource
                 self::getTableFilters()
             )
             ->actions([
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(),
             ])
             ->bulkActions([
             ])
@@ -699,7 +695,7 @@ class OrderResource extends Resource
                 ->form([
                     DatePicker::make('select_date')
                         ->default(now())
-                        ->label('Выберите дату'),
+                        ->label(__('messages.select_date')),
                 ])
                 ->query(function (Builder $query, array $data): Builder {
                     return $query

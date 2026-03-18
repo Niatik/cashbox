@@ -16,22 +16,31 @@ class CustomerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.customer.label');
+    }
 
-    protected static ?string $pluralLabel = 'Клиенты';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.customer.plural');
+    }
 
-    protected static ?string $navigationGroup = 'Справочники';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources.nav_groups.references');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Ф.И.О.')
+                    ->label(__('fields.full_name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone')
-                    ->label('Телефон')
+                    ->label(__('fields.phone'))
                     ->tel()
                     ->required(),
             ]);
@@ -42,11 +51,11 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Ф.И.О.')
+                    ->label(__('columns.full_name'))
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Телефон')
+                    ->label(__('columns.phone'))
                     ->sortable()
                     ->searchable(),
             ])
@@ -54,8 +63,8 @@ class CustomerResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

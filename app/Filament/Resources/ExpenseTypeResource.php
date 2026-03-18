@@ -16,18 +16,27 @@ class ExpenseTypeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.expense_type.label');
+    }
 
-    protected static ?string $pluralLabel = 'Типы расходов';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.expense_type.plural');
+    }
 
-    protected static ?string $navigationGroup = 'Справочники';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources.nav_groups.references');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Наименование типа расходов')
+                    ->label(__('fields.expense_type_name'))
                     ->required()
                     ->maxLength(255),
             ]);
@@ -38,7 +47,7 @@ class ExpenseTypeResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Наименование')
+                    ->label(__('columns.expense_type_name'))
                     ->searchable()
                     ->sortable(),
             ])

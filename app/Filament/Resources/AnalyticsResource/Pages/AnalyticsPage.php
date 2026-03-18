@@ -29,13 +29,16 @@ class AnalyticsPage extends Page implements HasForms
 
     protected static string $view = 'filament.resources.analytics-resource.pages.analytics-page';
 
-    protected static ?string $title = 'Панель аналитики';
+    public function getTitle(): string
+    {
+        return __('analytics.title');
+    }
 
     public ?array $data = [];
 
     public function getBreadcrumb(): string
     {
-        return 'Аналитика';
+        return __('analytics.breadcrumb');
     }
 
     public function mount(): void
@@ -50,26 +53,26 @@ class AnalyticsPage extends Page implements HasForms
     {
         return $form
             ->schema([
-                Section::make('Фильтры')
+                Section::make(__('fields.filters'))
                     ->schema([
                         DatePicker::make('date_from')
-                            ->label('С даты')
+                            ->label(__('fields.date_from'))
                             ->default(now()->startOfMonth())
                             ->live()
                             ->afterStateUpdated(fn () => $this->updateData()),
 
                         DatePicker::make('date_to')
-                            ->label('По дату')
+                            ->label(__('fields.date_to'))
                             ->default(now()->endOfMonth())
                             ->live()
                             ->afterStateUpdated(fn () => $this->updateData()),
 
                         Select::make('price_id')
-                            ->label('Услуга')
+                            ->label(__('fields.service'))
                             ->options(Price::all()->pluck('name', 'id'))
                             ->searchable()
                             ->preload()
-                            ->placeholder('Все услуги')
+                            ->placeholder(__('fields.all_services'))
                             ->live()
                             ->afterStateUpdated(function (Set $set) {
                                 $set('price_item_id', null);
@@ -77,7 +80,7 @@ class AnalyticsPage extends Page implements HasForms
                             }),
 
                         Select::make('price_item_id')
-                            ->label('Тип времени')
+                            ->label(__('fields.time_type'))
                             ->options(function (Get $get) {
                                 $priceId = $get('price_id');
                                 if (! $priceId) {
@@ -89,7 +92,7 @@ class AnalyticsPage extends Page implements HasForms
                             })
                             ->searchable()
                             ->preload()
-                            ->placeholder('Все типы')
+                            ->placeholder(__('fields.all_types'))
                             ->live()
                             ->visible(function (Get $get) {
                                 $priceId = $get('price_id');
@@ -249,7 +252,7 @@ class AnalyticsPage extends Page implements HasForms
 
         if ($salaryTotal > 0) {
             $expenses[] = [
-                'type' => 'Зарплата',
+                'type' => __('analytics.salary_type'),
                 'total_amount' => $salaryTotal,
             ];
         }

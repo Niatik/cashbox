@@ -16,21 +16,27 @@ class WorkSessionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clock';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.work_session.label');
+    }
 
-    protected static ?string $pluralLabel = 'Выплаты';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.work_session.plural');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('employee_id')
-                    ->label('Сотрудник')
+                    ->label(__('fields.employee'))
                     ->relationship('employee', 'name')
                     ->preload()
                     ->required(),
                 Forms\Components\DatePicker::make('date')
-                    ->label('Дата')
+                    ->label(__('fields.date'))
                     ->default(now())
                     ->disabled()
                     ->dehydrated(),
@@ -39,15 +45,15 @@ class WorkSessionResource extends Resource
                     ->displayFormat('H:i')
                     ->seconds(false)
                     ->default(now())
-                    ->label('Время')
+                    ->label(__('fields.time'))
                     ->required(),
                 Forms\Components\Select::make('salary_rate_id')
-                    ->label('Оклад')
+                    ->label(__('fields.salary_rate'))
                     ->relationship('salaryRate', 'name')
                     ->preload()
                     ->required(),
                 Forms\Components\Select::make('rate_id')
-                    ->label('Ставка')
+                    ->label(__('fields.rate'))
                     ->relationship('rate', 'name')
                     ->preload()
                     ->required(),
@@ -59,31 +65,31 @@ class WorkSessionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('employee.name')
-                    ->label('Сотрудник')
+                    ->label(__('columns.employee'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('date')
-                    ->label('Дата')
+                    ->label(__('columns.date'))
                     ->date('d.m.Y')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time')
                     ->date('H:i')
-                    ->label('Время')
+                    ->label(__('columns.time'))
                     ->timezone('Etc/GMT-5')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('salaryRate.name')
-                    ->label('Ставка зарплаты')
+                    ->label(__('columns.salary_rate'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rate.name')
-                    ->label('Тариф')
+                    ->label(__('columns.rate'))
                     ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

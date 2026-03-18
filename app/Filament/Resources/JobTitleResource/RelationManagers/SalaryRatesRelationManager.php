@@ -12,18 +12,21 @@ class SalaryRatesRelationManager extends RelationManager
 {
     protected static string $relationship = 'salaryRates';
 
-    protected static ?string $title = 'Ставки зарплат';
+    public static function getTitle($ownerRecord, $pageClass): string
+    {
+        return __('resources.relation_managers.salary_rates');
+    }
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Название')
+                    ->label(__('fields.name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('salary')
-                    ->label('Зарплата')
+                    ->label(__('fields.salary'))
                     ->required()
                     ->numeric(),
             ]);
@@ -35,11 +38,11 @@ class SalaryRatesRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Название')
+                    ->label(__('columns.name'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('salary')
-                    ->label('Зарплата')
+                    ->label(__('columns.salary'))
                     ->searchable()
                     ->sortable(),
             ])
@@ -48,7 +51,7 @@ class SalaryRatesRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->modalHeading('Создание ставки зарплаты'),
+                    ->modalHeading(__('messages.create_salary_rate')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

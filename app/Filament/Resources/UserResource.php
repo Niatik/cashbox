@@ -16,32 +16,38 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $label = '';
+    public static function getModelLabel(): string
+    {
+        return __('resources.user.label');
+    }
 
-    protected static ?string $pluralLabel = 'Пользователи';
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources.user.plural');
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Имя пользователя')
+                    ->label(__('fields.username'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
-                    ->label('E-mail')
+                    ->label(__('fields.email'))
                     ->email()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password')
-                    ->label('Пароль')
+                    ->label(__('fields.password'))
                     ->password()
                     ->revealable()
                     ->required(fn (string $context): bool => $context === 'create')
                     ->visible(fn (string $context): bool => $context === 'create')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password_confirmation')
-                    ->label('Подтверждение пароля')
+                    ->label(__('fields.password_confirmation'))
                     ->password()
                     ->revealable()
                     ->same('password')
@@ -53,22 +59,22 @@ class UserResource extends Resource
                     ->multiple()
                     ->relationship('roles', 'name')
                     ->columnSpan('full'),
-                Forms\Components\Fieldset::make('Информация о пользователе')
+                Forms\Components\Fieldset::make(__('fields.user_info'))
                     ->key('employee-fieldset')
                     ->relationship('employee')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->label('Ф.И.О.')
+                            ->label(__('fields.full_name'))
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('phone')
-                            ->label('Телефон')
+                            ->label(__('fields.phone'))
                             ->tel(),
                         Forms\Components\TextInput::make('salary')
-                            ->label('Оклад')
+                            ->label(__('fields.salary'))
                             ->numeric(),
                         Forms\Components\DatePicker::make('employment_date')
-                            ->label('Дата приема'),
+                            ->label(__('fields.hire_date')),
                     ]),
             ]);
     }
@@ -78,23 +84,23 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Имя пользователя')
+                    ->label(__('columns.username'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
+                    ->label(__('columns.email'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('employee.name')
-                    ->label('Ф.И.О.')
+                    ->label(__('columns.full_name'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('employee.phone')
-                    ->label('Телефон')
+                    ->label(__('columns.phone'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('roles.name')
-                    ->label('Роль')
+                    ->label(__('columns.role'))
                     ->searchable()
                     ->sortable(),
             ])
@@ -102,8 +108,8 @@ class UserResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
-                Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
+                Tables\Actions\EditAction::make()->label(__('messages.edit'))->hiddenLabel(true),
+                Tables\Actions\DeleteAction::make()->label(__('messages.delete'))->hiddenLabel(true),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -115,7 +121,7 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //RolesRelationManager::class,
+            // RolesRelationManager::class,
         ];
     }
 
