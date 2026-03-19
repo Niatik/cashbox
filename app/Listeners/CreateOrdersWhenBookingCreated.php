@@ -6,6 +6,7 @@ use App\Events\BookingCreated;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\PriceItem;
+use App\Models\SocialMedia;
 
 class CreateOrdersWhenBookingCreated
 {
@@ -64,7 +65,7 @@ class CreateOrdersWhenBookingCreated
                 'order_time' => $bookingTime,
                 'price_id' => $price_id,
                 'price_item_id' => $price_item_id,
-                'social_media_id' => 7,
+                'social_media_id' => SocialMedia::find(7) ?? SocialMedia::first()->id,
                 'people_number' => $people_save,
                 'sum' => $sum,
                 'net_sum' => $net_sum,

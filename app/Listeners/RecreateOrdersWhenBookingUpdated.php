@@ -4,8 +4,11 @@ namespace App\Listeners;
 
 use App\Events\BookingUpdated;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Price;
 use App\Models\PriceItem;
+use App\Models\SocialMedia;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class RecreateOrdersWhenBookingUpdated
@@ -39,8 +42,9 @@ class RecreateOrdersWhenBookingUpdated
         // Draft is published OR published is updated - recreate orders
         try {
             DB::beginTransaction();
-            $this->deleteOrdersAndPayments($booking);
-            $this->createOrders($booking);
+            $savedPayments = $this->saveAndDeleteOrdersAndPayments($booking);
+
+            $this->createOrders($booking, $savedPayments);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -60,7 +64,30 @@ class RecreateOrdersWhenBookingUpdated
         }
     }
 
-    private function createOrders($booking): void
+    private function saveAndDeleteOrdersAndPayments($booking): Collection
+    {
+        $savedPayments = collect();
+        $orders = Order::where('booking_id', $booking->id)->get();
+
+        foreach ($orders as $order) {
+            $order->payments->each(function ($payment) use ($order, &$savedPayments) {
+                // Сохраняем данные платежа с привязкой к price_id
+                $savedPayments->push([
+                    'price_id' => $order->price_id,
+                    'payment_date' => $payment->payment_date,
+                    'payment_time' => $payment->payment_time,
+                    'payment_cash_amount' => $payment->payment_cash_amount,
+                    'payment_cashless_amount' => $payment->payment_cashless_amount,
+                ]);
+                $payment->delete();
+            });
+            $order->delete();
+        }
+
+        return $savedPayments;
+    }
+
+    private function createOrders($booking, Collection $savedPayments): void
     {
         $bookingDate = $booking->booking_date;
         $customer = $booking->customer_id;
@@ -92,12 +119,12 @@ class RecreateOrdersWhenBookingUpdated
             $net_sum = $people_calc * $factor * $price;
             $sum = $net_sum - $prepayment;
 
-            Order::create([
+            $order = Order::create([
                 'order_date' => $bookingDate,
                 'order_time' => $bookingTime,
                 'price_id' => $price_id,
                 'price_item_id' => $price_item_id,
-                'social_media_id' => 7,
+                'social_media_id' => SocialMedia::find(7) ?? SocialMedia::first()->id,
                 'people_number' => $people_save,
                 'sum' => $sum,
                 'net_sum' => $net_sum,
@@ -110,6 +137,21 @@ class RecreateOrdersWhenBookingUpdated
                 'is_paid' => false,
                 'booking_id' => $booking->id,
             ]);
+
+            Payment::where('order_id', $order->id)->delete();
+
+            // Восстанавливаем платеж со старыми атрибутами, если он был
+            $savedPayment = $savedPayments->firstWhere('price_id', $price_id);
+
+            if ($savedPayment && $prepayment > 0) {
+                Payment::create([
+                    'order_id' => $order->id,
+                    'payment_date' => $savedPayment['payment_date'],
+                    'payment_time' => $savedPayment['payment_time'],
+                    'payment_cash_amount' => $savedPayment['payment_cash_amount'],
+                    'payment_cashless_amount' => $savedPayment['payment_cashless_amount'],
+                ]);
+            }
         }
     }
 }
