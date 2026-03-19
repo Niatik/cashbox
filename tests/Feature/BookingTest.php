@@ -2,13 +2,19 @@
 
 use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
+use App\Models\Customer;
+use App\Models\Employee;
+use App\Models\Payment;
+use App\Models\PriceItem;
 use App\Models\SocialMedia;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 
+use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Livewire\livewire;
 
 beforeEach(function () {
@@ -227,4 +233,116 @@ it('filters bookings to view future bookings', function () {
         ->assertCanSeeTableRecords($futureBookings)
         ->assertCanNotSeeTableRecords($previousBookings)
         ->assertCountTableRecords(5);
+});
+
+it('can change non-draft booking without affect on payments', function () {
+    $bookingPriceItem = PriceItem::factory()->create();
+
+    $booking = Booking::factory()->create([
+        'booking_date' => now(tz: 'Etc/GMT-5'),
+        'booking_price_items' => [
+            [
+                'booking_time' => now(tz: 'Etc/GMT-5')->format('H:i:s'),
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 2000,
+                'people_item' => 2,
+                'is_cash' => false,
+            ],
+        ],
+        'sum' => 0,
+        'prepayment' => 2000,
+        'employee_id' => Employee::factory(),
+        'customer_id' => Customer::factory(),
+        'is_draft' => false,
+    ]);
+
+    assertDatabaseHas('orders', [
+        'booking_id' => $booking->id,
+    ]);
+
+    $payment_date = now()->format('Y-m-d');
+    $payment_time = now()->format('H:i:s');
+
+    assertDatabaseHas('payments', [
+        'payment_date' => $payment_date,
+        'payment_time' => $payment_time,
+        'payment_cash_amount' => 0,
+        'payment_cashless_amount' => 200000,
+    ]);
+
+    $booking->update([
+        'booking_date' => now(tz: 'Etc/GMT-5')->addDay(),
+    ]);
+
+    assertDatabaseHas('orders', [
+        'booking_id' => $booking->id,
+    ]);
+
+    assertDatabaseHas('payments', [
+        'payment_date' => $payment_date,
+        'payment_time' => $payment_time,
+        'payment_cash_amount' => 0,
+        'payment_cashless_amount' => 200000,
+    ]);
+});
+
+it('does not change payment attributes when booking date is updated', function () {
+    // Устанавливаем фиксированное время для теста
+    Carbon::setTestNow('2024-01-15 10:30:00');
+
+    $bookingPriceItem = PriceItem::factory()->create();
+
+    $booking = Booking::factory()->create([
+        'booking_date' => now(tz: 'Etc/GMT-5'),
+        'booking_price_items' => [
+            [
+                'booking_time' => now(tz: 'Etc/GMT-5')->format('H:i:s'),
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 2000,
+                'people_item' => 2,
+                'is_cash' => false,
+            ],
+        ],
+        'sum' => 0,
+        'prepayment' => 2000,
+        'employee_id' => Employee::factory(),
+        'customer_id' => Customer::factory(),
+        'is_draft' => false,
+    ]);
+
+    $payment = Payment::whereHas('order', function ($query) use ($booking) {
+        $query->where('booking_id', $booking->id);
+    })->first();
+
+    $paymentDate = $payment->payment_date;
+    $paymentTime = $payment->payment_time;
+    $payment_cash_amount = $payment->payment_cash_amount;
+    $payment_cashless_amount = $payment->payment_cashless_amount;
+
+    // Перематываем время на час вперед
+    Carbon::setTestNow('2024-01-15 11:30:00');
+
+    // Изменяем бронирование
+    $booking->update([
+        'booking_date' => now(tz: 'Etc/GMT-5')->addDay(),
+    ]);
+
+    $payment = Payment::whereHas('order', function ($query) use ($booking) {
+        $query->where('booking_id', $booking->id);
+    })->first();
+
+    // Проверяем, что атрибуты остались прежними
+    expect($payment->payment_date)->toEqual($paymentDate)
+        ->and($payment->payment_time)->toEqual($paymentTime)
+        ->and($payment->payment_cash_amount)->toEqual($payment_cash_amount)
+        ->and($payment->payment_cashless_amount)->toEqual($payment_cashless_amount);
+
+    // Очищаем фиксированное время
+    Carbon::setTestNow();
 });
