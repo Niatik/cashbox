@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OrderCreated;
+use App\Models\Payment;
 
 class CreatePaymentForOrderPrepayment
 {
@@ -21,7 +22,8 @@ class CreatePaymentForOrderPrepayment
         $amount = $options['prepayment'];
         $isCash = $options['is_cash'];
         if ($amount > 0) {
-            $order->payments()->create([
+            Payment::create([
+                'order_id' => $order->id,
                 'payment_cash_amount' => $isCash ? $amount : 0,
                 'payment_cashless_amount' => $isCash ? 0 : $amount,
                 'payment_date' => now(),
