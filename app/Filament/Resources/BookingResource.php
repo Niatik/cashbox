@@ -401,10 +401,10 @@ class BookingResource extends Resource
     {
         return [
             Filter::make('selected_date')
+                ->default(now('Asia/Almaty')->format('Y-m-d'))
                 ->form([
                     DatePicker::make('select_date')
                         ->timezone('Asia/Almaty')
-                        ->default(now('Asia/Almaty')->startOfDay())
                         ->label(__('messages.select_date')),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {

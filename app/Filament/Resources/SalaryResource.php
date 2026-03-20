@@ -112,10 +112,9 @@ class SalaryResource extends Resource
     {
         return [
             Filter::make('selected_date')
-                ->default()
+                ->default(now('Asia/Almaty')->format('Y-m-d'))
                 ->form([
                     DatePicker::make('select_date')
-                        ->default(now())
                         ->label(__('messages.select_date')),
                 ])
                 ->query(function (Builder $query, array $data, Get $get): Builder {
