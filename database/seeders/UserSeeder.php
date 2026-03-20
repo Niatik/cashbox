@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -12,14 +13,32 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::where('email', 'nikita.dragunov@gmail.com')->first();
+        // Create super-admin user
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
+        $superAdmin->assignRole('super-admin');
 
-        if ($user) {
-            $user->assignRole('super-admin');
-        }
+        // Create employee users
+        $employeeUsers = [
+            ['name' => 'John Smith', 'email' => 'john.smith@example.com'],
+            ['name' => 'Emily Davis', 'email' => 'emily.davis@example.com'],
+            ['name' => 'Michael Brown', 'email' => 'michael.brown@example.com'],
+            ['name' => 'Sarah Wilson', 'email' => 'sarah.wilson@example.com'],
+        ];
 
-        $user = User::where('email', 'emp@example.com')->first();
-        if ($user) {
+        foreach ($employeeUsers as $userData) {
+            $user = User::firstOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
+                    'password' => Hash::make('password'),
+                ]
+            );
             $user->assignRole('employee');
         }
     }
