@@ -554,7 +554,7 @@ class OrderResource extends Resource
                         return max(0, $sum - $totalPaid - $discount - $additionalDiscount);
                     }),
             ])
-            ->paginated(false)
+            ->paginated()
             ->defaultSort('order_time', 'desc')
             ->filters(
                 self::getTableFilters()
@@ -579,7 +579,7 @@ class OrderResource extends Resource
     {
         return [
             'index' => Pages\ListOrders::route('/'),
-            'create' => CreateOrder::route('/create'),
+            'create' => Pages\CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
     }
