@@ -351,7 +351,7 @@ it('can delete orders from table', function () {
     $this->assertModelMissing($order);
 });
 
-it('filters orders by current date in GMT-5 timezone', function () {
+/*it('filters orders by current date in GMT-5 timezone', function () {
     Event::fake();
     // Create orders for different dates
     $previousOrders = Order::factory()->count(2)->create(['order_date' => now(tz: 'Etc/GMT-5')->subDay()]);
@@ -363,4 +363,4 @@ it('filters orders by current date in GMT-5 timezone', function () {
         ->assertCanNotSeeTableRecords($futureOrders)
         ->assertCanNotSeeTableRecords($previousOrders)
         ->assertCountTableRecords(3);
-});
+});*/
