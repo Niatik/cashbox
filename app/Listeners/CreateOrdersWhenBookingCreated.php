@@ -65,7 +65,7 @@ class CreateOrdersWhenBookingCreated
                 'order_time' => $bookingTime,
                 'price_id' => $price_id,
                 'price_item_id' => $price_item_id,
-                'social_media_id' => SocialMedia::find(7) ?? SocialMedia::first()->id,
+                'social_media_id' => SocialMedia::find(7)?->id ?? SocialMedia::first()->id,
                 'people_number' => $people_save,
                 'sum' => $sum,
                 'net_sum' => $net_sum,
