@@ -105,8 +105,7 @@ class WorkSessionResource extends Resource
                 Tables\Filters\Filter::make('date')
                     ->form([
                         Forms\Components\DatePicker::make('date')
-                            ->label('Дата')
-                            ->default(now()),
+                            ->label('Дата'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
