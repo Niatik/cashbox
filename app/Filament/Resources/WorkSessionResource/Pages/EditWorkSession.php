@@ -231,17 +231,17 @@ class EditWorkSession extends EditRecord
                                     ->disabled()
                                     ->dehydrated(false),
                                 Forms\Components\TextInput::make('income_total')
-                                    ->label('Общий доход')
+                                    ->label('Доход')
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
                                 Forms\Components\TextInput::make('expense_total')
-                                    ->label('Общий расход')
+                                    ->label('Расход')
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
                                 Forms\Components\TextInput::make('salary_total')
-                                    ->label('Итого зарплата')
+                                    ->label('Зарплата')
                                     ->required()
                                     ->numeric()
                                     ->disabled(),

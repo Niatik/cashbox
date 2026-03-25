@@ -71,6 +71,9 @@ class WorkSessionResource extends Resource
                     ->label('Время')
                     ->timezone('Etc/GMT-5')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('salaryWorkSessions.salary_amount')
+                    ->label('Зарплата')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('salaryRate.name')
                     ->label('Ставка зарплаты')
                     ->sortable(),
