@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\WorkSessionResource;
+use App\Models\Employee;
 use App\Models\ExpenseWorkSession;
 use App\Models\Order;
 use App\Models\Payment;
@@ -213,7 +214,11 @@ it('does not persist SalaryWorkSession to database before payment action', funct
 
 it('calculates balance_salary from previous SalaryWorkSessions', function () {
     // Create two work sessions with earlier dates that have salary records
-    $olderSession1 = WorkSession::factory()->create(['date' => '2025-01-01']);
+    $employee = Employee::factory()->create();
+    $olderSession1 = WorkSession::factory()->create([
+        'date' => '2025-01-01',
+        'employee_id' => $employee->id,
+    ]);
     SalaryWorkSession::factory()->create([
         'work_session_id' => $olderSession1->id,
         'income_total' => 1000,
@@ -221,7 +226,11 @@ it('calculates balance_salary from previous SalaryWorkSessions', function () {
         'salary_amount' => 300,
     ]);
 
-    $olderSession2 = WorkSession::factory()->create(['date' => '2025-01-02']);
+    $olderSession2 = WorkSession::factory()->create([
+        'date' => '2025-01-02',
+        'employee_id' => $employee->id,
+    ]);
+
     SalaryWorkSession::factory()->create([
         'work_session_id' => $olderSession2->id,
         'income_total' => 500,
@@ -230,7 +239,10 @@ it('calculates balance_salary from previous SalaryWorkSessions', function () {
     ]);
 
     // Current session with a later date
-    $currentSession = WorkSession::factory()->create(['date' => '2025-01-03']);
+    $currentSession = WorkSession::factory()->create([
+        'date' => '2025-01-03',
+        'employee_id' => $employee->id,
+    ]);
 
     // Expected balance: (1000 - 200 - 300) + (500 - 100 - 150) = 500 + 250 = 750
     livewire(WorkSessionResource\Pages\EditWorkSession::class, [
