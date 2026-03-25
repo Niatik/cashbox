@@ -540,3 +540,70 @@ it('updates CashReport when deleting WorkSession with children', function () {
     $this->assertDatabaseMissing(ExpenseWorkSession::class, ['work_session_id' => $workSession->id]);
     $this->assertDatabaseMissing(SalaryWorkSession::class, ['work_session_id' => $workSession->id]);
 });
+
+it('shows salary_remainder field when no SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create();
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormFieldExists('salary_work_session.salary_remainder');
+});
+
+it('calculates salary_remainder as zero when salary_amount equals salary_total', function () {
+    $workSession = WorkSession::factory()->create();
+
+    $component = livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ]);
+
+    $formState = $component->get('data');
+    $salaryTotal = (float) $formState['salary_work_session']['salary_total'];
+    $salaryAmount = (float) $formState['salary_work_session']['salary_amount'];
+    $salaryRemainder = (float) $formState['salary_work_session']['salary_remainder'];
+
+    expect($salaryAmount)->toBe($salaryTotal)
+        ->and($salaryRemainder)->toBe(0.0);
+});
+
+it('updates salary_remainder reactively when salary_amount changes', function () {
+    $workSession = WorkSession::factory()->create();
+
+    $component = livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ]);
+
+    $formState = $component->get('data');
+    $salaryTotal = (float) $formState['salary_work_session']['salary_total'];
+
+    // Change salary_amount to be less than salary_total
+    $newAmount = $salaryTotal - 50;
+
+    $component->fillForm([
+        'salary_work_session.salary_amount' => $newAmount,
+    ]);
+
+    $formState = $component->get('data');
+    $salaryRemainder = (float) $formState['salary_work_session']['salary_remainder'];
+
+    expect($salaryRemainder)->toBe(50.0);
+});
+
+it('shows salary_remainder in readonly repeater when SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create();
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'salary_total' => 1000.0,
+        'salary_amount' => 700.0,
+    ]);
+
+    $component = livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ]);
+
+    $formState = $component->get('data');
+    $repeaterKey = array_key_first($formState['salaryWorkSessions']);
+    $salaryRemainder = (float) $formState['salaryWorkSessions'][$repeaterKey]['salary_remainder'];
+
+    expect($salaryRemainder)->toBe(300.0);
+});
