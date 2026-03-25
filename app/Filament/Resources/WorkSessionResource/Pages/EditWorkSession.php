@@ -80,7 +80,10 @@ class EditWorkSession extends EditRecord
                                     $items = $get('expenseWorkSessions') ?? [];
                                     $total = collect($items)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
                                     $set('salary_work_session.expense_total', $total);
-                                    $set('salary_work_session.salary_total', (float) ($get('salary_work_session.balance_salary') ?? 0) + (float) ($get('salary_work_session.income_total') ?? 0) - $total);
+                                    $salaryTotal = (float) ($get('salary_work_session.balance_salary') ?? 0) + (float) ($get('salary_work_session.income_total') ?? 0) - $total;
+                                    $set('salary_work_session.salary_total', $salaryTotal);
+                                    $set('salary_work_session.salary_amount', $salaryTotal);
+                                    $set('salary_work_session.salary_remainder', 0);
                                 }
                             })
                             ->schema([
@@ -209,21 +212,43 @@ class EditWorkSession extends EditRecord
                                     ->default(0)
                                     ->disabled()
                                     ->dehydrated()
+                                    ->live(debounce: 1000)
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
                                         $balance = (float) ($get('balance_salary') ?? 0);
                                         $income = (float) ($get('income_total') ?? 0);
                                         $expense = (float) ($get('expense_total') ?? 0);
                                         $component->state($balance + $income - $expense);
+                                    })
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                        $total = (float) ($get('salary_total') ?? 0);
+                                        $amount = (float) ($get('salary_amount') ?? 0);
+                                        $set('salary_remainder', $total - $amount);
                                     }),
                                 Forms\Components\TextInput::make('salary_amount')
                                     ->label('Сумма выплаты')
                                     ->numeric()
                                     ->default(0)
+                                    ->live(debounce: 1000)
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
                                         $balance = (float) ($get('balance_salary') ?? 0);
                                         $income = (float) ($get('income_total') ?? 0);
                                         $expense = (float) ($get('expense_total') ?? 0);
                                         $component->state($balance + $income - $expense);
+                                    })
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                        $total = (float) ($get('salary_total') ?? 0);
+                                        $amount = (float) ($get('salary_amount') ?? 0);
+                                        $set('salary_remainder', $total - $amount);
+                                    }),
+                                Forms\Components\TextInput::make('salary_remainder')
+                                    ->label('Остаток')
+                                    ->numeric()
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
+                                        $total = (float) ($get('salary_total') ?? 0);
+                                        $amount = (float) ($get('salary_amount') ?? 0);
+                                        $component->state($total - $amount);
                                     }),
                                 Forms\Components\Toggle::make('is_cash')
                                     ->label('Наличные')
@@ -271,6 +296,16 @@ class EditWorkSession extends EditRecord
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
+                                Forms\Components\TextInput::make('salary_remainder')
+                                    ->label('Остаток')
+                                    ->numeric()
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
+                                        $total = (float) ($get('salary_total') ?? 0);
+                                        $amount = (float) ($get('salary_amount') ?? 0);
+                                        $component->state($total - $amount);
+                                    }),
                                 Forms\Components\Toggle::make('is_cash')
                                     ->label('Наличные')
                                     ->default(true),
@@ -330,6 +365,7 @@ class EditWorkSession extends EditRecord
 
         $set('salary_work_session.salary_total', $salaryTotal);
         $set('salary_work_session.salary_amount', $salaryTotal);
+        $set('salary_work_session.salary_remainder', 0);
     }
 
     private function recalculateBalance(Forms\Get $get, Forms\Set $set): void
