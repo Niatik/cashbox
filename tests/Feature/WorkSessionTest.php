@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\WorkSessionResource;
+use App\Models\CashReport;
 use App\Models\Employee;
 use App\Models\ExpenseWorkSession;
 use App\Models\Order;
@@ -501,4 +502,41 @@ it('can edit a WorkSession without triggering unique validation on itself', func
         ])
         ->call('save')
         ->assertHasNoFormErrors();
+});
+
+it('updates CashReport when deleting WorkSession with children', function () {
+    $testDate = '2025-01-15';
+
+    $workSession = WorkSession::factory()->create(['date' => $testDate]);
+
+    ExpenseWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'amount' => 100.00,
+    ]);
+
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'salary_amount' => 200.00,
+        'is_cash' => true,
+    ]);
+
+    $cashReport = CashReport::where('date', $testDate)->first();
+    expect($cashReport)->not->toBeNull();
+
+    $initialCashExpense = $cashReport->cash_expense;
+    $initialCashSalary = $cashReport->cash_salary;
+
+    expect($initialCashExpense)->toBe(100.0);
+    expect($initialCashSalary)->toBe(200.0);
+
+    $workSession->delete();
+
+    $cashReport->refresh();
+
+    expect($cashReport->cash_expense)->toBe(0.0);
+    expect($cashReport->cash_salary)->toBe(0.0);
+
+    $this->assertModelMissing($workSession);
+    $this->assertDatabaseMissing(ExpenseWorkSession::class, ['work_session_id' => $workSession->id]);
+    $this->assertDatabaseMissing(SalaryWorkSession::class, ['work_session_id' => $workSession->id]);
 });
