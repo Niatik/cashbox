@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rules\Unique;
 
 class WorkSessionResource extends Resource
 {
@@ -30,6 +31,16 @@ class WorkSessionResource extends Resource
                     ->preload()
                     ->required()
                     ->live()
+                    ->unique(
+                        table: 'work_sessions',
+                        column: 'employee_id',
+                        ignoreRecord: true,
+                        modifyRuleUsing: fn (Unique $rule, Forms\Get $get) => $rule
+                            ->where('date', $get('date') ?? now()->toDateString())
+                    )
+                    ->validationMessages([
+                        'unique' => 'Этот сотрудник уже имеет смену на эту дату.',
+                    ])
                     ->afterStateUpdated(function (Forms\Set $set): void {
                         $set('rate_id', null);
                         $set('salary_rate_id', null);
