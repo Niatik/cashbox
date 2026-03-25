@@ -4,11 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WorkSessionResource\Pages;
 use App\Models\WorkSession;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Unique;
 
 class WorkSessionResource extends Resource
@@ -100,7 +102,25 @@ class WorkSessionResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('date')
+                    ->form([
+                        Forms\Components\DatePicker::make('date')
+                            ->label('Дата')
+                            ->default(now()),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['date'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('date', $date),
+                        );
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        if (! $data['date']) {
+                            return null;
+                        }
+
+                        return 'Дата: '.Carbon::parse($data['date'])->format('d.m.Y');
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
