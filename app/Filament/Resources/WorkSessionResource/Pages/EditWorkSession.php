@@ -69,7 +69,8 @@ class EditWorkSession extends EditRecord
 
                         return $component;
                     })
-                    ->all(),                Forms\Components\Section::make('Расходы смены')
+                    ->all(),
+                Forms\Components\Section::make('Расходы смены')
                     ->schema([
                         Forms\Components\Repeater::make('expenseWorkSessions')
                             ->label('')
