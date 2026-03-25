@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\WorkSessionDeleting;
+use Database\Factories\WorkSessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkSession extends Model
 {
-    /** @use HasFactory<\Database\Factories\WorkSessionFactory> */
+    /** @use HasFactory<WorkSessionFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -18,6 +20,11 @@ class WorkSession extends Model
         'time',
         'salary_rate_id',
         'rate_id',
+    ];
+
+    /** @var array<string, class-string> */
+    protected $dispatchesEvents = [
+        'deleting' => WorkSessionDeleting::class,
     ];
 
     /**
