@@ -3,14 +3,19 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WorkSessionResource\Pages;
+use App\Models\Employee;
+use App\Models\Rate;
+use App\Models\SalaryRate;
 use App\Models\WorkSession;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rules\Unique;
 
 class WorkSessionResource extends Resource
@@ -37,7 +42,7 @@ class WorkSessionResource extends Resource
                         table: 'work_sessions',
                         column: 'employee_id',
                         ignoreRecord: true,
-                        modifyRuleUsing: fn (Unique $rule, Forms\Get $get) => $rule
+                        modifyRuleUsing: fn (Unique $rule, Get $get) => $rule
                             ->where('date', $get('date') ?? now()->toDateString())
                     )
                     ->validationMessages([
@@ -61,14 +66,38 @@ class WorkSessionResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('salary_rate_id')
                     ->label('Оклад')
-                    ->relationship('salaryRate', 'name')
-                    ->preload()
+                    ->options(function (Get $get): Collection {
+                        $employeeId = $get('employee_id');
+                        if (! $employeeId) {
+                            return collect();
+                        }
+                        $employee = Employee::find($employeeId);
+                        if (! $employee) {
+                            return collect();
+                        }
+
+                        return SalaryRate::query()
+                            ->where('job_title_id', $employee->job_title_id)
+                            ->pluck('name', 'id');
+                    })
                     ->required()
                     ->live(),
                 Forms\Components\Select::make('rate_id')
                     ->label('Ставка')
-                    ->relationship('rate', 'name')
-                    ->preload()
+                    ->options(function (Get $get): Collection {
+                        $employeeId = $get('employee_id');
+                        if (! $employeeId) {
+                            return collect();
+                        }
+                        $employee = Employee::find($employeeId);
+                        if (! $employee) {
+                            return collect();
+                        }
+
+                        return Rate::query()
+                            ->where('job_title_id', $employee->job_title_id)
+                            ->pluck('name', 'id');
+                    })
                     ->required()
                     ->live(),
             ]);
