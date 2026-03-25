@@ -19,7 +19,7 @@ it('can render page', function () {
 });
 
 it('can list work sessions', function () {
-    WorkSession::factory()->count(3)->create();
+    WorkSession::factory()->count(3)->create(['date' => now()->toDateString()]);
 
     $workSessions = WorkSession::all();
 
@@ -127,7 +127,7 @@ it('can delete a WorkSession', function () {
 });
 
 it('can delete a WorkSession from table', function () {
-    $workSession = WorkSession::factory()->create();
+    $workSession = WorkSession::factory()->create(['date' => now()->toDateString()]);
 
     livewire(WorkSessionResource\Pages\ListWorkSessions::class)
         ->callTableAction(TableDeleteAction::class, $workSession);
@@ -136,7 +136,7 @@ it('can delete a WorkSession from table', function () {
 });
 
 it('can bulk delete WorkSessions', function () {
-    $workSessions = WorkSession::factory()->count(3)->create();
+    $workSessions = WorkSession::factory()->count(3)->create(['date' => now()->toDateString()]);
 
     livewire(WorkSessionResource\Pages\ListWorkSessions::class)
         ->callTableBulkAction(DeleteBulkAction::class, $workSessions);
