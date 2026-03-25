@@ -28,7 +28,12 @@ class WorkSessionResource extends Resource
                     ->label('Сотрудник')
                     ->relationship('employee', 'name')
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (Forms\Set $set): void {
+                        $set('rate_id', null);
+                        $set('salary_rate_id', null);
+                    }),
                 Forms\Components\DatePicker::make('date')
                     ->label('Дата')
                     ->default(now())
@@ -45,12 +50,14 @@ class WorkSessionResource extends Resource
                     ->label('Оклад')
                     ->relationship('salaryRate', 'name')
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->live(),
                 Forms\Components\Select::make('rate_id')
                     ->label('Ставка')
                     ->relationship('rate', 'name')
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->live(),
             ]);
     }
 

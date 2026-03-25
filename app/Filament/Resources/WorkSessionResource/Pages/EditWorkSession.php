@@ -5,6 +5,7 @@ namespace App\Filament\Resources\WorkSessionResource\Pages;
 use App\Filament\Resources\WorkSessionResource;
 use App\Models\Payment;
 use App\Models\RateRatio;
+use App\Models\SalaryRate;
 use App\Models\SalaryWorkSession;
 use Filament\Actions;
 use Filament\Forms;
@@ -49,10 +50,26 @@ class EditWorkSession extends EditRecord
         return parent::form($form)
             ->schema([
                 ...collect(parent::form($form)->getComponents(withHidden: true))
-                    ->map(fn (Forms\Components\Component $component) => $component
-                        ->disabled(fn (): bool => $this->record->salaryWorkSessions()->exists()))
-                    ->all(),
-                Forms\Components\Section::make('Расходы смены')
+                    ->map(function (Forms\Components\Component $component) {
+                        $component->disabled(fn (): bool => $this->record->salaryWorkSessions()->exists());
+
+                        if ($component instanceof Forms\Components\Select && in_array($component->getName(), ['salary_rate_id', 'rate_id'])) {
+                            $component->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                $this->recalculateSalaryFields($get, $set);
+                            });
+                        }
+
+                        if ($component instanceof Forms\Components\Select && $component->getName() === 'employee_id') {
+                            $component->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                $set('rate_id', null);
+                                $set('salary_rate_id', null);
+                                $this->recalculateSalaryFields($get, $set);
+                            });
+                        }
+
+                        return $component;
+                    })
+                    ->all(),                Forms\Components\Section::make('Расходы смены')
                     ->schema([
                         Forms\Components\Repeater::make('expenseWorkSessions')
                             ->label('')
@@ -112,7 +129,9 @@ class EditWorkSession extends EditRecord
                                     ->numeric()
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $balance = SalaryWorkSession::query()
-                                            ->whereHas('workSession', fn ($q) => $q->where('date', '<', $this->record->date))
+                                            ->whereHas('workSession', fn ($q) => $q
+                                                ->where('employee_id', $this->record->employee_id)
+                                                ->where('date', '<', $this->record->date))
                                             ->get()
                                             ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
 
@@ -222,7 +241,9 @@ class EditWorkSession extends EditRecord
                                     ->numeric()
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $balance = SalaryWorkSession::query()
-                                            ->whereHas('workSession', fn ($q) => $q->where('date', '<', $this->record->date))
+                                            ->whereHas('workSession', fn ($q) => $q
+                                                ->where('employee_id', $this->record->employee_id)
+                                                ->where('date', '<', $this->record->date))
                                             ->get()
                                             ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
 
@@ -262,5 +283,66 @@ class EditWorkSession extends EditRecord
                             ->visible(fn (): bool => $this->record->salaryWorkSessions()->count() > 0),
                     ]),
             ]);
+    }
+
+    private function calculateIncome(?string $salaryRateId, ?string $rateId): float
+    {
+        $session = $this->record;
+        $sessionStart = $session->time;
+
+        $paymentSum = Payment::query()
+            ->where('payment_date', $session->date)
+            ->where('payment_time', '>=', $sessionStart)
+            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
+
+        $salary = 0;
+        if ($salaryRateId) {
+            $salaryRate = SalaryRate::find($salaryRateId);
+            $salary = $salaryRate?->salary ?? 0;
+        }
+
+        $ratioBonus = 0;
+        if ($rateId) {
+            $matchingRatio = RateRatio::query()
+                ->where('rate_id', $rateId)
+                ->where('ratio_to', '>=', $paymentSum / 100)
+                ->where('ratio_from', '<=', $paymentSum / 100)
+                ->first();
+
+            if ($matchingRatio) {
+                $ratioBonus = $matchingRatio->ratio;
+            }
+        }
+
+        return $salary + $ratioBonus;
+    }
+
+    private function recalculateSalaryFields(Forms\Get $get, Forms\Set $set): void
+    {
+        $this->recalculateBalance($get, $set);
+
+        $income = $this->calculateIncome($get('salary_rate_id'), $get('rate_id'));
+        $set('salary_work_session.income_total', $income);
+
+        $balance = (float) ($get('salary_work_session.balance_salary') ?? 0);
+        $expense = (float) ($get('salary_work_session.expense_total') ?? 0);
+        $salaryTotal = $balance + $income - $expense;
+
+        $set('salary_work_session.salary_total', $salaryTotal);
+        $set('salary_work_session.salary_amount', $salaryTotal);
+    }
+
+    private function recalculateBalance(Forms\Get $get, Forms\Set $set): void
+    {
+        $employeeId = $get('employee_id');
+
+        $balance = SalaryWorkSession::query()
+            ->whereHas('workSession', fn ($q) => $q
+                ->where('employee_id', $employeeId)
+                ->where('date', '<', $this->record->date))
+            ->get()
+            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
+
+        $set('salary_work_session.balance_salary', $balance);
     }
 }
