@@ -121,7 +121,7 @@ class EditWorkSession extends EditRecord
                                     ->disabled()
                                     ->dehydrated(false),
                                 Forms\Components\TextInput::make('income_total')
-                                    ->label('Общий доход')
+                                    ->label('Доход')
                                     ->numeric()
                                     ->default(0)
                                     ->disabled()
@@ -170,7 +170,7 @@ class EditWorkSession extends EditRecord
                                         $component->state($salary + $ratioBonus);
                                     }),
                                 Forms\Components\TextInput::make('expense_total')
-                                    ->label('Общий расход')
+                                    ->label('Расход')
                                     ->numeric()
                                     ->default(0)
                                     ->disabled()
@@ -185,7 +185,7 @@ class EditWorkSession extends EditRecord
                                         $component->state($total);
                                     }),
                                 Forms\Components\TextInput::make('salary_total')
-                                    ->label('Итого зарплата')
+                                    ->label('Зарплата')
                                     ->numeric()
                                     ->default(0)
                                     ->disabled()
