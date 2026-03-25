@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\RateRatio;
 use App\Models\SalaryWorkSession;
 use App\Models\WorkSession;
+use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 
@@ -120,7 +121,7 @@ it('can delete a WorkSession', function () {
     livewire(WorkSessionResource\Pages\EditWorkSession::class, [
         'record' => $workSession->getRouteKey(),
     ])
-        ->callAction(Filament\Actions\DeleteAction::class);
+        ->callAction(DeleteAction::class);
 
     $this->assertModelMissing($workSession);
 });
@@ -447,4 +448,57 @@ it('calculates income_total as salary only when no matching ratio exists', funct
         ->assertFormSet([
             'salary_work_session.income_total' => $expectedSalary,
         ]);
+});
+
+it('cannot create a WorkSession for the same employee on the same date', function () {
+    $existingSession = WorkSession::factory()->create([
+        'date' => now()->toDateString(),
+    ]);
+
+    livewire(WorkSessionResource\Pages\CreateWorkSession::class)
+        ->fillForm([
+            'employee_id' => $existingSession->employee_id,
+            'time' => now()->format('H:i:s'),
+            'salary_rate_id' => $existingSession->salary_rate_id,
+            'rate_id' => $existingSession->rate_id,
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['employee_id' => 'unique']);
+});
+
+it('can create a WorkSession for different employees on the same date', function () {
+    $existingSession = WorkSession::factory()->create([
+        'date' => now()->toDateString(),
+    ]);
+    $newData = WorkSession::factory()->make();
+
+    livewire(WorkSessionResource\Pages\CreateWorkSession::class)
+        ->fillForm([
+            'employee_id' => $newData->employee_id,
+            'time' => $newData->time,
+            'salary_rate_id' => $newData->salary_rate_id,
+            'rate_id' => $newData->rate_id,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $this->assertDatabaseHas(WorkSession::class, [
+        'employee_id' => $newData->employee_id,
+        'date' => now()->toDateString(),
+    ]);
+});
+
+it('can edit a WorkSession without triggering unique validation on itself', function () {
+    $workSession = WorkSession::factory()->create([
+        'date' => now()->toDateString(),
+    ]);
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->fillForm([
+            'time' => now()->addHour()->format('H:i:s'),
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
 });
