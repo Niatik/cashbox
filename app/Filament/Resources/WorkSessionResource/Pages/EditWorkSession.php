@@ -4,7 +4,6 @@ namespace App\Filament\Resources\WorkSessionResource\Pages;
 
 use App\Filament\Resources\WorkSessionResource;
 use App\Models\Order;
-use App\Models\Payment;
 use App\Models\RateRatio;
 use App\Models\SalaryRate;
 use App\Models\SalaryWorkSession;
@@ -84,6 +83,7 @@ class EditWorkSession extends EditRecord
                                     $salaryTotal = (float) ($get('salary_work_session.balance_salary') ?? 0) + (float) ($get('salary_work_session.income_total') ?? 0) - $total;
                                     $set('salary_work_session.salary_total', $salaryTotal);
                                     $set('salary_work_session.salary_amount', $salaryTotal);
+                                    $set('salary_work_session.salary_amount_cashless', 0);
                                     $set('salary_work_session.salary_remainder', 0);
                                 }
                             })
@@ -117,7 +117,7 @@ class EditWorkSession extends EditRecord
                                     'expense_total' => $data['expense_total'] ?? 0,
                                     'salary_total' => $data['salary_total'] ?? 0,
                                     'salary_amount' => $data['salary_amount'] ?? 0,
-                                    'is_cash' => $data['is_cash'] ?? true,
+                                    'salary_amount_cashless' => $data['salary_amount_cashless'] ?? 0,
                                 ]);
 
                                 $this->fillForm();
@@ -219,7 +219,7 @@ class EditWorkSession extends EditRecord
                                         $set('salary_remainder', $total - $amount);
                                     }),
                                 Forms\Components\TextInput::make('salary_amount')
-                                    ->label('Сумма выплаты')
+                                    ->label('Наличными')
                                     ->numeric()
                                     ->default(0)
                                     ->live(debounce: 1000)
@@ -232,7 +232,19 @@ class EditWorkSession extends EditRecord
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
                                         $total = (float) ($get('salary_total') ?? 0);
                                         $amount = (float) ($get('salary_amount') ?? 0);
-                                        $set('salary_remainder', $total - $amount);
+                                        $amountCashless = (float) ($get('salary_amount_cashless') ?? 0);
+                                        $set('salary_remainder', $total - $amount - $amountCashless);
+                                    }),
+                                Forms\Components\TextInput::make('salary_amount_cashless')
+                                    ->label('Безналом')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->live(debounce: 1000)
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                        $total = (float) ($get('salary_total') ?? 0);
+                                        $amount = (float) ($get('salary_amount') ?? 0);
+                                        $amountCashless = (float) ($get('salary_amount_cashless') ?? 0);
+                                        $set('salary_remainder', $total - $amount - $amountCashless);
                                     }),
                                 Forms\Components\TextInput::make('salary_remainder')
                                     ->label('Остаток')
@@ -242,11 +254,9 @@ class EditWorkSession extends EditRecord
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
                                         $total = (float) ($get('salary_total') ?? 0);
                                         $amount = (float) ($get('salary_amount') ?? 0);
-                                        $component->state($total - $amount);
+                                        $amountCashless = (float) ($get('salary_amount_cashless') ?? 0);
+                                        $component->state($total - $amount - $amountCashless);
                                     }),
-                                Forms\Components\Toggle::make('is_cash')
-                                    ->label('Наличные')
-                                    ->default(true),
                             ])
                             ->columns(2)
                             ->columnSpanFull()
@@ -286,7 +296,12 @@ class EditWorkSession extends EditRecord
                                     ->numeric()
                                     ->disabled(),
                                 Forms\Components\TextInput::make('salary_amount')
-                                    ->label('Сумма выплаты')
+                                    ->label('Наличными')
+                                    ->required()
+                                    ->numeric()
+                                    ->disabled(),
+                                Forms\Components\TextInput::make('salary_amount_cashless')
+                                    ->label('Безналом')
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
@@ -298,11 +313,9 @@ class EditWorkSession extends EditRecord
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component, Forms\Get $get): void {
                                         $total = (float) ($get('salary_total') ?? 0);
                                         $amount = (float) ($get('salary_amount') ?? 0);
-                                        $component->state($total - $amount);
+                                        $amountCashless = (float) ($get('salary_amount_cashless') ?? 0);
+                                        $component->state($total - $amount - $amountCashless);
                                     }),
-                                Forms\Components\Toggle::make('is_cash')
-                                    ->label('Наличные')
-                                    ->default(true),
                             ])
                             ->columns(2)
                             ->columnSpanFull()
@@ -364,6 +377,7 @@ class EditWorkSession extends EditRecord
 
         $set('salary_work_session.salary_total', $salaryTotal);
         $set('salary_work_session.salary_amount', $salaryTotal);
+        $set('salary_work_session.salary_amount_cashless', 0);
         $set('salary_work_session.salary_remainder', 0);
     }
 

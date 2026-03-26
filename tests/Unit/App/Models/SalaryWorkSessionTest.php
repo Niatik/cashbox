@@ -12,7 +12,7 @@ it('can create a salary work session', function () {
         ->and($salaryWorkSession->expense_total)->toBeFloat()
         ->and($salaryWorkSession->salary_total)->toBeFloat()
         ->and($salaryWorkSession->salary_amount)->toBeFloat()
-        ->and($salaryWorkSession->is_cash)->toBeBool();
+        ->and($salaryWorkSession->salary_amount_cashless)->toBeFloat();
 });
 
 it('belongs to a work session', function () {
@@ -33,4 +33,25 @@ it('deletes salary work sessions when work session is deleted', function () {
     $workSession->delete();
 
     expect(SalaryWorkSession::where('work_session_id', $workSession->id)->count())->toBe(0);
+});
+
+it('can create cash-only salary work session', function () {
+    $salaryWorkSession = SalaryWorkSession::factory()->cash()->create();
+
+    expect($salaryWorkSession->salary_amount)->toBeGreaterThan(0)
+        ->and($salaryWorkSession->salary_amount_cashless)->toBe(0.0);
+});
+
+it('can create cashless-only salary work session', function () {
+    $salaryWorkSession = SalaryWorkSession::factory()->cashless()->create();
+
+    expect($salaryWorkSession->salary_amount)->toBe(0.0)
+        ->and($salaryWorkSession->salary_amount_cashless)->toBeGreaterThan(0);
+});
+
+it('can create mixed salary work session', function () {
+    $salaryWorkSession = SalaryWorkSession::factory()->mixed()->create();
+
+    expect($salaryWorkSession->salary_amount)->toBeGreaterThan(0)
+        ->and($salaryWorkSession->salary_amount_cashless)->toBeGreaterThan(0);
 });

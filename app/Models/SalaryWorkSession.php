@@ -6,13 +6,14 @@ use App\Casts\MoneyCast;
 use App\Events\SalaryWorkSessionCreated;
 use App\Events\SalaryWorkSessionDeleted;
 use App\Events\SalaryWorkSessionUpdated;
+use Database\Factories\SalaryWorkSessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalaryWorkSession extends Model
 {
-    /** @use HasFactory<\Database\Factories\SalaryWorkSessionFactory> */
+    /** @use HasFactory<SalaryWorkSessionFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -21,7 +22,7 @@ class SalaryWorkSession extends Model
         'expense_total',
         'salary_total',
         'salary_amount',
-        'is_cash',
+        'salary_amount_cashless',
     ];
 
     protected $casts = [
@@ -29,7 +30,7 @@ class SalaryWorkSession extends Model
         'expense_total' => MoneyCast::class,
         'salary_total' => MoneyCast::class,
         'salary_amount' => MoneyCast::class,
-        'is_cash' => 'boolean',
+        'salary_amount_cashless' => MoneyCast::class,
     ];
 
     /** @var array<string, class-string> */

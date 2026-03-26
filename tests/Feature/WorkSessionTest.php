@@ -167,7 +167,7 @@ it('shows salary form fields when no SalaryWorkSession exists', function () {
         ->assertFormFieldExists('salary_work_session.expense_total')
         ->assertFormFieldExists('salary_work_session.salary_total')
         ->assertFormFieldExists('salary_work_session.salary_amount')
-        ->assertFormFieldExists('salary_work_session.is_cash');
+        ->assertFormFieldExists('salary_work_session.salary_amount_cashless');
 });
 
 it('creates SalaryWorkSession with form data when salary_payment action is called', function () {
@@ -180,8 +180,8 @@ it('creates SalaryWorkSession with form data when salary_payment action is calle
             'salary_work_session.income_total' => 100,
             'salary_work_session.expense_total' => 50,
             'salary_work_session.salary_total' => 50,
-            'salary_work_session.salary_amount' => 50,
-            'salary_work_session.is_cash' => true,
+            'salary_work_session.salary_amount' => 30,
+            'salary_work_session.salary_amount_cashless' => 20,
         ])
         ->mountFormComponentAction('zarplata-smeny', 'salary_payment')
         ->callMountedFormComponentAction();
@@ -194,8 +194,8 @@ it('creates SalaryWorkSession with form data when salary_payment action is calle
     expect($salary->income_total)->toBe(100.0)
         ->and($salary->expense_total)->toBe(50.0)
         ->and($salary->salary_total)->toBe(50.0)
-        ->and($salary->salary_amount)->toBe(50.0)
-        ->and($salary->is_cash)->toBeTrue();
+        ->and($salary->salary_amount)->toBe(30.0)
+        ->and($salary->salary_amount_cashless)->toBe(20.0);
 });
 
 it('does not persist SalaryWorkSession to database before payment action', function () {
@@ -517,7 +517,7 @@ it('updates CashReport when deleting WorkSession with children', function () {
     SalaryWorkSession::factory()->create([
         'work_session_id' => $workSession->id,
         'salary_amount' => 200.00,
-        'is_cash' => true,
+        'salary_amount_cashless' => 0,
     ]);
 
     $cashReport = CashReport::where('date', $testDate)->first();

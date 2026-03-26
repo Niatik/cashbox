@@ -330,14 +330,16 @@ class CashReportService
     {
         $date = $salaryWorkSession->workSession->date->format('Y-m-d');
         $cashAmount = $salaryWorkSession->salary_amount;
-        $isCash = $salaryWorkSession->is_cash;
+        $cashlessAmount = $salaryWorkSession->salary_amount_cashless;
 
-        if ($isCash) {
+        if ($cashAmount > 0) {
             CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $cashAmount * 100);
             CashReport::whereDate('date', $date)->increment('cash_salary', $cashAmount * 100);
-        } else {
-            CashReport::whereDate('date', $date)->increment('cashless_salary', $cashAmount * 100);
         }
+        if ($cashlessAmount > 0) {
+            CashReport::whereDate('date', $date)->increment('cashless_salary', $cashlessAmount * 100);
+        }
+
         $existsOnDate = CashReport::whereDate('date', $date)->exists();
         if (! $existsOnDate) {
             $lastCashReport = CashReport::whereDate('date', '<', $date)->orderBy('date', 'desc')->first();
@@ -352,13 +354,13 @@ class CashReportService
                 'cashless_income' => 0.00,
                 'cash_expense' => 0.00,
                 'cashless_expense' => 0.00,
-                'cash_salary' => $isCash ? $cashAmount : 0.00,
-                'cashless_salary' => $isCash ? 0.00 : $cashAmount,
+                'cash_salary' => $cashAmount,
+                'cashless_salary' => $cashlessAmount,
             ]);
             if (! CashReport::whereDate('date', '>', $date)->exists()) {
                 CashReport::create([
                     'date' => Carbon::parse($date)->addDay()->format('Y-m-d'),
-                    'morning_cash_balance' => $morningCashBalance - ($isCash ? $cashAmount : 0.00),
+                    'morning_cash_balance' => $morningCashBalance - $cashAmount,
                     'cash_income' => 0.00,
                     'cashless_income' => 0.00,
                     'cash_expense' => 0.00,
@@ -374,37 +376,30 @@ class CashReportService
     {
         $date = $salaryWorkSession->workSession->date->format('Y-m-d');
         $oldCashAmount = $salaryWorkSession->getOriginal('salary_amount');
+        $oldCashlessAmount = $salaryWorkSession->getOriginal('salary_amount_cashless');
         $cashAmount = $salaryWorkSession->salary_amount;
-        $oldIsCash = $salaryWorkSession->getOriginal('is_cash');
-        $isCash = $salaryWorkSession->is_cash;
+        $cashlessAmount = $salaryWorkSession->salary_amount_cashless;
 
-        if ($oldIsCash) {
-            CashReport::whereDate('date', $date)->decrement('cash_salary', $oldCashAmount * 100);
-            CashReport::where('date', '>', $date)->increment('morning_cash_balance', $oldCashAmount * 100);
-        } else {
-            CashReport::whereDate('date', $date)->decrement('cashless_salary', $oldCashAmount * 100);
-        }
+        // Rollback old values
+        CashReport::whereDate('date', $date)->decrement('cash_salary', $oldCashAmount * 100);
+        CashReport::where('date', '>', $date)->increment('morning_cash_balance', $oldCashAmount * 100);
+        CashReport::whereDate('date', $date)->decrement('cashless_salary', $oldCashlessAmount * 100);
 
-        if ($isCash) {
-            CashReport::whereDate('date', $date)->increment('cash_salary', $cashAmount * 100);
-            CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $cashAmount * 100);
-        } else {
-            CashReport::whereDate('date', $date)->increment('cashless_salary', $cashAmount * 100);
-        }
+        // Apply new values
+        CashReport::whereDate('date', $date)->increment('cash_salary', $cashAmount * 100);
+        CashReport::where('date', '>', $date)->decrement('morning_cash_balance', $cashAmount * 100);
+        CashReport::whereDate('date', $date)->increment('cashless_salary', $cashlessAmount * 100);
     }
 
     public function updateOnSalaryWorkSessionDeleted(SalaryWorkSession $salaryWorkSession): void
     {
         $date = $salaryWorkSession->workSession->date->format('Y-m-d');
         $cashAmount = $salaryWorkSession->salary_amount;
-        $isCash = $salaryWorkSession->is_cash;
+        $cashlessAmount = $salaryWorkSession->salary_amount_cashless;
 
-        if ($isCash) {
-            CashReport::whereDate('date', $date)->decrement('cash_salary', $cashAmount * 100);
-            CashReport::where('date', '>', $date)->increment('morning_cash_balance', $cashAmount * 100);
-        } else {
-            CashReport::whereDate('date', $date)->decrement('cashless_salary', $cashAmount * 100);
-        }
+        CashReport::whereDate('date', $date)->decrement('cash_salary', $cashAmount * 100);
+        CashReport::where('date', '>', $date)->increment('morning_cash_balance', $cashAmount * 100);
+        CashReport::whereDate('date', $date)->decrement('cashless_salary', $cashlessAmount * 100);
     }
 
     public function updateOnExpenseWorkSessionCreated(ExpenseWorkSession $expenseWorkSession): void
