@@ -120,8 +120,14 @@ class WorkSessionResource extends Resource
                     ->label('Время')
                     ->timezone('Etc/GMT-5')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('salaryWorkSessions.salary_amount')
+                /*Tables\Columns\TextColumn::make('salaryWorkSessions.salary_amount')
                     ->label('Зарплата')
+                    ->sortable(),*/
+                Tables\Columns\TextColumn::make('salary_sum')
+                    ->label('Зарплата')
+                    ->state(fn (WorkSession $record): int => $record->salaryWorkSessions->sum(
+                        fn ($s) => $s->salary_amount + $s->salary_amount_cashless
+                    ))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('salaryRate.name')
                     ->label('Ставка зарплаты')
