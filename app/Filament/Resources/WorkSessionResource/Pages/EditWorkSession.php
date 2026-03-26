@@ -137,7 +137,7 @@ class EditWorkSession extends EditRecord
                                                 ->where('employee_id', $this->record->employee_id)
                                                 ->where('date', '<', $this->record->date))
                                             ->get()
-                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
+                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless);
 
                                         $component->state($balance);
                                     })
@@ -216,7 +216,8 @@ class EditWorkSession extends EditRecord
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
                                         $total = (float) ($get('salary_total') ?? 0);
                                         $amount = (float) ($get('salary_amount') ?? 0);
-                                        $set('salary_remainder', $total - $amount);
+                                        $amountCashless = (float) ($get('salary_amount_cashless') ?? 0);
+                                        $set('salary_remainder', $total - $amount - $amountCashless);
                                     }),
                                 Forms\Components\TextInput::make('salary_amount')
                                     ->label('Наличными')
@@ -274,7 +275,7 @@ class EditWorkSession extends EditRecord
                                                 ->where('employee_id', $this->record->employee_id)
                                                 ->where('date', '<', $this->record->date))
                                             ->get()
-                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
+                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless);
 
                                         $component->state($balance);
                                     })
@@ -390,7 +391,7 @@ class EditWorkSession extends EditRecord
                 ->where('employee_id', $employeeId)
                 ->where('date', '<', $this->record->date))
             ->get()
-            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount);
+            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless);
 
         $set('salary_work_session.balance_salary', $balance);
     }
