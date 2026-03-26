@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\WorkSessionResource\Pages;
 
 use App\Filament\Resources\WorkSessionResource;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\RateRatio;
 use App\Models\SalaryRate;
@@ -13,7 +14,6 @@ use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Alignment;
-use Illuminate\Support\Facades\Log;
 
 class EditWorkSession extends EditRecord
 {
@@ -154,41 +154,34 @@ class EditWorkSession extends EditRecord
                                         $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
                                     })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
-                                        Log::debug('afterStateHydrated');
-                                        Log::debug($this->record);
                                         $session = $this->record;
                                         // $sessionStart = $session->date->format('Y-m-d').$session->time;
                                         $sessionStart = $session->time;
-                                        Log::debug($session->date);
-                                        Log::debug($sessionStart);
 
-                                        $paymentSum = Payment::query()
-                                            ->where('payment_date', $session->date)
-                                            ->where('payment_time', '>=', $sessionStart)
-                                            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
-                                        Log::debug($session->date);
-                                        Log::debug($sessionStart);
-                                        Log::debug($paymentSum);
+                                        $orders = Order::query()
+                                            ->where('order_date', $session->date)
+                                            ->where('order_time', '>=', $sessionStart)->get();
+
+                                        $paymentSum = 0;
+                                        foreach ($orders as $order) {
+                                            $paymentSum = $order->payments()
+                                                ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
+                                        }
 
                                         $salary = $session->salaryRate?->salary ?? 0;
 
-                                        Log::debug($salary);
-
                                         $ratioBonus = 0;
                                         if ($session->rate_id) {
-                                            Log::debug($session->rate_id);
                                             $matchingRatio = RateRatio::query()
                                                 ->where('rate_id', $session->rate_id)
                                                 ->where('ratio_to', '>=', $paymentSum / 100)
                                                 ->where('ratio_from', '<=', $paymentSum / 100)
                                                 ->first();
-                                            Log::debug($matchingRatio);
 
                                             if ($matchingRatio) {
                                                 $ratioBonus = $matchingRatio->ratio;
                                             }
                                         }
-                                        Log::debug($ratioBonus);
 
                                         $component->state($salary + $ratioBonus);
                                     }),
@@ -326,10 +319,15 @@ class EditWorkSession extends EditRecord
         $session = $this->record;
         $sessionStart = $session->time;
 
-        $paymentSum = Payment::query()
-            ->where('payment_date', $session->date)
-            ->where('payment_time', '>=', $sessionStart)
-            ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
+        $orders = Order::query()
+            ->where('order_date', $session->date)
+            ->where('order_time', '>=', $sessionStart)->get();
+
+        $paymentSum = 0;
+        foreach ($orders as $order) {
+            $paymentSum = $order->payments()
+                ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
+        }
 
         $salary = 0;
         if ($salaryRateId) {
