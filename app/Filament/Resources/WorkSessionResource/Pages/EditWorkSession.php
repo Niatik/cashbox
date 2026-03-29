@@ -233,9 +233,10 @@ class EditWorkSession extends EditRecord
                                     ->afterStateUpdated(function (?string $state, Forms\Get $get, Forms\Set $set): void {
                                         $salaryTotal = (float) ($get('salary_total') ?? 0);
                                         $amount = (float) ($state ?? 0);
-                                        $newCashless = $salaryTotal - $amount;
-                                        $set('salary_amount_cashless', $newCashless);
-                                        $set('salary_remainder', $salaryTotal - $amount - $newCashless);
+                                        $cashless = (float) ($get('salary_amount_cashless') ?? 0);
+                                        // $newCashless = $salaryTotal - $amount;
+                                        // $set('salary_amount_cashless', $newCashless);
+                                        $set('salary_remainder', $salaryTotal - $amount - $cashless);
                                     }),
                                 Forms\Components\TextInput::make('salary_amount_cashless')
                                     ->label('Безналом')
@@ -245,9 +246,10 @@ class EditWorkSession extends EditRecord
                                     ->afterStateUpdated(function (?string $state, Forms\Get $get, Forms\Set $set): void {
                                         $salaryTotal = (float) ($get('salary_total') ?? 0);
                                         $amountCashless = (float) ($state ?? 0);
-                                        $newCash = $salaryTotal - $amountCashless;
-                                        $set('salary_amount', $newCash);
-                                        $set('salary_remainder', $salaryTotal - $newCash - $amountCashless);
+                                        $cash = (float) ($get('salary_amount') ?? 0);
+                                        // $newCash = $salaryTotal - $amountCashless;
+                                        // $set('salary_amount', $newCash);
+                                        $set('salary_remainder', $salaryTotal - $cash - $amountCashless);
                                     }),
                                 Forms\Components\TextInput::make('salary_remainder')
                                     ->label('Остаток')
