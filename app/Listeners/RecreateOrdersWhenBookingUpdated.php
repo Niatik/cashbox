@@ -119,24 +119,26 @@ class RecreateOrdersWhenBookingUpdated
             $net_sum = $people_calc * $factor * $price;
             $sum = $net_sum - $prepayment;
 
-            $order = Order::create([
-                'order_date' => $bookingDate,
-                'order_time' => $bookingTime,
-                'price_id' => $price_id,
-                'price_item_id' => $price_item_id,
-                'social_media_id' => SocialMedia::find(7)?->id ?? SocialMedia::first()->id,
-                'people_number' => $people_save,
-                'sum' => $sum,
-                'net_sum' => $net_sum,
-                'employee_id' => $employee,
-                'customer_id' => $customer,
-                'options' => [
-                    'prepayment' => $prepayment,
-                    'is_cash' => $isCash,
-                ],
-                'is_paid' => false,
-                'booking_id' => $booking->id,
-            ]);
+            $order = Order::withoutEvents(function () use ($bookingDate, $bookingTime, $price_id, $price_item_id, $people_save, $sum, $net_sum, $employee, $customer, $prepayment, $isCash, $booking) {
+                return Order::create([
+                    'order_date' => $bookingDate,
+                    'order_time' => $bookingTime,
+                    'price_id' => $price_id,
+                    'price_item_id' => $price_item_id,
+                    'social_media_id' => SocialMedia::find(7)?->id ?? SocialMedia::first()->id,
+                    'people_number' => $people_save,
+                    'sum' => $sum,
+                    'net_sum' => $net_sum,
+                    'employee_id' => $employee,
+                    'customer_id' => $customer,
+                    'options' => [
+                        'prepayment' => $prepayment,
+                        'is_cash' => $isCash,
+                    ],
+                    'is_paid' => false,
+                    'booking_id' => $booking->id,
+                ]);
+            });
 
             Payment::where('order_id', $order->id)->delete();
 
