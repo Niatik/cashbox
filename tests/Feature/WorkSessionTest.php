@@ -607,3 +607,77 @@ it('shows salary_remainder in readonly repeater when SalaryWorkSession exists', 
 
     expect($salaryRemainder)->toBe(300.0);
 });
+
+it('displays salary_total column in the table', function () {
+    $workSession = WorkSession::factory()->create(['date' => now()->toDateString()]);
+
+    livewire(WorkSessionResource\Pages\ListWorkSessions::class)
+        ->assertCanSeeTableRecords([$workSession])
+        ->assertTableColumnExists('salary_total');
+});
+
+it('shows saved salary_total in table when SalaryWorkSession exists', function () {
+    $workSession = WorkSession::factory()->create(['date' => now()->toDateString()]);
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'income_total' => 1000.0,
+        'expense_total' => 200.0,
+        'salary_total' => 800.0,
+        'salary_amount' => 500.0,
+        'salary_amount_cashless' => 100.0,
+    ]);
+
+    $workSession->refresh();
+
+    expect($workSession->salary_total)->toBe(800.0);
+});
+
+it('calculates salary_total dynamically when no SalaryWorkSession exists', function () {
+    // Create previous session with salary to generate balance
+    $employee = Employee::factory()->create();
+    $previousSession = WorkSession::factory()->create([
+        'date' => '2024-12-01',
+        'employee_id' => $employee->id,
+    ]);
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $previousSession->id,
+        'income_total' => 500,
+        'expense_total' => 100,
+        'salary_amount' => 200,
+        'salary_amount_cashless' => 0,
+    ]);
+
+    // Current session without SalaryWorkSession
+    $workSession = WorkSession::factory()->create([
+        'date' => '2025-01-01',
+        'employee_id' => $employee->id,
+    ]);
+
+    // Add expense to current session
+    ExpenseWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'amount' => 50.00,
+    ]);
+
+    $workSession->load(['salaryRate', 'rate', 'salaryWorkSessions', 'expenseWorkSessions']);
+
+    // Expected: balance(500-100-200) + income(salary from salaryRate) - expense(50)
+    $expectedBalance = 200.0;
+    $expectedIncome = $workSession->salaryRate->salary;
+    $expectedExpense = 50.0;
+    $expectedTotal = $expectedBalance + $expectedIncome - $expectedExpense;
+
+    expect($workSession->salary_total)->toBe($expectedTotal);
+});
+
+it('shows salary_total column with correct value in table list', function () {
+    $workSession = WorkSession::factory()->create(['date' => now()->toDateString()]);
+    SalaryWorkSession::factory()->create([
+        'work_session_id' => $workSession->id,
+        'salary_total' => 1500.0,
+    ]);
+
+    livewire(WorkSessionResource\Pages\ListWorkSessions::class)
+        ->assertCanSeeTableRecords([$workSession])
+        ->assertTableColumnStateSet('salary_total', 1500.0, $workSession);
+});
