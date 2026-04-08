@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Events\WorkSessionDeleting;
+use App\Services\WorkSessionService;
 use Database\Factories\WorkSessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -60,5 +61,20 @@ class WorkSession extends Model
     public function salaryWorkSessions(): HasMany
     {
         return $this->hasMany(SalaryWorkSession::class);
+    }
+
+    /**
+     * Get the salary total attribute.
+     * Returns saved value if SalaryWorkSession exists, otherwise calculates dynamically.
+     */
+    public function getSalaryTotalAttribute(): float
+    {
+        $salaryWorkSession = $this->salaryWorkSessions->first();
+
+        if ($salaryWorkSession) {
+            return $salaryWorkSession->salary_total;
+        }
+
+        return app(WorkSessionService::class)->calculateSalaryTotal($this);
     }
 }

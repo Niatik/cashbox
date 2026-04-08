@@ -106,6 +106,12 @@ class WorkSessionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with([
+                'salaryRate',
+                'rate',
+                'salaryWorkSessions',
+                'expenseWorkSessions',
+            ]))
             ->columns([
                 Tables\Columns\TextColumn::make('employee.name')
                     ->label('Сотрудник')
@@ -120,8 +126,12 @@ class WorkSessionResource extends Resource
                     ->label('Время')
                     ->timezone('Etc/GMT-5')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('salary_total')
+                    ->label('К выплате')
+                    ->state(fn (WorkSession $record): float => $record->salary_total)
+                    ->numeric(decimalPlaces: 2),
                 Tables\Columns\TextColumn::make('salary_sum')
-                    ->label('Зарплата')
+                    ->label('Выплачено')
                     ->state(fn (WorkSession $record): int => $record->salaryWorkSessions->sum(
                         fn ($s) => $s->salary_amount + $s->salary_amount_cashless
                     ))
