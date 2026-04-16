@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Rate;
 use App\Models\SalaryRate;
 use App\Models\WorkSession;
+use App\Services\WorkSessionService;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -126,6 +127,10 @@ class WorkSessionResource extends Resource
                     ->label('Время')
                     ->timezone('Etc/GMT-5')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('balance_salary')
+                    ->label('Баланс')
+                    ->state(fn (WorkSession $record): float => app(WorkSessionService::class)->calculateBalanceSalary($record))
+                    ->numeric(decimalPlaces: 2),
                 Tables\Columns\TextColumn::make('salary_total')
                     ->label('К выплате')
                     ->state(fn (WorkSession $record): float => $record->salary_total)
