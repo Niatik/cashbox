@@ -164,7 +164,7 @@ class EditWorkSession extends EditRecord
 
                                         $paymentSum = 0;
                                         foreach ($orders as $order) {
-                                            $paymentSum = $order->payments()
+                                            $paymentSum += $order->payments()
                                                 ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
                                         }
 
@@ -343,7 +343,7 @@ class EditWorkSession extends EditRecord
 
         $paymentSum = 0;
         foreach ($orders as $order) {
-            $paymentSum = $order->payments()
+            $paymentSum += $order->payments()
                 ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
         }
 
