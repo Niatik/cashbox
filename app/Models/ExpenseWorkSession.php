@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use App\Casts\MoneyCast;
-use App\Events\ExpenseWorkSessionCreated;
-use App\Events\ExpenseWorkSessionDeleted;
-use App\Events\ExpenseWorkSessionUpdated;
+// TODO: Удалить закомментированные события после обкатки
+//use App\Events\ExpenseWorkSessionCreated;
+//use App\Events\ExpenseWorkSessionDeleted;
+//use App\Events\ExpenseWorkSessionUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,12 +26,12 @@ class ExpenseWorkSession extends Model
         'amount' => MoneyCast::class,
     ];
 
-    /** @var array<string, class-string> */
-    protected $dispatchesEvents = [
-        'created' => ExpenseWorkSessionCreated::class,
-        'updated' => ExpenseWorkSessionUpdated::class,
-        'deleted' => ExpenseWorkSessionDeleted::class,
-    ];
+    //** @var array<string, class-string> */
+    //protected $dispatchesEvents = [
+        //'created' => ExpenseWorkSessionCreated::class,
+        //'updated' => ExpenseWorkSessionUpdated::class,
+        //'deleted' => ExpenseWorkSessionDeleted::class,
+    //];
 
     public function workSession(): BelongsTo
     {
