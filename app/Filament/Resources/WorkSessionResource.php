@@ -129,12 +129,11 @@ class WorkSessionResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('balance_salary')
                     ->label('Баланс')
-                    ->state(fn (WorkSession $record): float => app(WorkSessionService::class)->calculateBalanceSalary($record))
-                    ->numeric(decimalPlaces: 2),
+                    ->state(fn (WorkSession $record): float => app(WorkSessionService::class)->calculateBalanceSalary($record)),
                 Tables\Columns\TextColumn::make('salary_total')
                     ->label('К выплате')
-                    ->state(fn (WorkSession $record): float => $record->salary_total)
-                    ->numeric(decimalPlaces: 2),
+                    ->state(fn (WorkSession $record): float => $record->salary_total),
+        
                 Tables\Columns\TextColumn::make('salary_sum')
                     ->label('Выплачено')
                     ->state(fn (WorkSession $record): int => $record->salaryWorkSessions->sum(
