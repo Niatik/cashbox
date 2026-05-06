@@ -123,6 +123,16 @@ class EditWorkSession extends EditRecord
                                 $this->fillForm();
                             })
                             ->visible(fn (): bool => $this->record->salaryWorkSessions()->count() === 0),
+                        Action::make('delete_salary_payment')
+                            ->label('Отменить выплату')
+                            ->icon('heroicon-o-banknotes')
+                            ->requiresConfirmation()
+                            ->action(function (Forms\Get $get) {
+                                $data = $get('salary_work_session');
+                                SalaryWorkSession::where('work_session_id', $this->record->id)->delete();
+
+                            })
+                            ->visible(fn (): bool => $this->record->salaryWorkSessions()->count() > 0),
                     ])
                     ->schema([
                         Forms\Components\Group::make()
