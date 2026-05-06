@@ -16,4 +16,14 @@ class ListOrders extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    public function getHeader(): ?\Illuminate\Contracts\View\View
+    {
+        $query = $this->getFilteredTableQuery();
+        return view('filament.orders.table-header-stats', [
+            'total' => $query->sum('sum') / 100,
+            'count' => $query->count(),
+            'avg' => round($query->avg('sum'), 2) / 100,
+        ]);
+    }
 }
