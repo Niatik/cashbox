@@ -35,7 +35,7 @@ class WorkSessionResource extends Resource
             ->schema([
                 Forms\Components\Select::make('employee_id')
                     ->label('Сотрудник')
-                    ->relationship('employee', 'name')
+                    ->relationship('employee', 'name', fn (Builder $query) => $query->where('is_hidden', false))
                     ->preload()
                     ->required()
                     ->live()
