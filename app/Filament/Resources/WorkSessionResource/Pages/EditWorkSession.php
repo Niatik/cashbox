@@ -128,9 +128,8 @@ class EditWorkSession extends EditRecord
                             ->icon('heroicon-o-banknotes')
                             ->requiresConfirmation()
                             ->action(function (Forms\Get $get) {
-                                $data = $get('salary_work_session');
-                                SalaryWorkSession::where('work_session_id', $this->record->id)->delete();
-
+                                $ids = SalaryWorkSession::where('work_session_id', $this->record->id)->pluck('id');
+                                SalaryWorkSession::destroy($ids);
                             })
                             ->visible(fn (): bool => $this->record->salaryWorkSessions()->count() > 0),
                     ])
