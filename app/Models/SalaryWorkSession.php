@@ -23,6 +23,7 @@ class SalaryWorkSession extends Model
         'salary_total',
         'salary_amount',
         'salary_amount_cashless',
+        'bonus',
     ];
 
     protected $casts = [
@@ -31,6 +32,7 @@ class SalaryWorkSession extends Model
         'salary_total' => MoneyCast::class,
         'salary_amount' => MoneyCast::class,
         'salary_amount_cashless' => MoneyCast::class,
+        'bonus' => MoneyCast::class,
     ];
 
     /** @var array<string, class-string> */

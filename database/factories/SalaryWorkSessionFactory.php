@@ -25,6 +25,7 @@ class SalaryWorkSessionFactory extends Factory
             'salary_total' => fake()->numberBetween(500, 20000),
             'salary_amount' => fake()->numberBetween(500, 20000),
             'salary_amount_cashless' => 0,
+            'bonus' => 0,
         ];
     }
 

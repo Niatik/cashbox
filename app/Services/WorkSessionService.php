@@ -12,7 +12,7 @@ class WorkSessionService
 {
     /**
      * Calculate balance salary from previous SalaryWorkSessions for the employee.
-     * Balance = sum of (income - expense - salary_amount - salary_amount_cashless) from previous sessions.
+     * Balance = sum of (income - expense - salary_amount - salary_amount_cashless - bonus) from previous sessions.
      */
     public function calculateBalanceSalary(WorkSession $workSession): float
     {
@@ -21,7 +21,7 @@ class WorkSessionService
                 ->where('employee_id', $workSession->employee_id)
                 ->where('date', '<', $workSession->date))
             ->get()
-            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless);
+            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless - $s->bonus);
     }
 
     /**
