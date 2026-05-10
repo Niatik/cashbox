@@ -80,7 +80,8 @@ class EditWorkSession extends EditRecord
                                     $items = $get('expenseWorkSessions') ?? [];
                                     $total = collect($items)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
                                     $set('salary_work_session.expense_total', $total);
-                                    $salaryTotal = (float) ($get('salary_work_session.balance_salary') ?? 0) + (float) ($get('salary_work_session.income_total') ?? 0) - $total;
+                                    $bonus = (float) ($get('salary_work_session.bonus') ?? 0);
+                                    $salaryTotal = (float) ($get('salary_work_session.balance_salary') ?? 0) + (float) ($get('salary_work_session.income_total') ?? 0) - $total + $bonus;
                                     $set('salary_work_session.salary_total', $salaryTotal);
                                     $set('salary_work_session.salary_amount', $salaryTotal);
                                     $set('salary_work_session.salary_amount_cashless', 0);
@@ -147,7 +148,7 @@ class EditWorkSession extends EditRecord
                                                 ->where('employee_id', $this->record->employee_id)
                                                 ->where('date', '<', $this->record->date))
                                             ->get()
-                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless - $s->bonus);
+                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless + $s->bonus);
 
                                         $component->state($balance);
                                     })
@@ -161,7 +162,7 @@ class EditWorkSession extends EditRecord
                                     ->dehydrated()
                                     ->live()
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
-                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
+                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) +(float) ($get('balance') ?? 0));
                                     })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $session = $this->record;
@@ -203,12 +204,23 @@ class EditWorkSession extends EditRecord
                                     ->dehydrated()
                                     ->live()
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
-                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0));
+                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float) ($get('bonus') ?? 0));
                                     })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $items = $this->record->expenseWorkSessions ?? collect();
                                         $total = $items->sum(fn ($item) => (float) ($item->amount ?? 0));
                                         $component->state($total);
+                                    }),
+                                Forms\Components\TextInput::make('bonus')
+                                    ->label('Бонус')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->live(debounce: 1000)
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state): void {
+                                        $salaryTotal = (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float)($state ?? 0);
+                                        $set('salary_total', $salaryTotal);
+                                        $set('salary_amount', $salaryTotal);
+                                        $set('salary_amount_cashless', 0);
                                     }),
                                 Forms\Components\TextInput::make('salary_total')
                                     ->label('Зарплата')
@@ -221,7 +233,8 @@ class EditWorkSession extends EditRecord
                                         $balance = (float) ($get('balance_salary') ?? 0);
                                         $income = (float) ($get('income_total') ?? 0);
                                         $expense = (float) ($get('expense_total') ?? 0);
-                                        $component->state($balance + $income - $expense);
+                                        $bonus = (float) ($get('bonus') ?? 0);
+                                        $component->state($balance + $income - $expense + $bonus);
                                     })
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
                                         $total = (float) ($get('salary_total') ?? 0);
@@ -238,7 +251,8 @@ class EditWorkSession extends EditRecord
                                         $balance = (float) ($get('balance_salary') ?? 0);
                                         $income = (float) ($get('income_total') ?? 0);
                                         $expense = (float) ($get('expense_total') ?? 0);
-                                        $component->state($balance + $income - $expense);
+                                        $bonus = (float) ($get('bonus') ?? 0);
+                                        $component->state($balance + $income - $expense + $bonus);
                                     })
                                     ->afterStateUpdated(function (?string $state, Forms\Get $get, Forms\Set $set): void {
                                         $salaryTotal = (float) ($get('salary_total') ?? 0);
@@ -302,6 +316,11 @@ class EditWorkSession extends EditRecord
                                     ->disabled(),
                                 Forms\Components\TextInput::make('expense_total')
                                     ->label('Расход')
+                                    ->required()
+                                    ->numeric()
+                                    ->disabled(),
+                                Forms\Components\TextInput::make('bonus')
+                                    ->label('Бонус')
                                     ->required()
                                     ->numeric()
                                     ->disabled(),
@@ -388,7 +407,8 @@ class EditWorkSession extends EditRecord
 
         $balance = (float) ($get('salary_work_session.balance_salary') ?? 0);
         $expense = (float) ($get('salary_work_session.expense_total') ?? 0);
-        $salaryTotal = $balance + $income - $expense;
+        $bonus = (float) ($get('salary_work_session.bonus') ?? 0);
+        $salaryTotal = $balance + $income - $expense + $bonus;
 
         $set('salary_work_session.salary_total', $salaryTotal);
         $set('salary_work_session.salary_amount', $salaryTotal);
@@ -405,7 +425,7 @@ class EditWorkSession extends EditRecord
                 ->where('employee_id', $employeeId)
                 ->where('date', '<', $this->record->date))
             ->get()
-            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless - $s->bonus);
+            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless + $s->bonus);
 
         $set('salary_work_session.balance_salary', $balance);
     }

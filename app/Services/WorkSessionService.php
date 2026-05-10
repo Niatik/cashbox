@@ -21,7 +21,7 @@ class WorkSessionService
                 ->where('employee_id', $workSession->employee_id)
                 ->where('date', '<', $workSession->date))
             ->get()
-            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless - $s->bonus);
+            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless + $s->bonus);
     }
 
     /**
