@@ -80,7 +80,7 @@ class OrderResource extends Resource
                             ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
                                 // Use the order's date instead of today's date
                                 $orderDate = $livewire->data['order_date'] ?? now()->format('Y-m-d');
-                                $data['payment_date'] = $orderDate;
+                                $data['payment_date'] = now()->timezone('Etc/GMT-5')->format('Y-m-d');
 
                                 return $data;
                             })
@@ -296,7 +296,7 @@ class OrderResource extends Resource
     public static function getPaymentDateFormField(): DatePicker
     {
         return DatePicker::make('payment_date')
-            ->default(fn (Get $get) => $get('../../order_date') ?? now())
+            ->default(fn (Get $get) => now()->timezone('Etc/GMT-5')->format('Y-m-d'))
             ->label('Дата')
             ->required();
     }
