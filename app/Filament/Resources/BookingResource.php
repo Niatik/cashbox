@@ -334,8 +334,7 @@ class BookingResource extends Resource
                     )
                     ->orderBy('bookings.booking_date', 'desc')
                     ->orderBy('orders.order_time')
-                    ->where('is_draft', false)
-                    ->whereDate('booking_date', '>=', now('Asia/Almaty')->startOfDay());
+                    ->where('is_draft', false);
             })
             ->columns([
                 TextColumn::make('booking_date')
