@@ -21,9 +21,9 @@ class ListOrders extends ListRecords
     {
         $query = $this->getFilteredTableQuery();
         return view('filament.orders.table-header-stats', [
-            'total' => $query->sum('sum') / 100,
+            'total' => $query->sum('net_sum') / 100,
             'count' => $query->count(),
-            'avg' => round($query->avg('sum'), 2) / 100,
+            'avg' => round($query->avg('net_sum'), 2) / 100,
         ]);
     }
 }
