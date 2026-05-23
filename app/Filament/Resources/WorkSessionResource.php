@@ -167,6 +167,7 @@ class WorkSessionResource extends Resource
                         return 'Дата: '.Carbon::parse($data['date'])->format('d.m.Y');
                     }),
             ])
+            ->defaultSort('time', 'desc')
             ->actions([
                 Tables\Actions\EditAction::make()->label('Изменить')->hiddenLabel(true),
                 Tables\Actions\DeleteAction::make()->label('Удалить')->hiddenLabel(true),
