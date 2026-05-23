@@ -24,8 +24,8 @@ class CreatePaymentForOrderPrepayment
         if ($amount > 0) {
             Payment::create([
                 'order_id' => $order->id,
-                'payment_date' => $order->order_date,
-                'payment_time' => $order->order_time,
+                'payment_date' => now()->timezone('Etc/GMT-5')->format('Y-m-d'),
+                'payment_time' => now()->timezone('Etc/GMT-5')->format('H:i:s'),
                 'payment_cash_amount' => $isCash ? $amount : 0,
                 'payment_cashless_amount' => $isCash ? 0 : $amount,
             ]);
