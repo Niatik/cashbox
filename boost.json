@@ -5,7 +5,8 @@
         "codex",
         "copilot",
         "opencode",
-        "gemini"
+        "gemini",
+        "cursor"
     ],
     "guidelines": true,
     "herd_mcp": true,
