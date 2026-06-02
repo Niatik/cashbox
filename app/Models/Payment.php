@@ -9,6 +9,7 @@ use App\Events\PaymentUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Payment extends Model
 {
@@ -16,6 +17,8 @@ class Payment extends Model
 
     protected $fillable = [
         'order_id',
+        'payable_type',
+        'payable_id',
         'payment_date',
         'payment_time',
         'payment_cash_amount',
@@ -41,6 +44,11 @@ class Payment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function payable(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     protected $dispatchesEvents = [
