@@ -364,3 +364,27 @@ it('filters orders by current date in GMT-5 timezone', function () {
         ->assertCanNotSeeTableRecords($previousOrders)
         ->assertCountTableRecords(3);
 });
+
+it('subtracts discounts from header total', function () {
+    Event::fake();
+
+    $orderDate = now(tz: 'Etc/GMT-5')->format('Y-m-d');
+
+    Order::factory()->create([
+        'order_date' => $orderDate,
+        'net_sum' => 1000,
+        'options' => [
+            'discount' => 100,
+            'additional_discount' => 50,
+        ],
+    ]);
+
+    Order::factory()->create([
+        'order_date' => $orderDate,
+        'net_sum' => 500,
+        'options' => [],
+    ]);
+
+    livewire(OrderResource\Pages\ListOrders::class)
+        ->assertSee('1350');
+});

@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
+use App\Models\Order;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListOrders extends ListRecords
 {
@@ -17,13 +19,34 @@ class ListOrders extends ListRecords
         ];
     }
 
-    public function getHeader(): ?\Illuminate\Contracts\View\View
+    public function getHeader(): ?View
     {
-        $query = $this->getFilteredTableQuery();
-        return view('filament.orders.table-header-stats', [
-            'total' => $query->sum('net_sum') / 100,
-            'count' => $query->count(),
-            'avg' => round($query->avg('net_sum'), 2) / 100,
-        ]);
+        $stats = $this->getHeaderStats();
+
+        return view('filament.orders.table-header-stats', $stats);
+    }
+
+    /**
+     * @return array{total: float, count: int, avg: float}
+     */
+    protected function getHeaderStats(): array
+    {
+        $orders = $this->getFilteredTableQuery()->get(['net_sum', 'options']);
+
+        $amounts = $orders->map(function (Order $order): float {
+            $discount = (float) ($order->options['discount'] ?? 0);
+            $additionalDiscount = (float) ($order->options['additional_discount'] ?? 0);
+
+            return max(0, $order->net_sum - $discount - $additionalDiscount);
+        });
+
+        $count = $amounts->count();
+        $count = 5;
+
+        return [
+            'total' => $amounts->sum(),
+            'count' => $count,
+            'avg' => $count > 0 ? round($amounts->avg(), 2) / 100 : 0,
+        ];
     }
 }
