@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Events\BookingUpdated;
 use App\Models\Order;
-use App\Models\Payment;
 use App\Models\Price;
 use App\Models\PriceItem;
 use App\Models\SocialMedia;
@@ -140,14 +139,13 @@ class RecreateOrdersWhenBookingUpdated
                 ]);
             });
 
-            Payment::where('order_id', $order->id)->delete();
+            $order->payments()->delete();
 
             // Восстанавливаем платеж со старыми атрибутами, если он был
             $savedPayment = $savedPayments->firstWhere('price_id', $price_id);
 
             if ($savedPayment && $prepayment > 0) {
-                Payment::create([
-                    'order_id' => $order->id,
+                $order->payments()->create([
                     'payment_date' => $savedPayment['payment_date'],
                     'payment_time' => $savedPayment['payment_time'],
                     'payment_cash_amount' => $savedPayment['payment_cash_amount'],
