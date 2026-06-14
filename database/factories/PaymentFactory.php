@@ -18,8 +18,11 @@ class PaymentFactory extends Factory
      */
     public function definition(): array
     {
+        $order = Order::factory()->create();
+
         return [
-            'order_id' => Order::factory()->create(),
+            'payable_type' => Order::class,
+            'payable_id' => $order->id,
             'payment_date' => $this->faker->date(),
             'payment_cash_amount' => $this->faker->numberBetween(10000, 100000),
             'payment_cashless_amount' => $this->faker->numberBetween(10000, 100000),

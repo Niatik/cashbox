@@ -8,7 +8,6 @@ use App\Events\PaymentDeleted;
 use App\Events\PaymentUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Payment extends Model
@@ -16,7 +15,6 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'order_id',
         'payable_type',
         'payable_id',
         'payment_date',
@@ -39,11 +37,6 @@ class Payment extends Model
                 $payment->payment_time = now()->format('H:i:s');
             }
         });
-    }
-
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class);
     }
 
     public function payable(): MorphTo
