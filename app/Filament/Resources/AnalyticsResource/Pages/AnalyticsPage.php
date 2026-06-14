@@ -142,12 +142,14 @@ class AnalyticsPage extends Page implements HasForms
         $orderIds = $ordersQuery->pluck('id');
 
         // Cash income from payments (filter by payment_date and price)
-        $cashIncome = Payment::whereIn('order_id', $orderIds)
+        $cashIncome = Payment::where('payable_type', Order::class)
+            ->whereIn('payable_id', $orderIds)
             ->whereBetween('payment_date', [$dateFrom, $dateTo])
             ->sum('payment_cash_amount') / 100;
 
         // Cashless income from payments (filter by payment_date and price)
-        $cashlessIncome = Payment::whereIn('order_id', $orderIds)
+        $cashlessIncome = Payment::where('payable_type', Order::class)
+            ->whereIn('payable_id', $orderIds)
             ->whereBetween('payment_date', [$dateFrom, $dateTo])
             ->sum('payment_cashless_amount') / 100;
 
@@ -196,12 +198,13 @@ class AnalyticsPage extends Page implements HasForms
                 $orderIds = $ordersQuery->pluck('id');
 
                 // Get actual payments for these orders, filtered by payment_date
-                $payments = Payment::whereIn('order_id', $orderIds)
+                $payments = Payment::where('payable_type', Order::class)
+                    ->whereIn('payable_id', $orderIds)
                     ->whereBetween('payment_date', [$dateFrom, $dateTo])
                     ->get();
 
                 // Get orders that had payments in the date range for people count
-                $ordersWithPayments = Order::whereIn('id', $payments->pluck('order_id')->unique())
+                $ordersWithPayments = Order::whereIn('id', $payments->pluck('payable_id')->unique())
                     ->where('people_number', '<', 1000)
                     ->get();
 
