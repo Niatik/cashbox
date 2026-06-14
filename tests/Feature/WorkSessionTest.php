@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\ExpenseWorkSession;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\ProductOrder;
 use App\Models\RateRatio;
 use App\Models\SalaryWorkSession;
 use App\Models\WorkSession;
@@ -317,6 +318,77 @@ it('calculates income_total as salary plus ratio bonus when no SalaryWorkSession
         ]);
 });
 
+it('includes product order payments when calculating income_total', function () {
+    $workSession = WorkSession::factory()->create([
+        'date' => now()->format('Y-m-d'),
+        'time' => now()->subHour()->format('H:i:s'),
+    ]);
+
+    $productOrder = ProductOrder::factory()->create([
+        'order_date' => $workSession->date,
+        'order_time' => now()->format('H:i:s'),
+        'employee_id' => $workSession->employee_id,
+    ]);
+
+    Payment::withoutEvents(fn () => $productOrder->payments()->create([
+        'payment_date' => now()->format('Y-m-d'),
+        'payment_cash_amount' => 50,
+        'payment_cashless_amount' => 30,
+    ]));
+
+    RateRatio::create([
+        'rate_id' => $workSession->rate_id,
+        'ratio' => 5.00,
+        'ratio_from' => '50',
+        'ratio_to' => '150',
+    ]);
+
+    $expectedSalary = $workSession->salaryRate->salary;
+    $expectedRatioBonus = 5.00;
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'salary_work_session.income_total' => $expectedSalary + $expectedRatioBonus,
+        ]);
+});
+
+it('does not include product order payments from other employees when calculating income_total', function () {
+    $workSession = WorkSession::factory()->create([
+        'date' => now()->format('Y-m-d'),
+        'time' => now()->subHour()->format('H:i:s'),
+    ]);
+
+    $productOrder = ProductOrder::factory()->create([
+        'order_date' => $workSession->date,
+        'order_time' => now()->format('H:i:s'),
+        'employee_id' => Employee::factory(),
+    ]);
+
+    Payment::withoutEvents(fn () => $productOrder->payments()->create([
+        'payment_date' => now()->format('Y-m-d'),
+        'payment_cash_amount' => 50,
+        'payment_cashless_amount' => 30,
+    ]));
+
+    RateRatio::create([
+        'rate_id' => $workSession->rate_id,
+        'ratio' => 5.00,
+        'ratio_from' => '50',
+        'ratio_to' => '150',
+    ]);
+
+    $expectedSalary = $workSession->salaryRate->salary;
+
+    livewire(WorkSessionResource\Pages\EditWorkSession::class, [
+        'record' => $workSession->getRouteKey(),
+    ])
+        ->assertFormSet([
+            'salary_work_session.income_total' => $expectedSalary,
+        ]);
+});
+
 it('calculates expense_total as sum of expenseWorkSessions amounts when no SalaryWorkSession exists', function () {
     $workSession = WorkSession::factory()->create();
 
@@ -522,21 +594,21 @@ it('updates CashReport when deleting WorkSession with children', function () {
     $cashReport = CashReport::where('date', $testDate)->first();
     expect($cashReport)->not->toBeNull();
 
-    //$initialCashExpense = $cashReport->cash_expense;
+    // $initialCashExpense = $cashReport->cash_expense;
     $initialCashSalary = $cashReport->cash_salary;
 
-    //expect($initialCashExpense)->toBe(100.0);
+    // expect($initialCashExpense)->toBe(100.0);
     expect($initialCashSalary)->toBe(200.0);
 
     $workSession->delete();
 
     $cashReport->refresh();
 
-    //expect($cashReport->cash_expense)->toBe(0.0);
+    // expect($cashReport->cash_expense)->toBe(0.0);
     expect($cashReport->cash_salary)->toBe(0.0);
 
     $this->assertModelMissing($workSession);
-    //$this->assertDatabaseMissing(ExpenseWorkSession::class, ['work_session_id' => $workSession->id]);
+    // $this->assertDatabaseMissing(ExpenseWorkSession::class, ['work_session_id' => $workSession->id]);
     $this->assertDatabaseMissing(SalaryWorkSession::class, ['work_session_id' => $workSession->id]);
 });
 
