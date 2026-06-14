@@ -21,14 +21,11 @@ class MigrateOrderPaymentsToPolymorphic extends Command
         $clearOrderId = (bool) $this->option('clear-order-id');
 
         $payments = Payment::query()
-            ->whereNotNull('order_id')
             ->where(function (Builder $query): void {
                 $query
                     ->whereNull('payable_type')
                     ->orWhereNull('payable_id');
             })
-            ->with('order')
-            ->orderBy('id')
             ->get();
 
         if ($payments->isEmpty()) {
