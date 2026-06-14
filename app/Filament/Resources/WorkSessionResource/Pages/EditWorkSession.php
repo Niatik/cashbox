@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\WorkSessionResource\Pages;
 
 use App\Filament\Resources\WorkSessionResource;
-use App\Models\Order;
 use App\Models\RateRatio;
 use App\Models\SalaryRate;
 use App\Models\SalaryWorkSession;
+use App\Services\WorkSessionService;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
@@ -162,22 +162,11 @@ class EditWorkSession extends EditRecord
                                     ->dehydrated()
                                     ->live()
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
-                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) +(float) ($get('balance') ?? 0));
+                                        $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float) ($get('balance') ?? 0));
                                     })
                                     ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
                                         $session = $this->record;
-                                        // $sessionStart = $session->date->format('Y-m-d').$session->time;
-                                        $sessionStart = $session->time;
-
-                                        $orders = Order::query()
-                                            ->where('order_date', $session->date)
-                                            ->where('order_time', '>=', $sessionStart)->get();
-
-                                        $paymentSum = 0;
-                                        foreach ($orders as $order) {
-                                            $paymentSum += $order->payments()
-                                                ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
-                                        }
+                                        $paymentSum = app(WorkSessionService::class)->calculatePaymentSum($session);
 
                                         $salary = $session->salaryRate?->salary ?? 0;
 
@@ -217,7 +206,7 @@ class EditWorkSession extends EditRecord
                                     ->default(0)
                                     ->live(debounce: 1000)
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state): void {
-                                        $salaryTotal = (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float)($state ?? 0);
+                                        $salaryTotal = (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float) ($state ?? 0);
                                         $set('salary_total', $salaryTotal);
                                         $set('salary_amount', $salaryTotal);
                                         $set('salary_amount_cashless', 0);
@@ -364,17 +353,7 @@ class EditWorkSession extends EditRecord
     private function calculateIncome(?string $salaryRateId, ?string $rateId): float
     {
         $session = $this->record;
-        $sessionStart = $session->time;
-
-        $orders = Order::query()
-            ->where('order_date', $session->date)
-            ->where('order_time', '>=', $sessionStart)->get();
-
-        $paymentSum = 0;
-        foreach ($orders as $order) {
-            $paymentSum += $order->payments()
-                ->sum(\DB::raw('payment_cash_amount + payment_cashless_amount'));
-        }
+        $paymentSum = app(WorkSessionService::class)->calculatePaymentSum($session);
 
         $salary = 0;
         if ($salaryRateId) {

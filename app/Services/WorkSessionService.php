@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\ProductOrder;
 use App\Models\RateRatio;
 use App\Models\SalaryWorkSession;
 use App\Models\WorkSession;
@@ -25,10 +26,9 @@ class WorkSessionService
     }
 
     /**
-     * Calculate income total: salary from SalaryRate + bonus from RateRatio.
-     * Bonus is based on the sum of payments for orders on the session date after session start time.
+     * Calculate the sum of payments for service and product orders on the session date after session start time.
      */
-    public function calculateIncomeTotal(WorkSession $workSession): float
+    public function calculatePaymentSum(WorkSession $workSession): int
     {
         $sessionStart = $workSession->time;
 
@@ -42,6 +42,28 @@ class WorkSessionService
             $paymentSum += $order->payments()
                 ->sum(DB::raw('payment_cash_amount + payment_cashless_amount'));
         }
+
+        $productOrders = ProductOrder::query()
+            ->where('order_date', $workSession->date)
+            ->where('order_time', '>=', $sessionStart)
+            ->where('employee_id', $workSession->employee_id)
+            ->get();
+
+        foreach ($productOrders as $productOrder) {
+            $paymentSum += $productOrder->payments()
+                ->sum(DB::raw('payment_cash_amount + payment_cashless_amount'));
+        }
+
+        return (int) $paymentSum;
+    }
+
+    /**
+     * Calculate income total: salary from SalaryRate + bonus from RateRatio.
+     * Bonus is based on the sum of payments for orders on the session date after session start time.
+     */
+    public function calculateIncomeTotal(WorkSession $workSession): float
+    {
+        $paymentSum = $this->calculatePaymentSum($workSession);
 
         $salary = $workSession->salaryRate?->salary ?? 0;
 
