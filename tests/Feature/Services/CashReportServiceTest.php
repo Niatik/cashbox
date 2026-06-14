@@ -92,14 +92,11 @@ it('correctly updates existing reports when payment is created', function () {
         return Order::factory()->create();
     });
 
-    Payment::create(
-        [
-            'order_id' => $order->id,
-            'payment_date' => '2025-03-06',
-            'payment_cash_amount' => $cashAmount,
-            'payment_cashless_amount' => $cashlessAmount,
-        ]
-    );
+    $order->payments()->create([
+        'payment_date' => '2025-03-06',
+        'payment_cash_amount' => $cashAmount,
+        'payment_cashless_amount' => $cashlessAmount,
+    ]);
 
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-06')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-06')->orderBy('date')->get();
@@ -152,14 +149,11 @@ it('correctly creates report when payment is created on new date', function () {
         return Order::factory()->create();
     });
 
-    Payment::create(
-        [
-            'order_id' => $order->id,
-            'payment_date' => '2025-03-09',
-            'payment_cash_amount' => $cashAmount,
-            'payment_cashless_amount' => $cashlessAmount,
-        ]
-    );
+    $order->payments()->create([
+        'payment_date' => '2025-03-09',
+        'payment_cash_amount' => $cashAmount,
+        'payment_cashless_amount' => $cashlessAmount,
+    ]);
 
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
@@ -231,14 +225,11 @@ it('correctly creates report when payment is created on non existing date betwee
         return Order::factory()->create();
     });
 
-    Payment::create(
-        [
-            'order_id' => $order->id,
-            'payment_date' => '2025-03-09',
-            'payment_cash_amount' => $cashAmount,
-            'payment_cashless_amount' => $cashlessAmount,
-        ]
-    );
+    $order->payments()->create([
+        'payment_date' => '2025-03-09',
+        'payment_cash_amount' => $cashAmount,
+        'payment_cashless_amount' => $cashlessAmount,
+    ]);
 
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();
@@ -289,14 +280,11 @@ it('correctly creates report when payment is created and there are still no repo
         return Order::factory()->create();
     });
 
-    Payment::create(
-        [
-            'order_id' => $order->id,
-            'payment_date' => '2025-03-09',
-            'payment_cash_amount' => $cashAmount,
-            'payment_cashless_amount' => $cashlessAmount,
-        ]
-    );
+    $order->payments()->create([
+        'payment_date' => '2025-03-09',
+        'payment_cash_amount' => $cashAmount,
+        'payment_cashless_amount' => $cashlessAmount,
+    ]);
 
     $beforeReports = CashReport::whereDate('date', '<', '2025-03-09')->orderBy('date')->get();
     $reports = CashReport::whereDate('date', '2025-03-09')->orderBy('date')->get();

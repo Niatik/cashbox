@@ -159,7 +159,6 @@ it('can save edited ProductOrder', function () {
     ]);
 
     Payment::create([
-        'order_id' => null,
         'payable_type' => ProductOrder::class,
         'payable_id' => $order->id,
         'payment_date' => now()->format('Y-m-d'),
@@ -203,7 +202,6 @@ it('deletes payments when ProductOrder is deleted', function () {
 
     $order = ProductOrder::factory()->create();
     $payment = Payment::create([
-        'order_id' => null,
         'payable_type' => ProductOrder::class,
         'payable_id' => $order->id,
         'payment_date' => now()->format('Y-m-d'),

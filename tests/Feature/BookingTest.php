@@ -4,6 +4,7 @@ use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PriceItem;
 use App\Models\SocialMedia;
@@ -263,8 +264,8 @@ it('can change non-draft booking without affect on payments', function () {
         'booking_id' => $booking->id,
     ]);
 
-    $payment_date = now()->format('Y-m-d');
-    $payment_time = now()->format('H:i:s');
+    $payment_date = now(tz: 'Etc/GMT-5')->format('Y-m-d');
+    $payment_time = now(tz: 'Etc/GMT-5')->format('H:i:s');
 
     assertDatabaseHas('payments', [
         'payment_date' => $payment_date,
@@ -316,7 +317,7 @@ it('does not change payment attributes when booking date is updated', function (
         'is_draft' => false,
     ]);
 
-    $payment = Payment::whereHas('order', function ($query) use ($booking) {
+    $payment = Payment::whereHasMorph('payable', [Order::class], function ($query) use ($booking) {
         $query->where('booking_id', $booking->id);
     })->first();
 
@@ -333,7 +334,7 @@ it('does not change payment attributes when booking date is updated', function (
         'booking_date' => now(tz: 'Etc/GMT-5')->addDay(),
     ]);
 
-    $payment = Payment::whereHas('order', function ($query) use ($booking) {
+    $payment = Payment::whereHasMorph('payable', [Order::class], function ($query) use ($booking) {
         $query->where('booking_id', $booking->id);
     })->first();
 

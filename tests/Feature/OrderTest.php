@@ -62,7 +62,8 @@ it('can create the Order', function () {
     expect($order)->not->toBeNull();
 
     $this->assertDatabaseHas(Payment::class, [
-        'order_id' => $order->id,
+        'payable_type' => Order::class,
+        'payable_id' => $order->id,
         'payment_date' => now()->format('Y-m-d'),
     ]);
 });
@@ -152,7 +153,10 @@ it('can save edited Order', function () {
     Event::fake();
 
     $order = Order::factory()->create();
-    $payment = Payment::factory()->create(['order_id' => $order->id]);
+    $payment = Payment::factory()->create([
+        'payable_type' => Order::class,
+        'payable_id' => $order->id,
+    ]);
     $newData = Order::factory()->make();
 
     livewire(OrderResource\Pages\EditOrder::class, [
