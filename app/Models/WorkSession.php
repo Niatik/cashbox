@@ -58,6 +58,11 @@ class WorkSession extends Model
         return $this->hasMany(ExpenseWorkSession::class);
     }
 
+    public function bonusWorkSessions(): HasMany
+    {
+        return $this->hasMany(BonusWorkSession::class);
+    }
+
     public function salaryWorkSessions(): HasMany
     {
         return $this->hasMany(SalaryWorkSession::class);
