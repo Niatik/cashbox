@@ -76,17 +76,7 @@ class EditWorkSession extends EditRecord
                             ->relationship()
                             ->live()
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
-                                if ($this->record->salaryWorkSessions()->count() === 0) {
-                                    $items = $get('expenseWorkSessions') ?? [];
-                                    $total = collect($items)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
-                                    $set('salary_work_session.expense_total', $total);
-                                    $bonus = (float) ($get('salary_work_session.bonus') ?? 0);
-                                    $salaryTotal = (float) ($get('salary_work_session.balance_salary') ?? 0) + (float) ($get('salary_work_session.income_total') ?? 0) - $total + $bonus;
-                                    $set('salary_work_session.salary_total', $salaryTotal);
-                                    $set('salary_work_session.salary_amount', $salaryTotal);
-                                    $set('salary_work_session.salary_amount_cashless', 0);
-                                    $set('salary_work_session.salary_remainder', 0);
-                                }
+                                $this->recalculateSalaryWorkSessionTotals($get, $set);
                             })
                             ->schema([
                                 Forms\Components\TextInput::make('expense_type')
@@ -100,6 +90,47 @@ class EditWorkSession extends EditRecord
                                     ->live(),
                             ])
                             ->columns(2)
+                            ->columnSpanFull(),
+                    ]),
+                Forms\Components\Section::make('Бонусы смены')
+                    ->schema([
+                        Forms\Components\Repeater::make('bonusWorkSessions')
+                            ->label('')
+                            ->relationship()
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
+                                $this->recalculateSalaryWorkSessionTotals($get, $set);
+                            })
+                            ->schema([
+                                Forms\Components\TextInput::make('amount')
+                                    ->label('Сумма')
+                                    ->required()
+                                    ->numeric()
+                                    ->disabled(fn (): bool => $this->record->salaryWorkSessions()->exists())
+                                    ->live(),
+                                Forms\Components\DatePicker::make('date')
+                                    ->label('Дата')
+                                    ->default(now()->toDateString())
+                                    ->disabled()
+                                    ->dehydrated(),
+                                Forms\Components\TimePicker::make('time')
+                                    ->timezone('Etc/GMT-5')
+                                    ->displayFormat('H:i')
+                                    ->seconds(false)
+                                    ->label('Время')
+                                    ->default(now()->format('H:i:s'))
+                                    ->disabled()
+                                    ->dehydrated(),
+                            ])
+                            ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
+                                ...$data,
+                                'date' => now()->toDateString(),
+                                'time' => now()->format('H:i:s'),
+                            ])
+                            ->addable(fn (): bool => ! $this->record->salaryWorkSessions()->exists())
+                            ->deletable(fn (): bool => ! $this->record->salaryWorkSessions()->exists())
+                            ->reorderable(false)
+                            ->columns(3)
                             ->columnSpanFull(),
                     ]),
                 Forms\Components\Section::make('Зарплата смены')
@@ -119,7 +150,7 @@ class EditWorkSession extends EditRecord
                                     'salary_total' => $data['salary_total'] ?? 0,
                                     'salary_amount' => $data['salary_amount'] ?? 0,
                                     'salary_amount_cashless' => $data['salary_amount_cashless'] ?? 0,
-                                    'bonus' => $data['bonus'] ?? 0,
+                                    'bonus' => $this->calculateBonusTotalFromForm($get),
                                 ]);
 
                                 $this->fillForm();
@@ -204,12 +235,11 @@ class EditWorkSession extends EditRecord
                                     ->label('Бонус')
                                     ->numeric()
                                     ->default(0)
-                                    ->live(debounce: 1000)
-                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state): void {
-                                        $salaryTotal = (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float) ($state ?? 0);
-                                        $set('salary_total', $salaryTotal);
-                                        $set('salary_amount', $salaryTotal);
-                                        $set('salary_amount_cashless', 0);
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->afterStateHydrated(function (Forms\Components\TextInput $component): void {
+                                        $total = app(WorkSessionService::class)->calculateBonusTotal($this->record->load('bonusWorkSessions'));
+                                        $component->state($total);
                                     }),
                                 Forms\Components\TextInput::make('salary_total')
                                     ->label('Зарплата')
@@ -292,7 +322,7 @@ class EditWorkSession extends EditRecord
                                                 ->where('employee_id', $this->record->employee_id)
                                                 ->where('date', '<', $this->record->date))
                                             ->get()
-                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless - $s->bonus);
+                                            ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless + $s->bonus);
 
                                         $component->state($balance);
                                     })
@@ -384,9 +414,17 @@ class EditWorkSession extends EditRecord
         $income = $this->calculateIncome($get('salary_rate_id'), $get('rate_id'));
         $set('salary_work_session.income_total', $income);
 
+        $bonusItems = $get('bonusWorkSessions');
+        if ($bonusItems !== null) {
+            $bonus = collect($bonusItems)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+            $set('salary_work_session.bonus', $bonus);
+        } else {
+            $bonus = app(WorkSessionService::class)->calculateBonusTotal($this->record->load('bonusWorkSessions'));
+            $set('salary_work_session.bonus', $bonus);
+        }
+
         $balance = (float) ($get('salary_work_session.balance_salary') ?? 0);
         $expense = (float) ($get('salary_work_session.expense_total') ?? 0);
-        $bonus = (float) ($get('salary_work_session.bonus') ?? 0);
         $salaryTotal = $balance + $income - $expense + $bonus;
 
         $set('salary_work_session.salary_total', $salaryTotal);
@@ -407,5 +445,39 @@ class EditWorkSession extends EditRecord
             ->sum(fn (SalaryWorkSession $s): float => $s->income_total - $s->expense_total - $s->salary_amount - $s->salary_amount_cashless + $s->bonus);
 
         $set('salary_work_session.balance_salary', $balance);
+    }
+
+    private function recalculateSalaryWorkSessionTotals(Forms\Get $get, Forms\Set $set): void
+    {
+        if ($this->record->salaryWorkSessions()->count() > 0) {
+            return;
+        }
+
+        $expenseItems = $get('expenseWorkSessions') ?? [];
+        $expenseTotal = collect($expenseItems)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+        $set('salary_work_session.expense_total', $expenseTotal);
+
+        $bonusItems = $get('bonusWorkSessions') ?? [];
+        $bonusTotal = collect($bonusItems)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+        $set('salary_work_session.bonus', $bonusTotal);
+
+        $balance = (float) ($get('salary_work_session.balance_salary') ?? 0);
+        $income = (float) ($get('salary_work_session.income_total') ?? 0);
+        $salaryTotal = $balance + $income - $expenseTotal + $bonusTotal;
+
+        $set('salary_work_session.salary_total', $salaryTotal);
+        $set('salary_work_session.salary_amount', $salaryTotal);
+        $set('salary_work_session.salary_amount_cashless', 0);
+        $set('salary_work_session.salary_remainder', 0);
+    }
+
+    private function calculateBonusTotalFromForm(Forms\Get $get): float
+    {
+        $bonusItems = $get('bonusWorkSessions');
+        if ($bonusItems !== null) {
+            return collect($bonusItems)->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+        }
+
+        return app(WorkSessionService::class)->calculateBonusTotal($this->record->load('bonusWorkSessions'));
     }
 }
