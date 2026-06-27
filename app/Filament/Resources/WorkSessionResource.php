@@ -112,6 +112,7 @@ class WorkSessionResource extends Resource
                 'rate',
                 'salaryWorkSessions',
                 'expenseWorkSessions',
+                'bonusWorkSessions',
             ]))
             ->columns([
                 Tables\Columns\TextColumn::make('employee.name')
@@ -133,7 +134,7 @@ class WorkSessionResource extends Resource
                 Tables\Columns\TextColumn::make('salary_total')
                     ->label('К выплате')
                     ->state(fn (WorkSession $record): float => $record->salary_total),
-        
+
                 Tables\Columns\TextColumn::make('salary_sum')
                     ->label('Выплачено')
                     ->state(fn (WorkSession $record): int => $record->salaryWorkSessions->sum(
