@@ -20,6 +20,10 @@ class DeleteWorkSessionChildren
             $expense->delete();
         }
 
+        foreach ($event->workSession->bonusWorkSessions as $bonus) {
+            $bonus->delete();
+        }
+
         foreach ($event->workSession->salaryWorkSessions as $salary) {
             $salary->delete();
         }
