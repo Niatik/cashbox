@@ -92,6 +92,14 @@ class WorkSessionService
     }
 
     /**
+     * Calculate bonus total: sum of all bonusWorkSessions amounts.
+     */
+    public function calculateBonusTotal(WorkSession $workSession): float
+    {
+        return $workSession->bonusWorkSessions->sum(fn ($item) => (float) ($item->amount ?? 0));
+    }
+
+    /**
      * Calculate salary total: balance + income - expense.
      */
     public function calculateSalaryTotal(WorkSession $workSession): float
