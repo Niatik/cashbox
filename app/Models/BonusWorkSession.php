@@ -16,13 +16,11 @@ class BonusWorkSession extends Model
     protected $fillable = [
         'work_session_id',
         'amount',
-        'date',
-        'time',
+        'bonus_type',
     ];
 
     protected $casts = [
         'amount' => MoneyCast::class,
-        'date' => 'date',
     ];
 
     public function workSession(): BelongsTo

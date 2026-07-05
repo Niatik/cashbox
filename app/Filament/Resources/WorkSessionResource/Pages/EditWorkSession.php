@@ -102,35 +102,20 @@ class EditWorkSession extends EditRecord
                                 $this->recalculateSalaryWorkSessionTotals($get, $set);
                             })
                             ->schema([
+                                Forms\Components\TextInput::make('bonus_type')
+                                    ->label('Тип бонуса')
+                                    ->maxLength(255),
                                 Forms\Components\TextInput::make('amount')
                                     ->label('Сумма')
                                     ->required()
                                     ->numeric()
                                     ->disabled(fn (): bool => $this->record->salaryWorkSessions()->exists())
                                     ->live(),
-                                Forms\Components\DatePicker::make('date')
-                                    ->label('Дата')
-                                    ->default(now()->toDateString())
-                                    ->disabled()
-                                    ->dehydrated(),
-                                Forms\Components\TimePicker::make('time')
-                                    ->timezone('Etc/GMT-5')
-                                    ->displayFormat('H:i')
-                                    ->seconds(false)
-                                    ->label('Время')
-                                    ->default(now()->format('H:i:s'))
-                                    ->disabled()
-                                    ->dehydrated(),
-                            ])
-                            ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => [
-                                ...$data,
-                                'date' => now()->toDateString(),
-                                'time' => now()->format('H:i:s'),
                             ])
                             ->addable(fn (): bool => ! $this->record->salaryWorkSessions()->exists())
                             ->deletable(fn (): bool => ! $this->record->salaryWorkSessions()->exists())
                             ->reorderable(false)
-                            ->columns(3)
+                            ->columns(2)
                             ->columnSpanFull(),
                     ]),
                 Forms\Components\Section::make('Зарплата смены')
