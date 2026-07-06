@@ -25,6 +25,7 @@ it('can create bonus work session via repeater', function () {
         ->fillForm([
             'bonusWorkSessions' => [
                 [
+                    'bonus_type' => 'Премия',
                     'amount' => 150.00,
                 ],
             ],
@@ -36,8 +37,7 @@ it('can create bonus work session via repeater', function () {
 
     $bonus = BonusWorkSession::where('work_session_id', $workSession->id)->first();
     expect($bonus->amount)->toBe(150.00)
-        ->and($bonus->date)->not->toBeNull()
-        ->and($bonus->time)->not->toBeNull();
+        ->and($bonus->bonus_type)->toBe('Премия');
 });
 
 it('can update bonus work session via repeater', function () {

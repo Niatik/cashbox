@@ -21,8 +21,7 @@ class BonusWorkSessionFactory extends Factory
         return [
             'work_session_id' => WorkSession::factory(),
             'amount' => fake()->numberBetween(100, 10000),
-            'date' => now()->toDateString(),
-            'time' => now()->format('H:i:s'),
+            'bonus_type' => fake()->optional()->word(),
         ];
     }
 }
