@@ -107,7 +107,8 @@ class WorkSessionService
         $balance = $this->calculateBalanceSalary($workSession);
         $income = $this->calculateIncomeTotal($workSession);
         $expense = $this->calculateExpenseTotal($workSession);
+        $bonus = $this->calculateBonusTotal($workSession);
 
-        return $balance + $income - $expense;
+        return $balance + $income - $expense + $bonus;
     }
 }
