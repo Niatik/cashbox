@@ -35,6 +35,7 @@ class WorkSessionService
         $orders = Order::query()
             ->where('order_date', $workSession->date)
             ->where('order_time', '>=', $sessionStart)
+            //->where('employee_id', $workSession->employee_id)
             ->get();
 
         $paymentSum = 0;
@@ -46,7 +47,7 @@ class WorkSessionService
         $productOrders = ProductOrder::query()
             ->where('order_date', $workSession->date)
             ->where('order_time', '>=', $sessionStart)
-            ->where('employee_id', $workSession->employee_id)
+            //->where('employee_id', $workSession->employee_id)
             ->get();
 
         foreach ($productOrders as $productOrder) {
