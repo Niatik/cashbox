@@ -31,9 +31,9 @@ class ProductOrderResource extends Resource
 
     protected static ?string $label = '';
 
-    protected static ?string $pluralLabel = 'Продажи';
+    protected static ?string $pluralLabel = 'Товары';
 
-    protected static ?string $navigationLabel = 'Продажи товаров';
+    protected static ?string $navigationLabel = 'Товары';
 
     public static function form(Form $form): Form
     {
