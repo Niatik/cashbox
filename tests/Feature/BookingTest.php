@@ -347,3 +347,56 @@ it('does not change payment attributes when booking date is updated', function (
     // Очищаем фиксированное время
     Carbon::setTestNow();
 });
+
+it('changes payment type when is_cash is toggled on the booking price item', function () {
+    $bookingPriceItem = PriceItem::factory()->create();
+
+    $bookingDate = now(tz: 'Etc/GMT-5');
+    $bookingTime = $bookingDate->format('H:i:s');
+
+    $booking = Booking::factory()->create([
+        'booking_date' => $bookingDate,
+        'booking_price_items' => [
+            [
+                'booking_time' => $bookingTime,
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 2000,
+                'people_item' => 2,
+                'is_cash' => false,
+            ],
+        ],
+        'sum' => 0,
+        'prepayment' => 2000,
+        'employee_id' => Employee::factory(),
+        'customer_id' => Customer::factory(),
+        'is_draft' => false,
+    ]);
+
+    assertDatabaseHas('payments', [
+        'payment_cash_amount' => 0,
+        'payment_cashless_amount' => 200000,
+    ]);
+
+    $booking->update([
+        'booking_price_items' => [
+            [
+                'booking_time' => $bookingTime,
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 2000,
+                'people_item' => 2,
+                'is_cash' => true,
+            ],
+        ],
+    ]);
+
+    assertDatabaseHas('payments', [
+        'payment_cash_amount' => 200000,
+        'payment_cashless_amount' => 0,
+    ]);
+});

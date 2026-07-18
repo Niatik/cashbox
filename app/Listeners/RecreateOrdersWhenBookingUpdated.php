@@ -145,11 +145,13 @@ class RecreateOrdersWhenBookingUpdated
             $savedPayment = $savedPayments->firstWhere('price_id', $price_id);
 
             if ($savedPayment && $prepayment > 0) {
+                $savedAmount = $savedPayment['payment_cash_amount'] + $savedPayment['payment_cashless_amount'];
+
                 $order->payments()->create([
                     'payment_date' => $savedPayment['payment_date'],
                     'payment_time' => $savedPayment['payment_time'],
-                    'payment_cash_amount' => $savedPayment['payment_cash_amount'],
-                    'payment_cashless_amount' => $savedPayment['payment_cashless_amount'],
+                    'payment_cash_amount' => $isCash ? $savedAmount : 0,
+                    'payment_cashless_amount' => $isCash ? 0 : $savedAmount,
                 ]);
             }
         }
