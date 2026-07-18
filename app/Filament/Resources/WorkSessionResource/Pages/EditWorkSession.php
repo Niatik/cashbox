@@ -87,7 +87,7 @@ class EditWorkSession extends EditRecord
                                     ->label('Сумма')
                                     ->required()
                                     ->numeric()
-                                    ->live(),
+                                    ->live(debounce: 1000),
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
@@ -110,7 +110,7 @@ class EditWorkSession extends EditRecord
                                     ->required()
                                     ->numeric()
                                     ->disabled(fn (): bool => $this->record->salaryWorkSessions()->exists())
-                                    ->live(),
+                                    ->live(debounce: 1000),
                             ])
                             ->addable(fn (): bool => ! $this->record->salaryWorkSessions()->exists())
                             ->deletable(fn (): bool => ! $this->record->salaryWorkSessions()->exists())
@@ -176,7 +176,7 @@ class EditWorkSession extends EditRecord
                                     ->default(0)
                                     ->disabled()
                                     ->dehydrated()
-                                    ->live()
+                                    ->live(debounce: 1000)
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
                                         $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float) ($get('balance') ?? 0));
                                     })
@@ -207,7 +207,7 @@ class EditWorkSession extends EditRecord
                                     ->default(0)
                                     ->disabled()
                                     ->dehydrated()
-                                    ->live()
+                                    ->live(debounce: 1000)
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set): void {
                                         $set('salary_total', (float) ($get('balance_salary') ?? 0) + (float) ($get('income_total') ?? 0) - (float) ($get('expense_total') ?? 0) + (float) ($get('bonus') ?? 0));
                                     })
@@ -218,6 +218,7 @@ class EditWorkSession extends EditRecord
                                     }),
                                 Forms\Components\TextInput::make('bonus')
                                     ->label('Бонус')
+                                    ->live(debounce: 1000)
                                     ->numeric()
                                     ->default(0)
                                     ->disabled()

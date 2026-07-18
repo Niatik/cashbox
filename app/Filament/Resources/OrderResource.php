@@ -312,7 +312,7 @@ class OrderResource extends Resource
         return TextInput::make('payment_cash_amount')
             ->default('')
             ->numeric()
-            ->live(debounce: 500)
+            ->live(debounce: 1000)
             ->label('Наличные')
             ->extraInputAttributes([
                 'x-data' => '{
@@ -377,7 +377,7 @@ class OrderResource extends Resource
         return TextInput::make('payment_cashless_amount')
             ->default('')
             ->numeric()
-            ->live(debounce: 500)
+            ->live(debounce: 1000)
             ->label('Безналичные')
             ->extraInputAttributes([
                 'x-data' => '{
