@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Exists;
 
 class BookingResource extends Resource
 {
@@ -190,6 +191,9 @@ class BookingResource extends Resource
             ->preload()
             ->live(debounce: 1000)
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                $set('price_item_id', null);
+                $set('name_item', '');
+                $set('people_item', 1);
                 self::calcSum($get, $set);
             })
             ->required();
@@ -202,7 +206,7 @@ class BookingResource extends Resource
             ->default('');
     }
 
-    public static function getPeopleItemFormField(): HIdden
+    public static function getPeopleItemFormField(): Hidden
     {
         return Hidden::make('people_item')
             ->default(1);
@@ -212,6 +216,14 @@ class BookingResource extends Resource
     {
         return Select::make('price_item_id')
             ->required()
+            ->exists(
+                table: PriceItem::class,
+                column: 'id',
+                modifyRuleUsing: fn (Exists $rule, Get $get): Exists => $rule->where('price_id', $get('price_id')),
+            )
+            ->validationMessages([
+                'exists' => 'Выбранный вариант не относится к выбранной услуге.',
+            ])
             ->label(function (Select $component, Set $set): string {
                 $currentOption = $component->getOptionLabel() ?? 'Время услуги';
                 $peopleItem = 1;
@@ -221,7 +233,7 @@ class BookingResource extends Resource
                     $currentOption = 'Количество человек';
                 }
                 $currentOption = ($currentOption == 'Количество человек') ? 'Количество человек' : 'Время услуги';
-                //$set('name_item', $currentOption);
+                // $set('name_item', $currentOption);
                 $set('people_item', $peopleItem);
 
                 return $currentOption;
@@ -358,14 +370,14 @@ class BookingResource extends Resource
                     ->limit(27)
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('name_item')
+                TextColumn::make('name_item')
                     ->label('Время')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('people_number')
+                TextColumn::make('people_number')
                     ->numeric()
                     ->label('Люди')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('booking_sum')
+                TextColumn::make('booking_sum')
                     ->numeric()
                     ->label('Сумма')
                     ->sortable()

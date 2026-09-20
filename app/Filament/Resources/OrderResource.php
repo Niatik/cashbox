@@ -25,6 +25,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rules\Exists;
 
 class OrderResource extends Resource
 {
@@ -141,8 +142,13 @@ class OrderResource extends Resource
                 self::getPrice($state, $set);
             })
             ->afterStateUpdated(function (?int $state, Get $get, Set $set) {
+                $set('price_item_id', null);
+                $set('price_factor', 0);
+                $set('name_item', '');
+                $set('people_item', 1);
+                $set('sum', 0);
+                $set('net_sum', 0);
                 self::getPrice($state, $set);
-                self::calcSum(null, $get, $set);
             })
             ->required();
     }
@@ -151,7 +157,19 @@ class OrderResource extends Resource
     {
         return Select::make('price_item_id')
             ->required()
+            ->exists(
+                table: PriceItem::class,
+                column: 'id',
+                modifyRuleUsing: fn (Exists $rule, Get $get): Exists => $rule->where('price_id', $get('price_id')),
+            )
+            ->validationMessages([
+                'exists' => 'Выбранный вариант не относится к выбранной услуге.',
+            ])
             ->label(function (Select $component, Set $set): string {
+                if (! $component->getState()) {
+                    return 'Время услуги';
+                }
+
                 $currentOption = $component->getOptionLabel() ?? 'Время услуги';
                 $peopleItem = 1;
 

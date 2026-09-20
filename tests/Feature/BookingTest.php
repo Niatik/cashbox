@@ -91,6 +91,60 @@ it('can validate input to create the Booking', function () {
         ]);
 });
 
+it('clears the price item state when the selected booking service changes', function () {
+    $originalPriceItem = PriceItem::factory()->create(['factor' => 2]);
+    $replacementPriceItem = PriceItem::factory()->create(['factor' => 3]);
+
+    livewire(BookingResource\Pages\CreateBooking::class)
+        ->fillForm([
+            'booking_price_items' => [
+                [
+                    'booking_time' => now()->format('H:i'),
+                    'price_id' => $originalPriceItem->price_id,
+                    'price_item_id' => $originalPriceItem->id,
+                    'people_number' => 1,
+                    'name_item' => $originalPriceItem->name_item,
+                    'people_item' => 2,
+                ],
+            ],
+        ])
+        ->set('data.booking_price_items.0.price_id', $replacementPriceItem->price_id)
+        ->assertFormSet([
+            'booking_price_items.0.price_item_id' => null,
+            'booking_price_items.0.name_item' => '',
+            'booking_price_items.0.people_item' => 1,
+            'sum' => 0,
+            'remaining' => 0,
+        ]);
+});
+
+it('does not create a booking or order with a price item from another service', function () {
+    $selectedPriceItem = PriceItem::factory()->create();
+    $foreignPriceItem = PriceItem::factory()->create();
+
+    livewire(BookingResource\Pages\CreateBooking::class)
+        ->fillForm([
+            'booking_date' => now()->format('Y-m-d'),
+            'booking_price_items' => [
+                [
+                    'booking_time' => now()->format('H:i'),
+                    'price_id' => $selectedPriceItem->price_id,
+                    'price_item_id' => $foreignPriceItem->id,
+                    'people_number' => 1,
+                    'name_item' => $foreignPriceItem->name_item,
+                    'people_item' => 1,
+                ],
+            ],
+        ])
+        ->call('create')
+        ->assertHasFormErrors([
+            'booking_price_items.0.price_item_id' => 'exists',
+        ]);
+
+    expect(Booking::query()->count())->toBe(0)
+        ->and(Order::query()->count())->toBe(0);
+});
+
 it('can render page for editing the Booking ', function () {
     Event::fake();
     Model::unsetEventDispatcher();

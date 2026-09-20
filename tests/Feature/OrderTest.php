@@ -3,6 +3,8 @@
 use App\Filament\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PriceItem;
+use App\Models\SocialMedia;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
@@ -84,6 +86,52 @@ it('can validate input to create the Order', function () {
             'social_media_id' => 'required',
             'people_number' => 'required',
         ]);
+});
+
+it('clears the price item state when the selected service changes', function () {
+    $originalPriceItem = PriceItem::factory()->create(['factor' => 2]);
+    $replacementPriceItem = PriceItem::factory()->create(['factor' => 3]);
+
+    livewire(OrderResource\Pages\CreateOrder::class)
+        ->fillForm([
+            'price_id' => $originalPriceItem->price_id,
+            'price_item_id' => $originalPriceItem->id,
+            'price_factor' => $originalPriceItem->factor,
+            'name_item' => $originalPriceItem->name_item,
+            'people_item' => 2,
+            'sum' => 200,
+            'net_sum' => 200,
+        ])
+        ->set('data.price_id', $replacementPriceItem->price_id)
+        ->assertFormSet([
+            'price_item_id' => null,
+            'price_factor' => 0,
+            'name_item' => '',
+            'people_item' => 1,
+            'sum' => 0,
+            'net_sum' => 0,
+        ]);
+});
+
+it('does not create an order or payment with a price item from another service', function () {
+    $selectedPriceItem = PriceItem::factory()->create();
+    $foreignPriceItem = PriceItem::factory()->create();
+    $socialMedia = SocialMedia::factory()->create();
+
+    livewire(OrderResource\Pages\CreateOrder::class)
+        ->fillForm([
+            'price_id' => $selectedPriceItem->price_id,
+            'price_item_id' => $foreignPriceItem->id,
+            'social_media_id' => $socialMedia->id,
+            'people_number' => 1,
+        ])
+        ->call('create')
+        ->assertHasFormErrors([
+            'price_item_id' => 'exists',
+        ]);
+
+    expect(Order::query()->count())->toBe(0)
+        ->and(Payment::query()->count())->toBe(0);
 });
 
 it('can create Order without payments', function () {
