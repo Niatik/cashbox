@@ -40,8 +40,8 @@ class CreateOrdersWhenBookingCreated
             $price_item_id = $price['price_item_id'];
             $people_number = $price['people_number'] ?? null;
             $people_item = $price['people_item'];
-            $prepayment = $price['prepayment_price_item'];
-            $isCash = $price['is_cash'];
+            $prepayment = $price['prepayment_price_item'] ?? 0;
+            $isCash = (bool) ($price['is_cash'] ?? false);
             $price = Price::find($price_id)->price;
             $factor = PriceItem::find($price_item_id)->factor;
 

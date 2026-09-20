@@ -17,9 +17,10 @@ class CreatePaymentForOrderPrepayment
     public function handle(OrderCreated $event): void
     {
         $order = $event->order;
-        $options = $order->options;
-        $amount = $options['prepayment'];
-        $isCash = $options['is_cash'];
+        $options = $order->options ?? [];
+        $amount = floatval($options['prepayment'] ?? 0);
+        $isCash = (bool) ($options['is_cash'] ?? false);
+
         if ($amount > 0) {
             $order->payments()->create([
                 'payment_date' => now()->timezone('Etc/GMT-5')->format('Y-m-d'),

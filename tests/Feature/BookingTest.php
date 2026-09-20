@@ -2,6 +2,7 @@
 
 use App\Filament\Resources\BookingResource;
 use App\Models\Booking;
+use App\Models\CashReport;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Order;
@@ -348,7 +349,241 @@ it('does not change payment attributes when booking date is updated', function (
     Carbon::setTestNow();
 });
 
-it('changes payment type when is_cash is toggled on the booking price item', function () {
+it('creates prepayment payment when draft booking with prepayment is published', function () {
+    $bookingPriceItem = PriceItem::factory()->create();
+
+    $booking = Booking::factory()->draft()->create([
+        'booking_date' => now(tz: 'Etc/GMT-5'),
+        'booking_price_items' => [
+            [
+                'booking_time' => now(tz: 'Etc/GMT-5')->format('H:i:s'),
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 3000,
+                'people_item' => 2,
+                'is_cash' => false,
+            ],
+        ],
+        'sum' => 0,
+        'prepayment' => 3000,
+        'employee_id' => Employee::factory(),
+        'customer_id' => Customer::factory(),
+    ]);
+
+    expect(Order::where('booking_id', $booking->id)->count())->toBe(0);
+    expect(Payment::count())->toBe(0);
+
+    $booking->update(['is_draft' => false]);
+
+    $order = Order::where('booking_id', $booking->id)->first();
+
+    expect($order)->not->toBeNull()
+        ->and($order->options['prepayment'])->toEqual(3000);
+
+    assertDatabaseHas('payments', [
+        'payable_type' => Order::class,
+        'payable_id' => $order->id,
+        'payment_cash_amount' => 0,
+        'payment_cashless_amount' => 300000,
+    ]);
+
+    assertDatabaseHas('cash_reports', [
+        'date' => now(tz: 'Etc/GMT-5')->format('Y-m-d'),
+        'cashless_income' => 300000,
+    ]);
+});
+
+it('creates prepayment payment when prepayment is added to a published booking', function () {
+    $bookingPriceItem = PriceItem::factory()->create();
+    $bookingTime = now(tz: 'Etc/GMT-5')->format('H:i:s');
+
+    $booking = Booking::factory()->create([
+        'booking_date' => now(tz: 'Etc/GMT-5'),
+        'booking_price_items' => [
+            [
+                'booking_time' => $bookingTime,
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 0,
+                'people_item' => 2,
+                'is_cash' => true,
+            ],
+        ],
+        'sum' => 0,
+        'prepayment' => 0,
+        'employee_id' => Employee::factory(),
+        'customer_id' => Customer::factory(),
+        'is_draft' => false,
+    ]);
+
+    expect(Payment::whereHasMorph('payable', [Order::class], function ($query) use ($booking) {
+        $query->where('booking_id', $booking->id);
+    })->count())->toBe(0);
+
+    $booking->update([
+        'prepayment' => 1500,
+        'booking_price_items' => [
+            [
+                'booking_time' => $bookingTime,
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 1500,
+                'people_item' => 2,
+                'is_cash' => true,
+            ],
+        ],
+    ]);
+
+    assertDatabaseHas('payments', [
+        'payment_cash_amount' => 150000,
+        'payment_cashless_amount' => 0,
+    ]);
+
+    assertDatabaseHas('cash_reports', [
+        'date' => now(tz: 'Etc/GMT-5')->format('Y-m-d'),
+        'cash_income' => 150000,
+    ]);
+});
+
+it('restores all payments when booking is updated', function () {
+    $bookingPriceItem = PriceItem::factory()->create();
+    $bookingTime = now(tz: 'Etc/GMT-5')->format('H:i:s');
+
+    $booking = Booking::factory()->create([
+        'booking_date' => now(tz: 'Etc/GMT-5'),
+        'booking_price_items' => [
+            [
+                'booking_time' => $bookingTime,
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 2000,
+                'people_item' => 2,
+                'is_cash' => false,
+            ],
+        ],
+        'sum' => 0,
+        'prepayment' => 2000,
+        'employee_id' => Employee::factory(),
+        'customer_id' => Customer::factory(),
+        'is_draft' => false,
+    ]);
+
+    $order = Order::where('booking_id', $booking->id)->first();
+    $order->payments()->create([
+        'payment_date' => now(tz: 'Etc/GMT-5')->format('Y-m-d'),
+        'payment_time' => now(tz: 'Etc/GMT-5')->format('H:i:s'),
+        'payment_cash_amount' => 0,
+        'payment_cashless_amount' => 5000,
+    ]);
+
+    expect($order->payments()->count())->toBe(2);
+
+    $booking->update([
+        'booking_date' => now(tz: 'Etc/GMT-5')->addDay(),
+    ]);
+
+    $order = Order::where('booking_id', $booking->id)->first();
+
+    expect($order->payments()->count())->toBe(2);
+    expect($order->payments->sum(fn ($payment) => $payment->payment_cash_amount + $payment->payment_cashless_amount))->toEqual(7000.0);
+});
+
+it('preserves payments and cash reports when a booking service is replaced', function () {
+    $bookingPriceItem = PriceItem::factory()->create();
+    $replacementPriceItem = PriceItem::factory()->create();
+    $bookingDate = now(tz: 'Etc/GMT-5');
+    $bookingTime = $bookingDate->format('H:i:s');
+
+    $booking = Booking::factory()->create([
+        'booking_date' => $bookingDate,
+        'booking_price_items' => [
+            [
+                'booking_time' => $bookingTime,
+                'price_id' => $bookingPriceItem->price->id,
+                'price_item_id' => $bookingPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $bookingPriceItem->name_item,
+                'prepayment_price_item' => 2000,
+                'people_item' => 2,
+                'is_cash' => true,
+            ],
+        ],
+        'sum' => 0,
+        'prepayment' => 2000,
+        'employee_id' => Employee::factory(),
+        'customer_id' => Customer::factory(),
+        'is_draft' => false,
+    ]);
+
+    $oldOrder = Order::where('booking_id', $booking->id)->firstOrFail();
+    $oldOrder->payments()->create([
+        'payment_date' => $bookingDate->format('Y-m-d'),
+        'payment_time' => $bookingTime,
+        'payment_cash_amount' => 3000,
+        'payment_cashless_amount' => 1000,
+    ]);
+
+    $originalPayments = $oldOrder->payments()
+        ->orderBy('id')
+        ->get()
+        ->map(fn (Payment $payment): array => [
+            'id' => $payment->id,
+            'payment_date' => $payment->payment_date->format('Y-m-d'),
+            'payment_time' => $payment->payment_time->format('H:i:s'),
+            'payment_cash_amount' => $payment->payment_cash_amount,
+            'payment_cashless_amount' => $payment->payment_cashless_amount,
+        ]);
+    $cashReport = CashReport::whereDate('date', $bookingDate)->firstOrFail();
+    $followingCashReport = CashReport::whereDate('date', $bookingDate->copy()->addDay())->firstOrFail();
+    $cashIncome = $cashReport->cash_income;
+    $cashlessIncome = $cashReport->cashless_income;
+    $morningCashBalance = $followingCashReport->morning_cash_balance;
+
+    $booking->update([
+        'booking_price_items' => [
+            [
+                'booking_time' => $bookingTime,
+                'price_id' => $replacementPriceItem->price->id,
+                'price_item_id' => $replacementPriceItem->id,
+                'people_number' => 1,
+                'name_item' => $replacementPriceItem->name_item,
+                'prepayment_price_item' => 2000,
+                'people_item' => 2,
+                'is_cash' => true,
+            ],
+        ],
+    ]);
+
+    $replacementOrder = Order::where('booking_id', $booking->id)->firstOrFail();
+    $replacementPayments = $replacementOrder->payments()
+        ->orderBy('id')
+        ->get()
+        ->map(fn (Payment $payment): array => [
+            'id' => $payment->id,
+            'payment_date' => $payment->payment_date->format('Y-m-d'),
+            'payment_time' => $payment->payment_time->format('H:i:s'),
+            'payment_cash_amount' => $payment->payment_cash_amount,
+            'payment_cashless_amount' => $payment->payment_cashless_amount,
+        ]);
+
+    expect($replacementOrder)
+        ->price_id->toBe($replacementPriceItem->price->id)
+        ->price_item_id->toBe($replacementPriceItem->id)
+        ->and($replacementPayments->all())->toEqual($originalPayments->all())
+        ->and($cashReport->refresh()->cash_income)->toBe($cashIncome)
+        ->and($cashReport->cashless_income)->toBe($cashlessIncome)
+        ->and($followingCashReport->refresh()->morning_cash_balance)->toBe($morningCashBalance);
+});
+
+it('preserves payment type when is_cash is toggled on the booking price item', function () {
     $bookingPriceItem = PriceItem::factory()->create();
 
     $bookingDate = now(tz: 'Etc/GMT-5');
@@ -396,7 +631,7 @@ it('changes payment type when is_cash is toggled on the booking price item', fun
     ]);
 
     assertDatabaseHas('payments', [
-        'payment_cash_amount' => 200000,
-        'payment_cashless_amount' => 0,
+        'payment_cash_amount' => 0,
+        'payment_cashless_amount' => 200000,
     ]);
 });

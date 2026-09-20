@@ -41,9 +41,16 @@ class RecreateOrdersWhenBookingUpdated
         // Draft is published OR published is updated - recreate orders
         try {
             DB::beginTransaction();
-            $savedPayments = $this->saveAndDeleteOrdersAndPayments($booking);
+            $oldOrders = Order::query()
+                ->with('payments')
+                ->where('booking_id', $booking->id)
+                ->orderBy('id')
+                ->get();
+            $newOrders = $this->createOrders($booking);
 
-            $this->createOrders($booking, $savedPayments);
+            $this->reassignPayments($oldOrders, $newOrders);
+            $this->createPrepaymentsForOrdersWithoutPayments($newOrders);
+            $oldOrders->each->delete();
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -63,35 +70,73 @@ class RecreateOrdersWhenBookingUpdated
         }
     }
 
-    private function saveAndDeleteOrdersAndPayments($booking): Collection
+    private function reassignPayments(Collection $oldOrders, Collection $newOrders): void
     {
-        $savedPayments = collect();
-        $orders = Order::where('booking_id', $booking->id)->get();
+        $remainingOldOrders = $oldOrders->values();
+        $remainingNewOrders = $newOrders->values();
 
-        foreach ($orders as $order) {
-            $order->payments->each(function ($payment) use ($order, &$savedPayments) {
-                // Сохраняем данные платежа с привязкой к price_id
-                $savedPayments->push([
-                    'price_id' => $order->price_id,
-                    'payment_date' => $payment->payment_date,
-                    'payment_time' => $payment->payment_time,
-                    'payment_cash_amount' => $payment->payment_cash_amount,
-                    'payment_cashless_amount' => $payment->payment_cashless_amount,
-                ]);
-                $payment->delete();
-            });
-            $order->delete();
+        foreach ($oldOrders as $oldOrder) {
+            $newOrder = $remainingNewOrders->first(fn (Order $newOrder): bool => $newOrder->price_id === $oldOrder->price_id
+                && $newOrder->price_item_id === $oldOrder->price_item_id);
+
+            if (! $newOrder) {
+                continue;
+            }
+
+            $this->movePayments($oldOrder, $newOrder);
+            $remainingOldOrders = $remainingOldOrders->reject(fn (Order $order): bool => $order->is($oldOrder))->values();
+            $remainingNewOrders = $remainingNewOrders->reject(fn (Order $order): bool => $order->is($newOrder))->values();
         }
 
-        return $savedPayments;
+        foreach ($remainingOldOrders as $index => $oldOrder) {
+            $newOrder = $remainingNewOrders->get($index);
+
+            if ($newOrder) {
+                $this->movePayments($oldOrder, $newOrder);
+            }
+        }
     }
 
-    private function createOrders($booking, Collection $savedPayments): void
+    private function movePayments(Order $oldOrder, Order $newOrder): void
+    {
+        $oldOrder->payments->each(function ($payment) use ($newOrder): void {
+            $payment->payable()->associate($newOrder);
+
+            if ($payment->order_id !== null) {
+                $payment->order_id = $newOrder->id;
+            }
+
+            $payment->save();
+        });
+    }
+
+    private function createPrepaymentsForOrdersWithoutPayments(Collection $orders): void
+    {
+        $orders->each(function (Order $order): void {
+            $prepayment = $order->options['prepayment'] ?? 0;
+
+            if ($prepayment <= 0 || $order->payments()->exists()) {
+                return;
+            }
+
+            $isCash = (bool) ($order->options['is_cash'] ?? false);
+
+            $order->payments()->create([
+                'payment_date' => now()->timezone('Etc/GMT-5')->format('Y-m-d'),
+                'payment_time' => now()->timezone('Etc/GMT-5')->format('H:i:s'),
+                'payment_cash_amount' => $isCash ? $prepayment : 0,
+                'payment_cashless_amount' => $isCash ? 0 : $prepayment,
+            ]);
+        });
+    }
+
+    private function createOrders($booking): Collection
     {
         $bookingDate = $booking->booking_date;
         $customer = $booking->customer_id;
         $employee = $booking->employee_id;
         $prices = $booking->booking_price_items;
+        $orders = collect();
 
         foreach ($prices as $price) {
             $bookingTime = $price['booking_time'];
@@ -99,10 +144,10 @@ class RecreateOrdersWhenBookingUpdated
             $price_item_id = $price['price_item_id'];
             $people_number = $price['people_number'] ?? 0;
             $people_item = $price['people_item'];
-            $prepayment = $price['prepayment_price_item'];
-            $isCash = $price['is_cash'];
+            $prepayment = $price['prepayment_price_item'] ?? 0;
+            $isCash = (bool) ($price['is_cash'] ?? false);
 
-            $price = Price::find($price_id)->price;
+            $priceValue = Price::find($price_id)->price;
             $factor = PriceItem::find($price_item_id)->factor;
 
             $people_calc = intval($people_number);
@@ -115,7 +160,7 @@ class RecreateOrdersWhenBookingUpdated
                 $people_save = $people_item;
             }
 
-            $net_sum = $people_calc * $factor * $price;
+            $net_sum = $people_calc * $factor * $priceValue;
             $sum = $net_sum - $prepayment;
 
             $order = Order::withoutEvents(function () use ($bookingDate, $bookingTime, $price_id, $price_item_id, $people_save, $sum, $net_sum, $employee, $customer, $prepayment, $isCash, $booking) {
@@ -138,22 +183,9 @@ class RecreateOrdersWhenBookingUpdated
                     'booking_id' => $booking->id,
                 ]);
             });
-
-            $order->payments()->delete();
-
-            // Восстанавливаем платеж со старыми атрибутами, если он был
-            $savedPayment = $savedPayments->firstWhere('price_id', $price_id);
-
-            if ($savedPayment && $prepayment > 0) {
-                $savedAmount = $savedPayment['payment_cash_amount'] + $savedPayment['payment_cashless_amount'];
-
-                $order->payments()->create([
-                    'payment_date' => $savedPayment['payment_date'],
-                    'payment_time' => $savedPayment['payment_time'],
-                    'payment_cash_amount' => $isCash ? $savedAmount : 0,
-                    'payment_cashless_amount' => $isCash ? 0 : $savedAmount,
-                ]);
-            }
+            $orders->push($order);
         }
+
+        return $orders;
     }
 }
